@@ -1,0 +1,28 @@
+@if (state(); as state) {
+  @switch (state.status) {
+    @case ('loading') {
+      <div class="loading-state" role="status" aria-live="polite">
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="24"
+          aria-label="Loading"
+        />
+        <span>Loading...</span>
+      </div>
+    }
+    @case ('loaded') {
+      <app-list-grid
+        [metadata]="state.listMetadata"
+        [rows]="state.data.items"
+      />
+    }
+    @case ('error') {
+      <mat-card appearance="outlined" class="error-card" role="alert">
+        <mat-card-content>
+          <mat-icon aria-hidden="true" class="error-icon">error_outline</mat-icon>
+          <span>{{ state.message }}</span>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+}

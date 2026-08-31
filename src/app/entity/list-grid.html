@@ -1,0 +1,41 @@
+<div class="grid-layout">
+  <table mat-table [dataSource]="rows()">
+
+    <colgroup>
+      @for (column of metadata().columns; track column.field) {
+        <col [style.width.px]="column.sizeType === 'width' ? column.size : null">
+      }
+    </colgroup>
+
+    @for (item of columns(); track item.column.field) {
+      <ng-container [matColumnDef]="item.column.field">
+
+        <th mat-header-cell *matHeaderCellDef>
+          {{ fieldLabel(item.column.field) }}
+        </th>
+
+        <td mat-cell *matCellDef="let row">
+        @if (item.field) {
+          <app-list-grid-cell
+            [field]="item.field"
+            [column]="item.column"
+            [value]="row[item.column.field]"
+          />
+        }
+        </td>
+
+      </ng-container>
+    }
+
+    <tr
+      mat-header-row
+      *matHeaderRowDef="displayedColumns()">
+    </tr>
+
+    <tr
+      mat-row
+      *matRowDef="let row; columns: displayedColumns()">
+    </tr>
+
+  </table>
+</div>

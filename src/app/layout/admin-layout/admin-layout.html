@@ -1,0 +1,51 @@
+<mat-toolbar>
+  @if (isMobile()) {
+    <button
+      mat-icon-button
+      class="mobile-menu-button"
+      aria-label="Открыть меню"
+      (click)="sidenav.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+  }
+
+  <span>AdminMesh</span>
+
+  <span class="toolbar-spacer"></span>
+
+  <button mat-icon-button>
+    <mat-icon>dark_mode</mat-icon>
+  </button>
+</mat-toolbar>
+
+  <div class="content-header">
+    <button
+      mat-button
+      [routerLink]="['/']"
+      (click)="navigationState.clear()">
+      <mat-icon>home</mat-icon>
+      Home
+    </button>
+
+    @if (navigationState.selected(); as selected) {
+      <mat-icon class="separator">chevron_right</mat-icon>
+      <span>{{ selected.section.title }}</span>
+      <mat-icon class="separator">chevron_right</mat-icon>
+      <strong>{{ selected.node.title }}</strong>
+    }
+  </div>
+  
+<mat-sidenav-container class="layout">
+  <mat-sidenav
+    #sidenav
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="!isMobile()">
+    <app-navigation></app-navigation>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+
+
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,0 +1,48 @@
+<div class="home">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Search nodes</mat-label>
+
+    <input
+      matInput
+      type="text"
+      [value]="search()"
+      (input)="search.set($any($event.target).value)"
+      placeholder="Search by section or node name"
+    />
+
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  @if (search()) {
+    <mat-nav-list>
+      @for (result of results(); track result.node.id) {
+        <a
+          mat-list-item
+          [routerLink]="['/node', result.section.id, result.node.id]"
+          (click)="state.select(result.section, result.node)"
+        >
+          @if (result.node.icon) {
+            <mat-icon
+              matListItemIcon
+              [style.color]="result.node.icon.color"
+            >
+              {{ result.node.icon.name }}
+            </mat-icon>
+          }
+
+          <span matListItemTitle>
+            {{ result.node.title }}
+          </span>
+
+          <span matListItemLine>
+            {{ result.section.title }}
+          </span>
+        </a>
+      } @empty {
+        <div class="no-results">
+          No matching nodes
+        </div>
+      }
+    </mat-nav-list>
+  }
+</div>

@@ -1,0 +1,6 @@
+---
+context: true
+priority: high
+scope: project
+---
+Read [docs/StdNgAiRules.md](../../docs/StdNgAiRules.md).
