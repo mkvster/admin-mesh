@@ -21,10 +21,10 @@ Display human-readable reference values from the current list projection. Keep f
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Reference metadata remains on the field, while list column metadata uses display.valueField to select the display value returned by the list query.
-- [ ] #2 Mock list handlers return raw reference IDs and display values derived from normalized related-entity data without client-side N+1 lookups.
-- [ ] #3 ListGridCell renders the projection display value with a dedicated future-link CSS class and optional external-link icon, without navigation.
-- [ ] #4 Null, undefined, or empty display values fall back to the raw reference ID; if both are unavailable, the cell remains empty.
+- [x] #1 Reference metadata remains on the field, while list column metadata uses display.valueField to select the display value returned by the list query.
+- [x] #2 Mock list handlers return raw reference IDs and display values derived from normalized related-entity data without client-side N+1 lookups.
+- [x] #3 ListGridCell renders the projection display value with a dedicated future-link CSS class and optional external-link icon, without navigation.
+- [x] #4 Null, undefined, or empty display values fall back to the raw reference ID; if both are unavailable, the cell remains empty.
 <!-- AC:END -->
 
 ## Implementation Plan

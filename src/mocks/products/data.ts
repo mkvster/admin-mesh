@@ -78,5 +78,15 @@ export const products = [
     stock: 58,
     status: 'active',
     enabled: true
+  },
+  {
+    productId: 9,
+    name: 'External SSD 1TB',
+    sku: 'SSD-1000',
+    categoryId: 0,
+    price: 100,
+    stock: 0,
+    status: 'inactive',
+    enabled: false
   }
 ];
