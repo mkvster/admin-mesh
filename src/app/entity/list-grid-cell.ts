@@ -19,6 +19,7 @@ export class ListGridCell {
   readonly field = input.required<ListField>();
   readonly column = input.required<ListColumn>();
   readonly value = input<unknown>();
+  readonly row = input<Record<string, unknown>>({});
 
   protected readonly textValue = computed(() => {
     const value = this.value();
@@ -33,4 +34,38 @@ export class ListGridCell {
       ?.find(item => item.value === value)
       ?.label ?? this.textValue();
   });
+
+  protected readonly referenceValue = computed(() => {
+    const display = this.column().display;
+    const displayValue = display?.type === 'reference'
+      ? this.row()[display.valueField]
+      : undefined;
+
+    return displayValue == null || displayValue === ''
+      ? this.textValue()
+      : String(displayValue);
+  });
+
+  protected readonly hasRenderableValue = computed(() => {
+    if (this.value() != null) {
+      return true;
+    }
+
+    const display = this.column().display;
+    const displayValue = display?.type === 'reference'
+      ? this.row()[display.valueField]
+      : undefined;
+
+    return displayValue != null && displayValue !== '';
+  });
+
+  protected booleanStyle(): 'icon' | 'checkbox' | 'text' | undefined {
+    const display = this.column().display;
+    return display?.type === 'boolean' ? display.style : undefined;
+  }
+
+  protected enumStyle(): 'label' | 'value' | undefined {
+    const display = this.column().display;
+    return display?.type === 'enum' ? display.style : undefined;
+  }
 }

@@ -1,6 +1,7 @@
 import { delay, HttpResponse, http } from 'msw';
 import { ListQuery } from '../../app/entity/entity-types';
 import { invoices } from './data';
+import { customers } from '../customers/data';
 import { applyListQuery } from '../shared/apply-list-query';
 
 export const createInvoiceHandlers = (apiBaseUrl: string) => [
@@ -46,9 +47,14 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
         { name: 'paidAmount', label: 'Paid Amount', type: 'decimal' }
       ],
       columns: [
-        { field: 'invoiceId', sizeType: 'width', size: 80 },
-        { field: 'invoiceNumber', sizeType: 'width', size: 150 },
-        { field: 'customerId', sizeType: 'width', size: 140 },
+        { field: 'invoiceId', sizeType: 'width', size: 50 },
+        { field: 'invoiceNumber', sizeType: 'width', size: 100 },
+        {
+          field: 'customerId',
+          sizeType: 'width',
+          size: 250,
+          display: { type: 'reference', valueField: 'customerDisplayName' }
+        },
         { field: 'issueDate', sizeType: 'width', size: 120 },
         { field: 'dueDate', sizeType: 'width', size: 120 },
         { field: 'status', sizeType: 'width', size: 120, display: { type: 'enum', style: 'label' } },
@@ -60,6 +66,22 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
   http.post(`${apiBaseUrl}/entities/invoices/lists/main/query`, async ({ request }) => {
     await delay(700);
     const query = await request.json() as ListQuery;
-    return HttpResponse.json(applyListQuery(invoices, query));
+    const customerById = new Map(customers.map(customer => [customer.customerId, customer]));
+    const rows = invoices.map(invoice => ({
+      ...invoice,
+      customerDisplayName: formatCustomerDisplayName(
+        customerById.get(invoice.customerId)
+      )
+    }));
+
+    return HttpResponse.json(applyListQuery(rows, query));
   })
 ];
+
+function formatCustomerDisplayName(
+  customer: (typeof customers)[number] | undefined
+): string | undefined {
+  return customer
+    ? `${customer.firstName} ${customer.lastName} (${customer.email})`
+    : undefined;
+}

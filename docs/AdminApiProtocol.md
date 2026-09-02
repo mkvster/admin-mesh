@@ -198,6 +198,20 @@ The resource identifier field does not have to be displayed as a column, but que
 
 A resource may expose additional named lists, for example a compact list used by a reference lookup.
 
+For a reference field displayed in a list, the field keeps its shared `reference` metadata, while the column may define a list-specific display projection:
+
+```json
+{
+  "field": "categoryId",
+  "display": {
+    "type": "reference",
+    "valueField": "categoryName"
+  }
+}
+```
+
+`reference.displayField` identifies the human-readable field on the referenced entity. `column.display.valueField` identifies the field in the current list query result that contains the prepared display value. The query result must include both the raw reference ID and this projection field. If the projection value is unavailable, the client falls back to the raw ID.
+
 ---
 
 ## 2.2 Form Metadata
