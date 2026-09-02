@@ -4,10 +4,11 @@ title: ListGrid - Add enum filtering
 status: To Do
 assignee: []
 created_date: '2026-09-02 13:23'
-updated_date: '2026-09-02 13:24'
+updated_date: '2026-09-02 13:50'
 labels: []
 milestone: s-001
 dependencies: []
+priority: medium
 ---
 
 ## Description

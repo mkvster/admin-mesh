@@ -4,10 +4,11 @@ title: ListGrid - Display reference fields using human-readable values
 status: To Do
 assignee: []
 created_date: '2026-09-02 12:42'
-updated_date: '2026-09-02 12:47'
+updated_date: '2026-09-02 13:49'
 labels: []
 milestone: s-001
 dependencies: []
+priority: high
 ---
 
 ## Description
