@@ -23,6 +23,11 @@ export interface ListField {
   label: string;
   type: string;
   values?: { value: string | number; label: string }[];
+  reference?: {
+    resource: string;
+    listId: string;
+    displayField: string;
+  };
 }
 
 export type ListColumnDisplay =
@@ -33,6 +38,10 @@ export type ListColumnDisplay =
   | {
       type: 'enum';
       style: 'label' | 'value';
+    }
+  | {
+      type: 'reference';
+      valueField: string;
     };
 
 export interface ListColumn {

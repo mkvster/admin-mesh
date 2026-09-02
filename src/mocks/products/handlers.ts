@@ -1,6 +1,7 @@
 import { delay, HttpResponse, http } from 'msw';
 import { ListQuery } from '../../app/entity/entity-types';
 import { products } from './data';
+import { categories } from '../categories/data';
 import { applyListQuery } from '../shared/apply-list-query';
 
 export const createProductHandlers = (apiBaseUrl: string) => [
@@ -43,9 +44,14 @@ export const createProductHandlers = (apiBaseUrl: string) => [
           type: 'string'
         },
         {
-          name: 'category',
+          name: 'categoryId',
           label: 'Category',
-          type: 'string'
+          type: 'reference',
+          reference: {
+            resource: 'categories',
+            listId: 'main',
+            displayField: 'name'
+          }
         },
         {
           name: 'price',
@@ -67,7 +73,12 @@ export const createProductHandlers = (apiBaseUrl: string) => [
         { field: 'productId', sizeType: 'width', size: 80 },
         { field: 'name', sizeType: 'flex', size: 1 },
         { field: 'sku', sizeType: 'width', size: 120 },
-        { field: 'category', sizeType: 'width', size: 140 },
+        {
+          field: 'categoryId',
+          sizeType: 'width',
+          size: 140,
+          display: { type: 'reference', valueField: 'categoryName' }
+        },
         {
           field: 'price',
           sizeType: 'width',
@@ -94,6 +105,12 @@ export const createProductHandlers = (apiBaseUrl: string) => [
     await delay(700);
 
     const query = await request.json() as ListQuery;
-    return HttpResponse.json(applyListQuery(products, query));
+    const categoryById = new Map(categories.map(category => [category.categoryId, category]));
+    const rows = products.map(product => ({
+      ...product,
+      categoryName: categoryById.get(product.categoryId)?.name
+    }));
+
+    return HttpResponse.json(applyListQuery(rows, query));
   })
 ];

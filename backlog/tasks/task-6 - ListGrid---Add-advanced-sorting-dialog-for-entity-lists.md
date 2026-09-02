@@ -4,10 +4,11 @@ title: ListGrid - Add advanced sorting dialog for entity lists
 status: To Do
 assignee: []
 created_date: '2026-09-02 13:37'
-updated_date: '2026-09-02 13:40'
+updated_date: '2026-09-02 13:49'
 labels: []
 milestone: s-010
 dependencies: []
+priority: low
 ---
 
 ## Description

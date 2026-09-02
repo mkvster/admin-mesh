@@ -1,11 +1,11 @@
-@if (value() != null) {
+@if (hasRenderableValue()) {
 
   @switch (field().type) {
 
     @case ('boolean') {
       @if (column().display?.type === 'boolean') {
 
-        @switch (column().display!.style) {
+        @switch (booleanStyle()) {
 
           @case ('checkbox') {
             <mat-checkbox
@@ -35,13 +35,24 @@
     @case ('enum') {
       @if (
         column().display?.type === 'enum' &&
-        column().display!.style === 'label'
+        enumStyle() === 'label'
       ) {
         <span class="enum-badge">
           {{  enumLabel() }}
         </span>
       } @else {
         {{ textValue()}}
+      }
+    }
+
+    @case ('reference') {
+      @if (column().display?.type === 'reference') {
+        <span class="reference-link">
+          <mat-icon aria-hidden="true">open_in_new</mat-icon>
+          <span>{{ referenceValue() }}</span>
+        </span>
+      } @else {
+        {{ textValue() }}
       }
     }
 
