@@ -14,6 +14,10 @@
       <app-list-grid
         [metadata]="state.listMetadata"
         [rows]="state.data.items"
+        [totalCount]="state.data.totalCount"
+        [page]="state.page"
+        [pageSize]="state.pageSize"
+        (pageChange)="onPageChange($event)"
       />
     }
     @case ('error') {

@@ -4,7 +4,9 @@ import { App } from './app/app';
 import { ADMINMESH_CONFIG, AdminMeshConfig } from './app/config/adminmesh-config';
 import { normalizeBaseUrl } from './app/shared/api-url';
 
-const rawConfig: AdminMeshConfig = (await fetch('adminmesh-config.json').then((response) =>
+const rawConfig: AdminMeshConfig = (await fetch(
+  new URL('adminmesh-config.json', document.baseURI)
+).then((response) =>
   response.json()
 ));
 
@@ -18,7 +20,7 @@ if (config.mockApi) {
 
   await createWorker(config.apiBaseUrl).start({
     serviceWorker: {
-      url: 'mockServiceWorker.js'
+      url: new URL('mockServiceWorker.js', document.baseURI).toString()
     }
   });
 }

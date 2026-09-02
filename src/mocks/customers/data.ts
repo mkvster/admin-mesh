@@ -1,0 +1,202 @@
+export const customers = [
+  {
+    customerId: 1,
+    firstName: 'John',
+    lastName: 'Smith',
+    email: 'john.smith@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 2,
+    firstName: 'Mary',
+    lastName: 'Johnson',
+    email: 'mary.johnson@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 3,
+    firstName: 'Robert',
+    lastName: 'Brown',
+    email: 'robert.brown@example.com',
+    status: 'inactive',
+    enabled: false
+  },
+  {
+    customerId: 4,
+    firstName: 'Emily',
+    lastName: 'Davis',
+    email: 'emily.davis@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 5,
+    firstName: 'Michael',
+    lastName: 'Miller',
+    email: 'michael.miller@example.com',
+    status: 'inactive',
+    enabled: false
+  },
+  {
+    customerId: 6,
+    firstName: 'Sarah',
+    lastName: 'Wilson',
+    email: 'sarah.wilson@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 7,
+    firstName: 'David',
+    lastName: 'Moore',
+    email: 'david.moore@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 8,
+    firstName: 'Jessica',
+    lastName: 'Taylor',
+    email: 'jessica.taylor@example.com',
+    status: 'inactive',
+    enabled: false
+  },
+  {
+    customerId: 9,
+    firstName: 'Daniel',
+    lastName: 'Anderson',
+    email: 'daniel.anderson@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 10,
+    firstName: 'Sophia',
+    lastName: 'Thomas',
+    email: 'sophia.thomas@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 11,
+    firstName: 'Matthew',
+    lastName: 'Jackson',
+    email: 'matthew.jackson@example.com',
+    status: 'inactive',
+    enabled: false
+  },
+  {
+    customerId: 12,
+    firstName: 'Olivia',
+    lastName: 'White',
+    email: 'olivia.white@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 13,
+    firstName: 'James',
+    lastName: 'Harris',
+    email: 'james.harris@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 14,
+    firstName: 'Ava',
+    lastName: 'Martin',
+    email: 'ava.martin@example.com',
+    status: 'inactive',
+    enabled: false
+  },
+  {
+    customerId: 15,
+    firstName: 'Benjamin',
+    lastName: 'Thompson',
+    email: 'benjamin.thompson@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 16,
+    firstName: 'Mia',
+    lastName: 'Garcia',
+    email: 'mia.garcia@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 17,
+    firstName: 'Ethan',
+    lastName: 'Martinez',
+    email: 'ethan.martinez@example.com',
+    status: 'inactive',
+    enabled: false
+  },
+  {
+    customerId: 18,
+    firstName: 'Isabella',
+    lastName: 'Robinson',
+    email: 'isabella.robinson@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 19,
+    firstName: 'Alexander',
+    lastName: 'Clark',
+    email: 'alexander.clark@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 20,
+    firstName: 'Charlotte',
+    lastName: 'Rodriguez',
+    email: 'charlotte.rodriguez@example.com',
+    status: 'inactive',
+    enabled: false
+  },
+  {
+    customerId: 21,
+    firstName: 'Henry',
+    lastName: 'Lewis',
+    email: 'henry.lewis@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 22,
+    firstName: 'Amelia',
+    lastName: 'Lee',
+    email: 'amelia.lee@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 23,
+    firstName: 'William',
+    lastName: 'Walker',
+    email: 'william.walker@example.com',
+    status: 'inactive',
+    enabled: false
+  },
+  {
+    customerId: 24,
+    firstName: 'Harper',
+    lastName: 'Hall',
+    email: 'harper.hall@example.com',
+    status: 'active',
+    enabled: true
+  },
+  {
+    customerId: 25,
+    firstName: 'Lucas',
+    lastName: 'Allen',
+    email: 'lucas.allen@example.com',
+    status: 'active',
+    enabled: true
+  }
+];

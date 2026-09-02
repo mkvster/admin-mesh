@@ -1,0 +1,42 @@
+export const categories = [
+  {
+    categoryId: 1,
+    name: 'Hardware',
+    slug: 'hardware',
+    description: 'Physical devices and equipment',
+    status: 'active',
+    enabled: true
+  },
+  {
+    categoryId: 2,
+    name: 'Accessories',
+    slug: 'accessories',
+    description: 'Add-ons and peripheral devices',
+    status: 'active',
+    enabled: true
+  },
+  {
+    categoryId: 3,
+    name: 'Audio',
+    slug: 'audio',
+    description: 'Sound-related products',
+    status: 'active',
+    enabled: true
+  },
+  {
+    categoryId: 4,
+    name: 'Office',
+    slug: 'office',
+    description: 'Workspace and office equipment',
+    status: 'inactive',
+    enabled: false
+  },
+  {
+    categoryId: 5,
+    name: 'Networking',
+    slug: 'networking',
+    description: 'Connectivity and infrastructure equipment',
+    status: 'active',
+    enabled: true
+  }
+];
