@@ -27,6 +27,36 @@ td {
   white-space: nowrap;
 }
 
+.sort-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0;
+  text-align: left;
+}
+
+.sort-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.sort-indicator {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.1rem;
+}
+
+.sort-priority {
+  font-size: 0.7em;
+  line-height: 1;
+}
+
 th.mat-mdc-header-cell {
   background: var(--mat-sys-surface);
   position: sticky;

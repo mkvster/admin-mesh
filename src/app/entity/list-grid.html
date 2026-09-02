@@ -11,7 +11,23 @@
       <ng-container [matColumnDef]="item.column.field">
 
         <th mat-header-cell *matHeaderCellDef>
-          {{ fieldLabel(item.column.field) }}
+          @if (item.column.disableSorting) {
+            {{ fieldLabel(item.column.field) }}
+          } @else {
+            <button
+              type="button"
+              class="sort-button"
+              [attr.aria-label]="sortLabel(item.column.field)"
+              (click)="onSort(item.column.field, $event)">
+              <span>{{ fieldLabel(item.column.field) }}</span>
+              @if (sortFor(item.column.field); as sortItem) {
+                <span class="sort-indicator" aria-hidden="true">
+                  {{ sortItem.direction === 'asc' ? '↑' : '↓' }}
+                  <span class="sort-priority">{{ sortPriority(item.column.field) }}</span>
+                </span>
+              }
+            </button>
+          }
         </th>
 
         <td mat-cell *matCellDef="let row">

@@ -17,7 +17,9 @@
         [totalCount]="state.data.totalCount"
         [page]="state.page"
         [pageSize]="state.pageSize"
+        [sort]="state.sort"
         (pageChange)="onPageChange($event)"
+        (sortChange)="onSortChange($event)"
       />
     }
     @case ('error') {

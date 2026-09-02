@@ -9,8 +9,8 @@ import { EntityApi } from './entity-api';
 import { EntityMetadataStore } from './entity-metadata-store';
 import { ListMetadataStore } from './list-metadata-store';
 
-import { EntityMetadata, ListMetadata, ListQuery, ListQueryResult } from './entity-types';
-import { ListGrid, ListPageChange } from './list-grid';
+import { EntityMetadata, ListMetadata, ListQuery, ListQueryResult, ListSort } from './entity-types';
+import { ListGrid, ListPageChange, ListSortChange } from './list-grid';
 
 
 type EntityListState =
@@ -23,6 +23,7 @@ type EntityListState =
       data: ListQueryResult;
       page: number;
       pageSize: number;
+      sort: ListSort[];
     }
   | { status: 'error'; message: string };
 
@@ -48,7 +49,7 @@ export class EntityList {
   private readonly entityMetadataStore = inject(EntityMetadataStore);
   private readonly listMetadataStore = inject(ListMetadataStore);
 
-  readonly state = toSignal(
+  readonly state = toSignal<EntityListState, EntityListState>(
     toObservable(this.resource).pipe(
       switchMap(resource =>
         this.loadEntityList(resource).pipe(
@@ -88,7 +89,8 @@ export class EntityList {
                 listMetadata,
                 data,
                 page: query.page,
-                pageSize: query.pageSize
+                pageSize: query.pageSize,
+                sort: query.sort ?? []
               }) as EntityListState)
             )
           )
@@ -109,19 +111,57 @@ export class EntityList {
     });
   }
 
+  protected onSortChange(event: ListSortChange): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: 1,
+        sort: this.serializeSort(event.sort),
+        dir: null
+      },
+      queryParamsHandling: 'merge'
+    });
+  }
+
   private readListQuery(params: ParamMap): ListQuery {
     const page = this.readPositiveInt(params.get('page'), 1);
     const pageSize = this.readPositiveInt(params.get('pageSize'), 25);
-    const sortField = params.get('sort');
-    const sortDirection = params.get('dir');
+    const sort = this.parseSort(params.get('sort'), params.get('dir'));
 
     return {
       page,
       pageSize,
-      ...(sortField && (sortDirection === 'asc' || sortDirection === 'desc')
-        ? { sort: [{ field: sortField, direction: sortDirection }] }
-        : {})
+      ...(sort.length ? { sort } : {})
     };
+  }
+
+  private parseSort(value: string | null, legacyDirection: string | null): ListSort[] {
+    if (!value) {
+      return [];
+    }
+
+    const parsed = value.split(',')
+      .map(part => {
+        const [field, direction] = part.split(':');
+        return field && (direction === 'asc' || direction === 'desc')
+          ? { field, direction }
+          : undefined;
+      })
+      .filter((item): item is ListSort => item !== undefined);
+
+    // Keep links using the previous sort=field&dir=direction format working.
+    if (parsed.length === 0 && legacyDirection &&
+        (legacyDirection === 'asc' || legacyDirection === 'desc')) {
+      return [{ field: value, direction: legacyDirection }];
+    }
+
+    return parsed;
+  }
+
+  private serializeSort(sort: ListSort[]): string | null {
+    return sort.length
+      ? sort.map(item => `${item.field}:${item.direction}`).join(',')
+      : null;
   }
 
   private readPositiveInt(value: string | null, fallback: number): number {

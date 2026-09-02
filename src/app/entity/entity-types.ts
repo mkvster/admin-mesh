@@ -49,13 +49,15 @@ export interface ListMetadata {
   columns: ListColumn[];
 }
 
+export interface ListSort {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
 export interface ListQuery {
   page: number;
   pageSize: number;
-  sort?: {
-    field: string;
-    direction: 'asc' | 'desc';
-  }[];
+  sort?: ListSort[];
 }
 
 export interface ListQueryResult {

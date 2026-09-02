@@ -1,12 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
-import { ListMetadata } from './entity-types';
+import { ListMetadata, ListSort } from './entity-types';
 import { ListGridCell } from './list-grid-cell';
 
 export interface ListPageChange {
   page: number;
   pageSize: number;
+}
+
+export interface ListSortChange {
+  sort: ListSort[];
 }
 
 @Component({
@@ -23,6 +27,8 @@ export class ListGrid {
   readonly page = input(1);
   readonly pageSize = input(25);
   readonly pageChange = output<ListPageChange>();
+  readonly sort = input<ListSort[]>([]);
+  readonly sortChange = output<ListSortChange>();
 
   protected readonly displayedColumns = computed(() =>
     this.metadata().columns.map(column => column.field)
@@ -47,6 +53,56 @@ export class ListGrid {
       ?.label ?? fieldName;
   }
 
+  protected sortFor(field: string): ListSort | undefined {
+    return this.sort().find(item => item.field === field);
+  }
+
+  protected sortPriority(field: string): number | undefined {
+    const index = this.sort().findIndex(item => item.field === field);
+    return index >= 0 ? index + 1 : undefined;
+  }
+
+  protected sortLabel(field: string): string {
+    const item = this.sortFor(field);
+    const priority = this.sortPriority(field);
+
+    return item
+      ? `Sort ${this.fieldLabel(field)}, currently ${item.direction}, priority ${priority}`
+      : `Sort ${this.fieldLabel(field)}`;
+  }
+
+  protected onSort(field: string, event: MouseEvent): void {
+    const column = this.metadata().columns.find(item => item.field === field);
+    if (column?.disableSorting) {
+      return;
+    }
+
+    const current = this.sortFor(field);
+    const nextDirection = current
+      ? current.direction === 'asc' ? 'desc' : undefined
+      : 'asc';
+
+    if (!event.shiftKey) {
+      this.sortChange.emit({
+        sort: nextDirection ? [{ field, direction: nextDirection }] : []
+      });
+      return;
+    }
+
+    const currentIndex = this.sort().findIndex(item => item.field === field);
+    const nextSort = this.sort().filter(item => item.field !== field);
+    if (nextDirection) {
+      const nextItem: ListSort = { field, direction: nextDirection };
+      if (currentIndex >= 0) {
+        nextSort.splice(currentIndex, 0, nextItem);
+      } else {
+        nextSort.push(nextItem);
+      }
+    }
+
+    this.sortChange.emit({ sort: nextSort });
+  }
+
   protected onPageChange(event: PageEvent): void {
     this.pageChange.emit({
       page: event.pageIndex + 1,
@@ -54,25 +110,4 @@ export class ListGrid {
     });
   }
 
-  // protected cellValue(
-  //   row: Record<string, unknown>,
-  //   fieldName: string
-  // ): string {
-  //   const value = row[fieldName];
-
-  //   if (value == null) {
-  //     return '';
-  //   }
-
-  //   const field = this.metadata().fields
-  //     .find(field => field.name === fieldName);
-
-  //   if (field?.type === 'enum') {
-  //     return field.values
-  //       ?.find(item => item.value === value)
-  //       ?.label ?? String(value);
-  //   }
-
-  //   return String(value);
-  // }
 }
