@@ -63,10 +63,24 @@ export interface ListSort {
   direction: 'asc' | 'desc';
 }
 
+export type FilterOperator = 'contains' | 'equals' | 'startsWith' | 'endsWith';
+
+export interface FilterItem {
+  field: string;
+  operator: FilterOperator;
+  value: string;
+}
+
+export interface ListFilter {
+  operator: 'and';
+  items: FilterItem[];
+}
+
 export interface ListQuery {
   page: number;
   pageSize: number;
   sort?: ListSort[];
+  filter?: ListFilter;
 }
 
 export interface ListQueryResult {

@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
-import { ListMetadata, ListSort } from './entity-types';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { FilterItem, ListMetadata, ListSort } from './entity-types';
 import { ListGridCell } from './list-grid-cell';
 
 export interface ListPageChange {
@@ -15,7 +17,7 @@ export interface ListSortChange {
 
 @Component({
   selector: 'app-list-grid',
-  imports: [MatPaginatorModule, MatTableModule, ListGridCell],
+  imports: [MatPaginatorModule, MatTableModule, MatIconModule, MatTooltipModule, ListGridCell],
   templateUrl: './list-grid.html',
   styleUrl: './list-grid.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -28,6 +30,7 @@ export class ListGrid {
   readonly pageSize = input(25);
   readonly pageChange = output<ListPageChange>();
   readonly sort = input<ListSort[]>([]);
+  readonly filters = input<FilterItem[]>([]);
   readonly sortChange = output<ListSortChange>();
 
   protected readonly displayedColumns = computed(() =>
@@ -69,6 +72,25 @@ export class ListGrid {
     return item
       ? `Sort ${this.fieldLabel(field)}, currently ${item.direction}, priority ${priority}`
       : `Sort ${this.fieldLabel(field)}`;
+  }
+
+  protected filtersFor(field: string): FilterItem[] {
+    return this.filters().filter(item => item.field === field);
+  }
+
+  protected filterSummary(field: string): string {
+    return this.filtersFor(field)
+      .map(item => `${this.operatorLabel(item.operator)} "${item.value}"`)
+      .join('\nAND ');
+  }
+
+  private operatorLabel(operator: FilterItem['operator']): string {
+    switch (operator) {
+      case 'equals': return 'Equals';
+      case 'startsWith': return 'Starts with';
+      case 'endsWith': return 'Ends with';
+      default: return 'Contains';
+    }
   }
 
   protected onSort(field: string, event: MouseEvent): void {

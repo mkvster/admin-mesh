@@ -23,3 +23,9 @@ Do not edit Backlog task, draft, document, decision, or milestone markdown files
 
 </CRITICAL_INSTRUCTION>
 <!-- BACKLOG.MD GUIDELINES END -->
+
+### Implementation Notes
+
+Implementation Notes are not a history of every change made during implementation. Use them only when useful to record
+the main implementation principles, architectural decisions, important constraints, or significant verification results
+for the ticket. Keep them concise; they describe the implementation approach, not the full change log.

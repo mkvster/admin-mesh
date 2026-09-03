@@ -10,7 +10,18 @@
     @for (item of columns(); track item.column.field) {
       <ng-container [matColumnDef]="item.column.field">
 
-        <th mat-header-cell *matHeaderCellDef>
+        <th
+          mat-header-cell
+          *matHeaderCellDef
+          [matTooltip]="filterSummary(item.column.field)"
+          [matTooltipDisabled]="filtersFor(item.column.field).length === 0">
+          @if (filtersFor(item.column.field).length) {
+            <mat-icon
+              class="filter-indicator"
+              aria-hidden="true">
+              filter_alt
+            </mat-icon>
+          }
           @if (item.column.disableSorting) {
             {{ fieldLabel(item.column.field) }}
           } @else {
@@ -57,11 +68,17 @@
   </table>
 </div>
 
-<mat-paginator
-  [length]="totalCount()"
-  [pageIndex]="page() - 1"
-  [pageSize]="pageSize()"
-  [pageSizeOptions]="[10, 25, 50, 100]"
-  (page)="onPageChange($event)"
-  aria-label="Select list page"
-/> 
+<div class="grid-footer">
+  <div class="grid-actions">
+    <ng-content select="[list-grid-actions]" />
+  </div>
+
+  <mat-paginator
+    [length]="totalCount()"
+    [pageIndex]="page() - 1"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[10, 25, 50, 100]"
+    (page)="onPageChange($event)"
+    aria-label="Select list page"
+  />
+</div>

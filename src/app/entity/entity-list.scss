@@ -1,8 +1,4 @@
 :host {
-  display: block;
-}
-
-:host:has(app-list-grid) {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
@@ -13,10 +9,34 @@
   overflow: hidden;
 }
 
-.loading-state {
-  align-items: center;
+.list-content {
   display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+.initial-loading-state,
+.list-loading-overlay {
+  align-items: center;
+  background: color-mix(in srgb, var(--mat-sys-surface) 78%, transparent);
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+  inset: 0;
+  justify-content: center;
+}
+
+.initial-loading-state {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+.list-loading-overlay {
+  position: absolute;
+  z-index: 2;
 }
 
 .error-card {
@@ -33,4 +53,35 @@
 
 .error-icon {
   color: var(--mat-sys-error);
+}
+
+.filters-group {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 2px;
+  padding: 0 2px;
+}
+
+.filters-group.filters-active {
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+}
+
+.filters-action {
+  flex: 0 0 116px;
+  justify-content: flex-start;
+  width: 116px;
+}
+
+@media (max-width: 768px) {
+  .filters-action {
+    flex-basis: 40px;
+    min-width: 40px;
+    padding: 0 8px;
+    width: 40px;
+  }
+
+  .filters-action .list-action-label {
+    display: none;
+  }
 }
