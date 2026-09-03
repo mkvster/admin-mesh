@@ -4,7 +4,7 @@ title: ListGrid - Add string filtering
 status: In Progress
 assignee: []
 created_date: '2026-09-02 13:16'
-updated_date: '2026-09-02 17:15'
+updated_date: '2026-09-02 20:25'
 labels: []
 milestone: s-001
 dependencies: []
@@ -174,14 +174,20 @@ Filtering should be case-insensitive for the initial implementation.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The whole entity list exposes a Filters action that opens a large Angular Material dialog listing the currently configured string filters.
-- [ ] #2 Each filter condition supports selecting a string field, selecting contains/equals/startsWith/endsWith, entering a value, and adding or removing conditions; multiple conditions for the same field are supported.
-- [ ] #3 Apply is disabled and validation is shown when any draft condition is incomplete; empty string values are not applied as filters.
-- [ ] #4 Clear all changes only the dialog draft; Apply commits the draft, Cancel discards it, and applying or clearing filters resets the list to page 1.
-- [ ] #5 The active filter state is stored in the entity-list query state using an AND expression with semantic field, operator, and value entries.
-- [ ] #6 Applying or clearing filters reloads only list data; entity metadata and list metadata are not reloaded.
-- [ ] #7 The Admin API list-query request sends semantic string operators and raw values, without SQL wildcard transformation.
-- [ ] #8 The shared mock list-query processor supports all four string operators case-insensitively and processes filter before sort, totalCount, and paging.
-- [ ] #9 A funnel icon is shown only for columns with active filters, and its read-only tooltip shows all filters for that column joined with AND.
-- [ ] #10 The dialog uses a reusable FilterValueEditor dispatcher with a StringFilterEditor implementation; the dispatcher receives field, operator, and value and future inline editing can reuse it without duplicating type-specific value-editing logic.
+- [x] #1 The whole entity list exposes a Filters action that opens a large Angular Material dialog listing the currently configured string filters.
+- [x] #2 Each filter condition supports selecting a string field, selecting contains/equals/startsWith/endsWith, entering a value, and adding or removing conditions; multiple conditions for the same field are supported.
+- [x] #3 Apply is disabled and validation is shown when any draft condition is incomplete; empty string values are not applied as filters.
+- [x] #4 Clear all changes only the dialog draft; Apply commits the draft, Cancel discards it, and applying or clearing filters resets the list to page 1.
+- [x] #5 The active filter state is stored in the entity-list query state using an AND expression with semantic field, operator, and value entries.
+- [x] #6 Applying or clearing filters reloads only list data; entity metadata and list metadata are not reloaded.
+- [x] #7 The Admin API list-query request sends semantic string operators and raw values, without SQL wildcard transformation.
+- [x] #8 The shared mock list-query processor supports all four string operators case-insensitively and processes filter before sort, totalCount, and paging.
+- [x] #9 A funnel icon is shown only for columns with active filters, and its read-only tooltip shows all filters for that column joined with AND.
+- [x] #10 The dialog uses a reusable FilterValueEditor dispatcher with a StringFilterEditor implementation; the dispatcher receives field, operator, and value and future inline editing can reuse it without duplicating type-specific value-editing logic.
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Keep filters as a semantic AND expression in query state, serialized as one opaque UTF-8 base64url filter URL parameter while page/pageSize/sort remain readable. The dialog owns field/operator selection and reuses a FilterValueEditor dispatcher with specialized type editors; this ticket implements StringFilterEditor. Draft changes are transactional, list reloads do not reload cached metadata, and mock filtering runs before sort/count/paging case-insensitively. Loading visibility is finalized for success, error, and cancellation. Verification: production build and focused Vitest tests pass; the full Angular test runner is blocked by pre-existing missing jasmine globals.
+<!-- SECTION:NOTES:END -->

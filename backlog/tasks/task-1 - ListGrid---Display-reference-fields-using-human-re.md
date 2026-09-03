@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@codex'
 created_date: '2026-09-02 12:42'
-updated_date: '2026-09-02 16:36'
+updated_date: '2026-09-02 20:25'
 labels: []
 milestone: s-001
 dependencies: []
@@ -36,11 +36,5 @@ Display human-readable reference values from the current list projection. Keep f
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Implemented reference list rendering, projection fields for invoice/customer and payment/invoice mock queries, and focused ListGridCell tests. Production build passes. Full test runner remains blocked by pre-existing jasmine namespace errors in src/app/navigation/navigation.spec.ts.
-
-Additional verification: npm.cmd run build passes. npm.cmd test -- --watch=false --include=src/app/entity/list-grid-cell.spec.ts still fails before executing tests because navigation.spec.ts references missing jasmine globals; direct Vitest execution is not configured with Angular TestBed initialization/resource resolution. Task remains In Progress pending review of the existing test setup.
-
-Updated Products demo data to use normalized categoryId foreign keys instead of category text. Product list metadata now declares a categories reference and categoryName projection; the mock query joins normalized categories without client-side lookups. Build passes after the change.
-
-Changed Invoice list projection from customerEmail to customerDisplayName, formatted as First Name Last Name (Email), while preserving customerId as the raw reference value. Build passes.
+Keep shared reference semantics in field.reference and list-specific projection names in column.display.valueField. Mock handlers join normalized related entities server-side; ListGridCell renders the projection with raw-ID fallback and no client-side N+1 lookups.
 <!-- SECTION:NOTES:END -->

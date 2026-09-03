@@ -1,16 +1,21 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { catchError, map, of, startWith, switchMap, tap } from 'rxjs';
+import { catchError, defer, finalize, map, of, startWith, switchMap, tap } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { EntityApi } from './entity-api';
 import { EntityMetadataStore } from './entity-metadata-store';
 import { ListMetadataStore } from './list-metadata-store';
 
-import { EntityMetadata, ListMetadata, ListQuery, ListQueryResult, ListSort } from './entity-types';
+import { EntityMetadata, FilterItem, ListMetadata, ListQuery, ListQueryResult, ListSort } from './entity-types';
 import { ListGrid, ListPageChange, ListSortChange } from './list-grid';
+import { FilterDialog } from './filtering/filter-dialog/filter-dialog';
+import { MAX_SERIALIZED_FILTER_LENGTH } from './filtering/filter-constraints';
+import { parseListFilter, serializeListFilter } from './filtering/filter-serialization';
 
 
 type EntityListState =
@@ -24,6 +29,7 @@ type EntityListState =
       page: number;
       pageSize: number;
       sort: ListSort[];
+      filters: FilterItem[];
     }
   | { status: 'error'; message: string };
 
@@ -34,6 +40,7 @@ type EntityListState =
     MatCardModule, 
     MatIconModule, 
     MatProgressSpinnerModule, 
+    MatButtonModule,
     ListGrid
   ],
   templateUrl: './entity-list.html',
@@ -46,8 +53,12 @@ export class EntityList {
   private readonly api = inject(EntityApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly entityMetadataStore = inject(EntityMetadataStore);
   private readonly listMetadataStore = inject(ListMetadataStore);
+  private listRequestVersion = 0;
+
+  readonly isListLoading = signal(true);
 
   readonly state = toSignal<EntityListState, EntityListState>(
     toObservable(this.resource).pipe(
@@ -64,6 +75,8 @@ export class EntityList {
 
   private loadEntityList(resource: string) {
     // Load entity metadata first, then load list metadata and initial data
+    this.isListLoading.set(true);
+
     return this.entityMetadataStore.get(resource).pipe(
       switchMap(metadata =>
         this.loadList(resource, metadata)
@@ -78,10 +91,18 @@ export class EntityList {
     return this.loadListMetadata(resource, listId).pipe(
       switchMap(listMetadata =>
         this.route.queryParamMap.pipe(
-          map(params => this.readListQuery(params)),
+            map(params => this.readListQuery(params, resource, listId)),
           tap(query => this.ensurePagingParams(query)),
-          switchMap(query =>
-            this.api.queryList(resource, listId, query).pipe(
+          switchMap(query => {
+            const requestVersion = ++this.listRequestVersion;
+            this.isListLoading.set(true);
+
+            return defer(() => this.api.queryList(resource, listId, query)).pipe(
+              finalize(() => {
+                if (requestVersion === this.listRequestVersion) {
+                  this.isListLoading.set(false);
+                }
+              }),
               map(data => ({
                 status: 'loaded',
                 resource,
@@ -90,10 +111,11 @@ export class EntityList {
                 data,
                 page: query.page,
                 pageSize: query.pageSize,
-                sort: query.sort ?? []
+                sort: query.sort ?? [],
+                filters: query.filter?.items ?? []
               }) as EntityListState)
-            )
-          )
+            );
+          })
         )
       )
     );
@@ -123,15 +145,76 @@ export class EntityList {
     });
   }
 
-  private readListQuery(params: ParamMap): ListQuery {
+  protected openFilters(state: Extract<EntityListState, { status: 'loaded' }>): void {
+    const dialogRef = this.dialog.open(FilterDialog, {
+      width: 'min(900px, 90vw)',
+      maxWidth: '95vw',
+      maxHeight: 'calc(100vh - 24px)',
+      data: {
+        fields: state.listMetadata.fields,
+        filters: state.filters,
+        scope: {
+          resource: state.resource,
+          listId: state.metadata.views.list
+        }
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(filters => {
+      if (filters === undefined) {
+        return;
+      }
+
+      const serializedFilter = filters.length
+        ? serializeListFilter(filters, {
+          resource: state.resource,
+          listId: state.metadata.views.list
+        })
+        : null;
+
+      if (serializedFilter && serializedFilter.length > MAX_SERIALIZED_FILTER_LENGTH) {
+        return;
+      }
+
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          page: 1,
+          filter: serializedFilter,
+          filters: null
+        },
+        queryParamsHandling: 'merge'
+      });
+    });
+  }
+
+  protected clearFilters(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: 1,
+        filter: null,
+        filters: null
+      },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  protected filterCountLabel(count: number): string {
+    return count > 9 ? '9+' : String(count);
+  }
+
+  private readListQuery(params: ParamMap, resource: string, listId: string): ListQuery {
     const page = this.readPositiveInt(params.get('page'), 1);
     const pageSize = this.readPositiveInt(params.get('pageSize'), 25);
     const sort = this.parseSort(params.get('sort'), params.get('dir'));
+    const filters = parseListFilter(params.get('filter'), { resource, listId })?.items ?? [];
 
     return {
       page,
       pageSize,
-      ...(sort.length ? { sort } : {})
+      ...(sort.length ? { sort } : {}),
+      ...(filters.length ? { filter: { operator: 'and', items: filters } } : {})
     };
   }
 
@@ -191,6 +274,7 @@ export class EntityList {
 
   private handleLoadError(error: unknown) {
     console.error('Entity list loading failed', error);
+    this.isListLoading.set(false);
 
     return of<EntityListState>({
       status: 'error',

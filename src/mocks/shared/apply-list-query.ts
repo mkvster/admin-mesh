@@ -1,10 +1,15 @@
-import { ListQuery, ListQueryResult, ListSort } from '../../app/entity/entity-types';
+import { FilterItem, ListQuery, ListQueryResult, ListSort } from '../../app/entity/entity-types';
 
 export function applyListQuery(
   rows: Record<string, unknown>[],
   query: ListQuery
 ): ListQueryResult {
   let result = [...rows];
+
+  const filters = query.filter?.items.filter(item => item.value.trim().length > 0) ?? [];
+  if (filters.length) {
+    result = result.filter(row => filters.every(item => matchesFilter(row, item)));
+  }
 
   if (query.sort?.length) {
     result.sort((a, b) => compareRows(a, b, query.sort!));
@@ -19,6 +24,23 @@ export function applyListQuery(
     items: result,
     totalCount
   };
+}
+
+function matchesFilter(row: Record<string, unknown>, filter: FilterItem): boolean {
+  const actual = row[filter.field];
+  if (actual == null) {
+    return false;
+  }
+
+  const source = String(actual).toLocaleLowerCase();
+  const expected = filter.value.toLocaleLowerCase();
+
+  switch (filter.operator) {
+    case 'equals': return source === expected;
+    case 'startsWith': return source.startsWith(expected);
+    case 'endsWith': return source.endsWith(expected);
+    case 'contains': return source.includes(expected);
+  }
 }
 
 function compareRows(
