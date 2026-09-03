@@ -1,15 +1,15 @@
 ---
 id: TASK-2
 title: ListGrid - Add string filtering
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-02 13:16'
-updated_date: '2026-09-02 20:25'
+updated_date: '2026-09-03 03:21'
 labels: []
 milestone: s-001
 dependencies: []
 priority: high
-ordinal: 1000
+ordinal: 2000
 ---
 
 ## Description
