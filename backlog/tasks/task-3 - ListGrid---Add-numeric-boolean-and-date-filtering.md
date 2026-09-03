@@ -1,14 +1,17 @@
 ---
 id: TASK-3
 title: 'ListGrid - Add numeric, boolean, and date filtering'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-02 13:20'
-updated_date: '2026-09-02 13:50'
+updated_date: '2026-09-03 14:18'
 labels: []
 milestone: s-001
 dependencies: []
+references:
+  - docs/FilterOperators.md
 priority: medium
+ordinal: 1000
 ---
 
 ## Description
@@ -153,4 +156,9 @@ Date/datetime comparisons must use parsed date values rather than formatted disp
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
+- [ ] #1 Filter dialog exposes integer, decimal, boolean, date, and datetime fields using the existing string-filter row/editor pattern, with only type-appropriate operators and controls.
+- [ ] #2 Typed filter values are validated, serialized to and restored from query state, and sent in the agreed Admin API representation; Boolean Any produces no filter item.
+- [ ] #3 Applying, changing, or clearing filters keeps AND semantics, resets paging to page 1, reloads rows, and does not reload entity or list metadata.
+- [ ] #4 Active filters show the existing column funnel and a type-appropriate tooltip summary; fields without active filters show no funnel.
+- [ ] #5 The shared mock query processor and automated tests evaluate numeric, boolean, date, and datetime operators with typed comparisons in filter → sort → totalCount → paging order.
 <!-- AC:END -->

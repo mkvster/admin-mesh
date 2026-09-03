@@ -323,6 +323,16 @@ enum
 reference
 ```
 
+The wire representation and supported operators for list filtering are defined
+in [FilterOperators.md](FilterOperators.md).
+
+For a `date` field, values use the calendar-date format `YYYY-MM-DD` and do
+not carry timezone information.
+
+For a `datetime` field, values are timezone-aware instants serialized as UTC
+ISO 8601 timestamps with millisecond precision, for example
+`2026-09-03T14:30:00.000Z`.
+
 For an `enum` field, `values` defines the values exchanged with the API and the corresponding labels displayed to the user.
 
 For a `reference` field:
@@ -368,7 +378,7 @@ Example request:
     "items": [
       {
         "field": "status",
-        "operator": "eq",
+        "operator": "equals",
         "value": "active"
       },
       {
@@ -444,7 +454,8 @@ If no sorting or filtering is required:
 }
 ```
 
-The exact set of supported filter operators will be defined separately.
+The exact set and type-specific semantics of supported filter operators are
+defined in [FilterOperators.md](FilterOperators.md).
 
 ---
 
