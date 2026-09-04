@@ -4,9 +4,9 @@ title: ListGrid - Add inline editing for active column filters
 status: To Do
 assignee: []
 created_date: '2026-09-02 13:29'
-updated_date: '2026-09-02 13:50'
+updated_date: '2026-09-04 13:12'
 labels: []
-milestone: s-002
+milestone: s-010
 dependencies: []
 priority: low
 ---
