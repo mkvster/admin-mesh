@@ -79,15 +79,24 @@ export class ListGrid {
   }
 
   protected filterSummary(field: string): string {
-    const fieldType = this.metadata().fields.find(item => item.name === field)?.type;
+    const fieldMetadata = this.metadata().fields.find(item => item.name === field);
     return this.filtersFor(field)
-      .map(item => this.filterSummaryItem(item, fieldType))
+      .map(item => this.filterSummaryItem(item, fieldMetadata))
       .join('\nAND ');
   }
 
-  private filterSummaryItem(item: FilterItem, fieldType: string | undefined): string {
-    if (fieldType === 'boolean') {
+  private filterSummaryItem(item: FilterItem, fieldMetadata: ListMetadata['fields'][number] | undefined): string {
+    if (fieldMetadata?.type === 'boolean') {
       return item.value === true ? 'Yes' : 'No';
+    }
+
+    if (fieldMetadata?.type === 'enum') {
+      const values = Array.isArray(item.value) ? item.value : [item.value];
+      const labels = values.map(value => fieldMetadata.values?.find(option => option.value === value)?.label ?? String(value));
+      const summary = labels.join(', ');
+      return item.operator === 'notEquals'
+        ? `Not ${summary}`
+        : `${this.operatorLabel(item.operator)} ${summary}`;
     }
 
     if (item.operator === 'inThePast') {
@@ -95,8 +104,8 @@ export class ListGrid {
     }
 
     const value = Array.isArray(item.value)
-      ? `${this.formatFilterValue(item.value[0], fieldType)} and ${this.formatFilterValue(item.value[1], fieldType)}`
-      : typeof item.value === 'boolean' ? (item.value ? 'Yes' : 'No') : this.formatFilterValue(item.value, fieldType);
+      ? `${this.formatFilterValue(item.value[0], fieldMetadata?.type)} and ${this.formatFilterValue(item.value[1], fieldMetadata?.type)}`
+      : typeof item.value === 'boolean' ? (item.value ? 'Yes' : 'No') : this.formatFilterValue(item.value, fieldMetadata?.type);
     return item.operator === 'between'
       ? `Between ${value}`
       : `${this.operatorLabel(item.operator)} ${value}`;

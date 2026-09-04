@@ -29,6 +29,13 @@ export function applyListQuery(
 function matchesFilter(row: Record<string, unknown>, filter: FilterItem): boolean {
   const actual = row[filter.field];
 
+  if ((filter.operator === 'in' || filter.operator === 'notIn')
+      && (typeof actual === 'string' || typeof actual === 'number')
+      && Array.isArray(filter.value)) {
+    const included = filter.value.some(value => value === actual);
+    return filter.operator === 'in' ? included : !included;
+  }
+
   if (typeof actual === 'number' && (typeof filter.value === 'number' || Array.isArray(filter.value))) {
     return matchesNumeric(actual, filter.operator, filter.value);
   }
@@ -139,7 +146,7 @@ function hasFilterValue(value: FilterValue): boolean {
   return typeof value === 'boolean'
     || (typeof value === 'string' && value.trim().length > 0)
     || (typeof value === 'number' && Number.isFinite(value))
-    || (Array.isArray(value) && value.length === 2 && value.every(item =>
+    || (Array.isArray(value) && value.length > 0 && value.every(item =>
       (typeof item === 'string' && item.trim().length > 0)
       || (typeof item === 'number' && Number.isFinite(item))
     ));

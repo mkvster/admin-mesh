@@ -64,6 +64,26 @@ describe('applyListQuery filters', () => {
     expect(applyListQuery(booleanRows, typedQuery('equals', false, 'enabled')).items.map(row => row['id'])).toEqual([2]);
   });
 
+  it('supports enum filtering using underlying string and integer values', () => {
+    const enumRows = [
+      { id: 1, status: 'draft' },
+      { id: 2, status: 'active' },
+      { id: 3, status: 'archived' },
+      { id: 4, status: 1 }
+    ];
+
+    expect(applyListQuery(enumRows, typedQuery('equals', 'active', 'status')).items.map(row => row['id']))
+      .toEqual([2]);
+    expect(applyListQuery(enumRows, typedQuery('notEquals', 'active', 'status')).items.map(row => row['id']))
+      .toEqual([1, 3]);
+    expect(applyListQuery(enumRows, typedQuery('in', ['draft', 'active'], 'status')).items.map(row => row['id']))
+      .toEqual([1, 2]);
+    expect(applyListQuery(enumRows, typedQuery('notIn', ['draft', 'active'], 'status')).items.map(row => row['id']))
+      .toEqual([3, 4]);
+    expect(applyListQuery(enumRows, typedQuery('in', [1], 'status')).items.map(row => row['id']))
+      .toEqual([4]);
+  });
+
   it('compares date and datetime values as parsed dates with inclusive ranges', () => {
     const dateRows = [
       { id: 1, issueDate: '2026-08-01' },
@@ -105,7 +125,7 @@ function query(operator: 'contains' | 'equals' | 'startsWith' | 'endsWith', valu
   };
 }
 
-function typedQuery(operator: 'equals' | 'notEquals' | 'greaterThan' | 'greaterThanOrEqual' | 'lessThan' | 'lessThanOrEqual' | 'between' | 'after' | 'inThePast', value: string | number | boolean | [string | number, string | number], field = 'total') {
+function typedQuery(operator: 'equals' | 'notEquals' | 'in' | 'notIn' | 'greaterThan' | 'greaterThanOrEqual' | 'lessThan' | 'lessThanOrEqual' | 'between' | 'after' | 'inThePast', value: string | number | boolean | [string | number, string | number] | (string | number)[], field = 'total') {
   return {
     page: 1,
     pageSize: 25,

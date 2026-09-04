@@ -31,4 +31,14 @@ describe('filter serialization', () => {
 
     expect(parseListFilter(serializeListFilter(items))).toEqual({ operator: 'and', items });
   });
+
+  it('round-trips enum scalar and array values', () => {
+    const items: FilterItem[] = [
+      { field: 'status', operator: 'equals', value: 1 },
+      { field: 'status', operator: 'in', value: ['draft', 'active'] },
+      { field: 'status', operator: 'notIn', value: [3, 4] }
+    ];
+
+    expect(parseListFilter(serializeListFilter(items))).toEqual({ operator: 'and', items });
+  });
 });

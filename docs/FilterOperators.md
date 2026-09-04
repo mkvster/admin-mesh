@@ -30,6 +30,36 @@ short aliases such as `eq` are not supported.
 
 String matching is case-insensitive in the shared mock processor.
 
+## Enum fields
+
+Enum fields use the values defined in field metadata and support:
+
+| Operator | Value shape | Meaning |
+| --- | --- | --- |
+| `equals` | scalar | The field equals one enum value. |
+| `notEquals` | scalar | The field differs from one enum value. |
+| `in` | array | The field matches one of the supplied enum values. |
+| `notIn` | array | The field matches none of the supplied enum values. |
+
+The API exchanges the underlying enum values, which may be strings or integers.
+The labels associated with those values in field metadata are for display only.
+
+```json
+{
+  "field": "status",
+  "operator": "equals",
+  "value": "active"
+}
+```
+
+```json
+{
+  "field": "status",
+  "operator": "in",
+  "value": ["draft", "active"]
+}
+```
+
 ## Numeric fields
 
 `integer` and `decimal` fields support:
