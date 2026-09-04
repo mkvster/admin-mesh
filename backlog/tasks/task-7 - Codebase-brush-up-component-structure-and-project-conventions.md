@@ -1,14 +1,14 @@
 ---
 id: TASK-7
 title: 'Codebase brush-up: component structure and project conventions'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-04 12:43'
-updated_date: '2026-09-04 12:50'
+updated_date: '2026-09-04 19:37'
 labels: []
 milestone: s-001
 dependencies: []
-ordinal: 2750
+ordinal: 1000
 ---
 
 ## Description
@@ -24,3 +24,9 @@ The initial project rule set should approximately cover:
 - Error-handling practices.
 - Recommendations for writing and structuring Backlog tasks.
 <!-- SECTION:DESCRIPTION:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Added a file of rules: docs\AdminMeshRules.md
+<!-- SECTION:NOTES:END -->

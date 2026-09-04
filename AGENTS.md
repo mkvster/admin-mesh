@@ -2,15 +2,13 @@ See [docs/StdNgAiRules.md](docs/StdNgAiRules.md).
 
 <!-- BACKLOG.MD GUIDELINES START -->
 <!-- backlog.md-instructions-version: 1.50.1 -->
-<CRITICAL_INSTRUCTION>
+<BACKLOG_INSTRUCTION>
 
 ## Backlog.md Workflow
 
 This project uses Backlog.md for task and project management.
 
-**For every user request in this project, run `backlog instructions overview` before answering or taking action.**
-
-Use the overview to decide whether to search, read, create, or update Backlog tasks.
+When a request involves creating, executing, updating, or finalizing a Backlog task, run backlog instructions overview first and follow the applicable workflow.
 
 Before task lifecycle actions, read the matching detailed guide:
 - `backlog instructions task-creation` before creating or splitting tasks
@@ -21,11 +19,15 @@ Use `backlog <command> --help` before running unfamiliar commands. Help shows op
 
 Do not edit Backlog task, draft, document, decision, or milestone markdown files directly. Use the `backlog` CLI so metadata, relationships, and history stay consistent.
 
-</CRITICAL_INSTRUCTION>
-<!-- BACKLOG.MD GUIDELINES END -->
+Do not modify a Backlog task unless the user explicitly asks for that change.
 
-### Implementation Notes
+### Task - Implementation Notes
 
 Implementation Notes are not a history of every change made during implementation. Use them only when useful to record
 the main implementation principles, architectural decisions, important constraints, or significant verification results
 for the ticket. Keep them concise; they describe the implementation approach, not the full change log.
+
+
+</BACKLOG_INSTRUCTION>
+<!-- BACKLOG.MD GUIDELINES END -->
+
