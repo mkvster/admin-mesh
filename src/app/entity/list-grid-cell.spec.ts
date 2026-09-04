@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { ListGridCell } from './list-grid-cell';
 
@@ -13,6 +14,8 @@ describe('ListGridCell', () => {
 
     fixture = TestBed.createComponent(ListGridCell);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('field', { name: 'name', label: 'Name', type: 'string' });
+    fixture.componentRef.setInput('column', { field: 'name' });
     await fixture.whenStable();
   });
 

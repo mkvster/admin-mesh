@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { NodeHost } from './node-host';
 import { NavigationState } from '../navigation/navigation-state';
@@ -28,6 +29,7 @@ describe('NodeHost', () => {
         {
           provide: NavigationState,
           useValue: {
+            navigation: () => ({ sections: [] }),
             selectByIds: () => undefined,
           },
         },

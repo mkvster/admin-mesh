@@ -1,5 +1,5 @@
 import { applyListQuery } from './apply-list-query';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 describe('applyListQuery filters', () => {
   const rows = [
@@ -7,6 +7,10 @@ describe('applyListQuery filters', () => {
     { id: 2, name: 'Green Apple', code: 'APPLE-2' },
     { id: 3, name: 'Orange Juice', code: 'JUICE-1' },
   ];
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
 
   it('supports the four case-insensitive string operators', () => {
     expect(applyListQuery(rows, query('contains', 'apple')).items.map((row) => row['id'])).toEqual([
@@ -152,6 +156,9 @@ describe('applyListQuery filters', () => {
   });
 
   it('evaluates relative past datetime filters at query time', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-04T12:00:00.000Z'));
+
     const now = Date.now();
     const datetimeRows = [
       { id: 1, paymentDate: new Date(now - 2 * 60 * 60 * 1000).toISOString() },

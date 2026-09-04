@@ -1,4 +1,5 @@
 See [docs/StdNgAiRules.md](docs/StdNgAiRules.md).
+See [docs/AdminMeshRules.md](docs/AdminMeshRules.md).
 
 <!-- BACKLOG.MD GUIDELINES START -->
 <!-- backlog.md-instructions-version: 1.50.1 -->
