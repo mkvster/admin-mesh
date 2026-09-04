@@ -79,9 +79,47 @@ export class ListGrid {
   }
 
   protected filterSummary(field: string): string {
+    const fieldType = this.metadata().fields.find(item => item.name === field)?.type;
     return this.filtersFor(field)
-      .map(item => `${this.operatorLabel(item.operator)} "${item.value}"`)
+      .map(item => this.filterSummaryItem(item, fieldType))
       .join('\nAND ');
+  }
+
+  private filterSummaryItem(item: FilterItem, fieldType: string | undefined): string {
+    if (fieldType === 'boolean') {
+      return item.value === true ? 'Yes' : 'No';
+    }
+
+    if (item.operator === 'inThePast') {
+      return this.relativePeriodLabel(item.value);
+    }
+
+    const value = Array.isArray(item.value)
+      ? `${this.formatFilterValue(item.value[0], fieldType)} and ${this.formatFilterValue(item.value[1], fieldType)}`
+      : typeof item.value === 'boolean' ? (item.value ? 'Yes' : 'No') : this.formatFilterValue(item.value, fieldType);
+    return item.operator === 'between'
+      ? `Between ${value}`
+      : `${this.operatorLabel(item.operator)} ${value}`;
+  }
+
+  private formatFilterValue(value: string | number, fieldType: string | undefined): string {
+    if (fieldType !== 'date' && fieldType !== 'datetime') {
+      return String(value);
+    }
+
+    const date = fieldType === 'date' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+      ? this.parseDate(value)
+      : new Date(value);
+    return Number.isNaN(date.getTime())
+      ? String(value)
+      : new Intl.DateTimeFormat(undefined, fieldType === 'datetime'
+        ? { dateStyle: 'medium', timeStyle: 'short' }
+        : { dateStyle: 'medium' }).format(date);
+  }
+
+  private parseDate(value: string): Date {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year, month - 1, day);
   }
 
   private operatorLabel(operator: FilterItem['operator']): string {
@@ -89,7 +127,27 @@ export class ListGrid {
       case 'equals': return 'Equals';
       case 'startsWith': return 'Starts with';
       case 'endsWith': return 'Ends with';
+      case 'notEquals': return 'Not equals';
+      case 'greaterThan': return 'Greater than';
+      case 'greaterThanOrEqual': return 'Greater than or equal';
+      case 'lessThan': return 'Less than';
+      case 'lessThanOrEqual': return 'Less than or equal';
+      case 'before': return 'Before';
+      case 'after': return 'After';
+      case 'inThePast': return 'In the past';
+      case 'between': return 'Between';
       default: return 'Contains';
+    }
+  }
+
+  private relativePeriodLabel(value: FilterItem['value']): string {
+    switch (value) {
+      case 'hour': return 'Past hour';
+      case '24hours': return 'Past 24 hours';
+      case 'week': return 'Past week';
+      case 'month': return 'Past month';
+      case 'year': return 'Past year';
+      default: return 'In the past';
     }
   }
 

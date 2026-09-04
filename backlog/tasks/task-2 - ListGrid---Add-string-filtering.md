@@ -4,12 +4,12 @@ title: ListGrid - Add string filtering
 status: Done
 assignee: []
 created_date: '2026-09-02 13:16'
-updated_date: '2026-09-03 03:21'
+updated_date: '2026-09-04 02:44'
 labels: []
 milestone: s-001
 dependencies: []
 priority: high
-ordinal: 2000
+ordinal: 1625
 ---
 
 ## Description

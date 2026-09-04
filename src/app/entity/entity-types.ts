@@ -63,12 +63,29 @@ export interface ListSort {
   direction: 'asc' | 'desc';
 }
 
-export type FilterOperator = 'contains' | 'equals' | 'startsWith' | 'endsWith';
+export type FilterOperator =
+  | 'contains'
+  | 'equals'
+  | 'startsWith'
+  | 'endsWith'
+  | 'notEquals'
+  | 'greaterThan'
+  | 'greaterThanOrEqual'
+  | 'lessThan'
+  | 'lessThanOrEqual'
+  | 'between'
+  | 'before'
+  | 'after'
+  | 'inThePast';
+
+export type RelativePastPeriod = 'hour' | '24hours' | 'week' | 'month' | 'year';
+
+export type FilterValue = string | number | boolean | [string | number, string | number];
 
 export interface FilterItem {
   field: string;
   operator: FilterOperator;
-  value: string;
+  value: FilterValue;
 }
 
 export interface ListFilter {

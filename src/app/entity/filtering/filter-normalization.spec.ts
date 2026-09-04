@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FilterItem } from './entity-types';
+import { FilterItem } from '../entity-types';
 import { normalizeFilterItems } from './filter-normalization';
 
 describe('normalizeFilterItems', () => {

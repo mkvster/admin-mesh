@@ -17,11 +17,7 @@ import { MAX_STRING_FILTER_VALUE_LENGTH } from '../filter-constraints';
         (input)="onInput($event)"
         [attr.aria-label]="label()"
       />
-      <mat-hint>Maximum 128 characters</mat-hint>
       <mat-hint align="end">{{ stringValue().length }} / {{ maxLength }}</mat-hint>
-      @if (showError()) {
-        <mat-error>Enter a value</mat-error>
-      }
     </mat-form-field>
   `,
   styles: `
