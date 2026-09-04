@@ -36,7 +36,7 @@ import { MAX_STRING_FILTER_VALUE_LENGTH } from '../filter-constraints';
       white-space: nowrap;
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StringFilterEditor {
   protected readonly maxLength = MAX_STRING_FILTER_VALUE_LENGTH;
@@ -45,15 +45,19 @@ export class StringFilterEditor {
   readonly showError = input(false);
 
   protected readonly stringValue = computed(() =>
-    typeof this.value() === 'string' ? this.value() as string : ''
+    typeof this.value() === 'string' ? (this.value() as string) : '',
   );
 
   protected readonly label = computed(() => {
     switch (this.operator()) {
-      case 'equals': return 'Equals';
-      case 'startsWith': return 'Starts with';
-      case 'endsWith': return 'Ends with';
-      default: return 'Contains';
+      case 'equals':
+        return 'Equals';
+      case 'startsWith':
+        return 'Starts with';
+      case 'endsWith':
+        return 'Ends with';
+      default:
+        return 'Contains';
     }
   });
 

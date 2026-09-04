@@ -15,9 +15,7 @@
     <mat-card-content class="node-card-content">
       @switch (selected.node.type) {
         @case ('rest-entity') {
-        <app-entity-list
-            [resource]="selected.node.config.resource"
-        />
+          <app-entity-list [resource]="selected.node.config.resource" />
         }
         @default {
           <div>Unsupported node type: {{ selected.node.type }}</div>

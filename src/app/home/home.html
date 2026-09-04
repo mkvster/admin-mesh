@@ -22,10 +22,7 @@
           (click)="state.select(result.section, result.node)"
         >
           @if (result.node.icon) {
-            <mat-icon
-              matListItemIcon
-              [style.color]="result.node.icon.color"
-            >
+            <mat-icon matListItemIcon [style.color]="result.node.icon.color">
               {{ result.node.icon.name }}
             </mat-icon>
           }
@@ -39,9 +36,7 @@
           </span>
         </a>
       } @empty {
-        <div class="no-results">
-          No matching nodes
-        </div>
+        <div class="no-results">No matching nodes</div>
       }
     </mat-nav-list>
   }

@@ -18,17 +18,15 @@ export class NavigationState {
   } | null>(null);
 
   readonly navigation = toSignal(this.api.getNavigation(), {
-    initialValue: { sections: [] }
+    initialValue: { sections: [] },
   });
 
   readonly selected = signal<NavigationSelection | null>(null);
-
 
   select(section: NavigationSection, node: AdminNode): void {
     this.requestedNode.set(null);
     this.selected.set({ section, node });
   }
-
 
   clear(): void {
     this.requestedNode.set(null);

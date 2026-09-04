@@ -22,13 +22,15 @@
           <div
             list-grid-actions
             class="filters-group"
-            [class.filters-active]="state.filters.length > 0">
+            [class.filters-active]="state.filters.length > 0"
+          >
             <button
               mat-button
               type="button"
               class="filters-action"
               aria-label="Open filters"
-              (click)="openFilters(state)">
+              (click)="openFilters(state)"
+            >
               <mat-icon aria-hidden="true">filter_alt</mat-icon>
               <span class="list-action-label">
                 Filter
@@ -43,7 +45,8 @@
               class="clear-filters-action"
               aria-label="Clear all filters"
               [disabled]="state.filters.length === 0"
-              (click)="clearFilters()">
+              (click)="clearFilters()"
+            >
               <mat-icon aria-hidden="true">close</mat-icon>
             </button>
           </div>

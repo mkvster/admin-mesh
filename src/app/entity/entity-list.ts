@@ -11,12 +11,18 @@ import { EntityApi } from './entity-api';
 import { EntityMetadataStore } from './entity-metadata-store';
 import { ListMetadataStore } from './list-metadata-store';
 
-import { EntityMetadata, FilterItem, ListMetadata, ListQuery, ListQueryResult, ListSort } from './entity-types';
+import {
+  EntityMetadata,
+  FilterItem,
+  ListMetadata,
+  ListQuery,
+  ListQueryResult,
+  ListSort,
+} from './entity-types';
 import { ListGrid, ListPageChange, ListSortChange } from './list-grid';
 import { FilterDialog } from './filtering/filter-dialog/filter-dialog';
 import { MAX_SERIALIZED_FILTER_LENGTH } from './filtering/filter-constraints';
 import { parseListFilter, serializeListFilter } from './filtering/filter-serialization';
-
 
 type EntityListState =
   | { status: 'loading' }
@@ -33,19 +39,12 @@ type EntityListState =
     }
   | { status: 'error'; message: string };
 
-
 @Component({
   selector: 'app-entity-list',
-  imports: [
-    MatCardModule, 
-    MatIconModule, 
-    MatProgressSpinnerModule, 
-    MatButtonModule,
-    ListGrid
-  ],
+  imports: [MatCardModule, MatIconModule, MatProgressSpinnerModule, MatButtonModule, ListGrid],
   templateUrl: './entity-list.html',
   styleUrl: './entity-list.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EntityList {
   readonly resource = input.required<string>();
@@ -62,15 +61,13 @@ export class EntityList {
 
   readonly state = toSignal<EntityListState, EntityListState>(
     toObservable(this.resource).pipe(
-      switchMap(resource =>
-        this.loadEntityList(resource).pipe(
-          startWith({ status: 'loading' } as EntityListState)
-        )
-      )
+      switchMap((resource) =>
+        this.loadEntityList(resource).pipe(startWith({ status: 'loading' } as EntityListState)),
+      ),
     ),
     {
-      initialValue: { status: 'loading' } as EntityListState
-    }
+      initialValue: { status: 'loading' } as EntityListState,
+    },
   );
 
   private loadEntityList(resource: string) {
@@ -78,10 +75,8 @@ export class EntityList {
     this.isListLoading.set(true);
 
     return this.entityMetadataStore.get(resource).pipe(
-      switchMap(metadata =>
-        this.loadList(resource, metadata)
-      ),
-      catchError(error => this.handleLoadError(error))
+      switchMap((metadata) => this.loadList(resource, metadata)),
+      catchError((error) => this.handleLoadError(error)),
     );
   }
 
@@ -89,11 +84,11 @@ export class EntityList {
     const listId = metadata.views.list;
 
     return this.loadListMetadata(resource, listId).pipe(
-      switchMap(listMetadata =>
+      switchMap((listMetadata) =>
         this.route.queryParamMap.pipe(
-            map(params => this.readListQuery(params, resource, listId)),
-          tap(query => this.ensurePagingParams(query)),
-          switchMap(query => {
+          map((params) => this.readListQuery(params, resource, listId)),
+          tap((query) => this.ensurePagingParams(query)),
+          switchMap((query) => {
             const requestVersion = ++this.listRequestVersion;
             this.isListLoading.set(true);
 
@@ -103,21 +98,24 @@ export class EntityList {
                   this.isListLoading.set(false);
                 }
               }),
-              map(data => ({
-                status: 'loaded',
-                resource,
-                metadata,
-                listMetadata,
-                data,
-                page: query.page,
-                pageSize: query.pageSize,
-                sort: query.sort ?? [],
-                filters: query.filter?.items ?? []
-              }) as EntityListState)
+              map(
+                (data) =>
+                  ({
+                    status: 'loaded',
+                    resource,
+                    metadata,
+                    listMetadata,
+                    data,
+                    page: query.page,
+                    pageSize: query.pageSize,
+                    sort: query.sort ?? [],
+                    filters: query.filter?.items ?? [],
+                  }) as EntityListState,
+              ),
             );
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
   }
 
@@ -129,7 +127,7 @@ export class EntityList {
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: event,
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
   }
 
@@ -139,9 +137,9 @@ export class EntityList {
       queryParams: {
         page: 1,
         sort: this.serializeSort(event.sort),
-        dir: null
+        dir: null,
       },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
   }
 
@@ -155,21 +153,21 @@ export class EntityList {
         filters: state.filters,
         scope: {
           resource: state.resource,
-          listId: state.metadata.views.list
-        }
-      }
+          listId: state.metadata.views.list,
+        },
+      },
     });
 
-    dialogRef.afterClosed().subscribe(filters => {
+    dialogRef.afterClosed().subscribe((filters) => {
       if (filters === undefined) {
         return;
       }
 
       const serializedFilter = filters.length
         ? serializeListFilter(filters, {
-          resource: state.resource,
-          listId: state.metadata.views.list
-        })
+            resource: state.resource,
+            listId: state.metadata.views.list,
+          })
         : null;
 
       if (serializedFilter && serializedFilter.length > MAX_SERIALIZED_FILTER_LENGTH) {
@@ -181,9 +179,9 @@ export class EntityList {
         queryParams: {
           page: 1,
           filter: serializedFilter,
-          filters: null
+          filters: null,
         },
-        queryParamsHandling: 'merge'
+        queryParamsHandling: 'merge',
       });
     });
   }
@@ -194,9 +192,9 @@ export class EntityList {
       queryParams: {
         page: 1,
         filter: null,
-        filters: null
+        filters: null,
       },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
   }
 
@@ -214,7 +212,7 @@ export class EntityList {
       page,
       pageSize,
       ...(sort.length ? { sort } : {}),
-      ...(filters.length ? { filter: { operator: 'and', items: filters } } : {})
+      ...(filters.length ? { filter: { operator: 'and', items: filters } } : {}),
     };
   }
 
@@ -223,8 +221,9 @@ export class EntityList {
       return [];
     }
 
-    const parsed = value.split(',')
-      .map(part => {
+    const parsed = value
+      .split(',')
+      .map((part) => {
         const [field, direction] = part.split(':');
         return field && (direction === 'asc' || direction === 'desc')
           ? { field, direction }
@@ -233,8 +232,11 @@ export class EntityList {
       .filter((item): item is ListSort => item !== undefined);
 
     // Keep links using the previous sort=field&dir=direction format working.
-    if (parsed.length === 0 && legacyDirection &&
-        (legacyDirection === 'asc' || legacyDirection === 'desc')) {
+    if (
+      parsed.length === 0 &&
+      legacyDirection &&
+      (legacyDirection === 'asc' || legacyDirection === 'desc')
+    ) {
       return [{ field: value, direction: legacyDirection }];
     }
 
@@ -242,9 +244,7 @@ export class EntityList {
   }
 
   private serializeSort(sort: ListSort[]): string | null {
-    return sort.length
-      ? sort.map(item => `${item.field}:${item.direction}`).join(',')
-      : null;
+    return sort.length ? sort.map((item) => `${item.field}:${item.direction}`).join(',') : null;
   }
 
   private readPositiveInt(value: string | null, fallback: number): number {
@@ -256,8 +256,10 @@ export class EntityList {
   private ensurePagingParams(query: ListQuery): void {
     const params = this.route.snapshot.queryParamMap;
 
-    if (params.get('page') === String(query.page) &&
-        params.get('pageSize') === String(query.pageSize)) {
+    if (
+      params.get('page') === String(query.page) &&
+      params.get('pageSize') === String(query.pageSize)
+    ) {
       return;
     }
 
@@ -265,10 +267,10 @@ export class EntityList {
       relativeTo: this.route,
       queryParams: {
         page: query.page,
-        pageSize: query.pageSize
+        pageSize: query.pageSize,
       },
       queryParamsHandling: 'merge',
-      replaceUrl: true
+      replaceUrl: true,
     });
   }
 
@@ -278,7 +280,7 @@ export class EntityList {
 
     return of<EntityListState>({
       status: 'error',
-      message: 'Failed to load entity list'
+      message: 'Failed to load entity list',
     });
-  }  
+  }
 }

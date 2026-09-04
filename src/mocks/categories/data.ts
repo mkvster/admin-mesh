@@ -5,7 +5,7 @@ export const categories = [
     slug: 'hardware',
     description: 'Physical devices and equipment',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     categoryId: 2,
@@ -13,7 +13,7 @@ export const categories = [
     slug: 'accessories',
     description: 'Add-ons and peripheral devices',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     categoryId: 3,
@@ -21,7 +21,7 @@ export const categories = [
     slug: 'audio',
     description: 'Sound-related products',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     categoryId: 4,
@@ -29,7 +29,7 @@ export const categories = [
     slug: 'office',
     description: 'Workspace and office equipment',
     status: 'inactive',
-    enabled: false
+    enabled: false,
   },
   {
     categoryId: 5,
@@ -37,6 +37,6 @@ export const categories = [
     slug: 'networking',
     description: 'Connectivity and infrastructure equipment',
     status: 'active',
-    enabled: true
-  }
+    enabled: true,
+  },
 ];

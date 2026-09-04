@@ -15,12 +15,12 @@ export const createProductHandlers = (apiBaseUrl: string) => [
       permissions: {
         create: true,
         edit: true,
-        delete: true
+        delete: true,
       },
       views: {
         list: 'main',
-        form: 'edit'
-      }
+        form: 'edit',
+      },
     });
   }),
   http.get(`${apiBaseUrl}/entities/products/lists/main/metadata`, async () => {
@@ -31,17 +31,17 @@ export const createProductHandlers = (apiBaseUrl: string) => [
         {
           name: 'productId',
           label: 'ID',
-          type: 'integer'
+          type: 'integer',
         },
         {
           name: 'name',
           label: 'Name',
-          type: 'string'
+          type: 'string',
         },
         {
           name: 'sku',
           label: 'SKU',
-          type: 'string'
+          type: 'string',
         },
         {
           name: 'categoryId',
@@ -50,24 +50,24 @@ export const createProductHandlers = (apiBaseUrl: string) => [
           reference: {
             resource: 'categories',
             listId: 'main',
-            displayField: 'name'
-          }
+            displayField: 'name',
+          },
         },
         {
           name: 'price',
           label: 'Price',
-          type: 'decimal'
+          type: 'decimal',
         },
         {
           name: 'stock',
           label: 'Stock',
-          type: 'integer'
+          type: 'integer',
         },
         {
           name: 'enabled',
           label: 'Enabled',
-          type: 'boolean'
-        }
+          type: 'boolean',
+        },
       ],
       columns: [
         { field: 'productId', sizeType: 'width', size: 80 },
@@ -77,7 +77,7 @@ export const createProductHandlers = (apiBaseUrl: string) => [
           field: 'categoryId',
           sizeType: 'width',
           size: 140,
-          display: { type: 'reference', valueField: 'categoryName' }
+          display: { type: 'reference', valueField: 'categoryName' },
         },
         {
           field: 'price',
@@ -85,8 +85,8 @@ export const createProductHandlers = (apiBaseUrl: string) => [
           size: 120,
           display: {
             type: 'currency',
-            currency: 'USD'
-          }
+            currency: 'USD',
+          },
         },
         { field: 'stock', sizeType: 'width', size: 100 },
         {
@@ -95,22 +95,22 @@ export const createProductHandlers = (apiBaseUrl: string) => [
           size: 120,
           display: {
             type: 'boolean',
-            style: 'checkbox'
-          }
-        }
-      ]
+            style: 'checkbox',
+          },
+        },
+      ],
     });
   }),
   http.post(`${apiBaseUrl}/entities/products/lists/main/query`, async ({ request }) => {
     await delay(700);
 
-    const query = await request.json() as ListQuery;
-    const categoryById = new Map(categories.map(category => [category.categoryId, category]));
-    const rows = products.map(product => ({
+    const query = (await request.json()) as ListQuery;
+    const categoryById = new Map(categories.map((category) => [category.categoryId, category]));
+    const rows = products.map((product) => ({
       ...product,
-      categoryName: categoryById.get(product.categoryId)?.name
+      categoryName: categoryById.get(product.categoryId)?.name,
     }));
 
     return HttpResponse.json(applyListQuery(rows, query));
-  })
+  }),
 ];

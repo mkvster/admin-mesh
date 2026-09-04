@@ -4,7 +4,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationState } from '../navigation/navigation-state';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { EntityList } from "../entity/entity-list";
+import { EntityList } from '../entity/entity-list';
 
 @Component({
   selector: 'app-node-host',
@@ -21,31 +21,25 @@ export class NodeHost {
   }
 
   private readonly params = toSignal(this.route.paramMap);
-  
+
   protected readonly selection = computed(() => {
     const sectionId = this.params()?.get('sectionId');
     const nodeId = this.params()?.get('nodeId');
 
-    if (!sectionId || !nodeId)
-      return null;
+    if (!sectionId || !nodeId) return null;
 
-    const section = this.state.navigation()
-      .sections
-      .find(s => s.id === sectionId);
+    const section = this.state.navigation().sections.find((s) => s.id === sectionId);
 
-    const node = section?.nodes.find(n => n.id === nodeId);
+    const node = section?.nodes.find((n) => n.id === nodeId);
 
-    return section && node
-      ? { section, node }
-      : null;
+    return section && node ? { section, node } : null;
   });
-    
+
   constructor() {
     effect(() => {
       const selected = this.selection();
 
-      if (selected)
-        this.state.select(selected.section, selected.node);
+      if (selected) this.state.select(selected.section, selected.node);
     });
   }
 }

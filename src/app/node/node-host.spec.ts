@@ -17,10 +17,12 @@ describe('NodeHost', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            paramMap: of(convertToParamMap({
-              sectionId: 'accounting',
-              nodeId: 'test',
-            })),
+            paramMap: of(
+              convertToParamMap({
+                sectionId: 'accounting',
+                nodeId: 'test',
+              }),
+            ),
           },
         },
         {

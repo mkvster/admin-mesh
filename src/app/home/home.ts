@@ -10,13 +10,7 @@ import { RouterLink } from '@angular/router';
   selector: 'app-home',
   templateUrl: './home.html',
   styleUrl: './home.scss',
-  imports: [
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatListModule,
-    RouterLink
-  ]  
+  imports: [MatFormFieldModule, MatInputModule, MatIconModule, MatListModule, RouterLink],
 })
 export class Home {
   protected readonly state = inject(NavigationState);
@@ -25,16 +19,17 @@ export class Home {
   protected readonly results = computed(() => {
     const text = this.search().trim().toLowerCase();
 
-    if (!text)
-      return [];
+    if (!text) return [];
 
-    return this.state.navigation().sections.flatMap(section =>
-      section.nodes
-        .filter(node =>
-          section.title.toLowerCase().includes(text) ||
-          node.title.toLowerCase().includes(text)
-        )
-        .map(node => ({ section, node }))
-    );
+    return this.state
+      .navigation()
+      .sections.flatMap((section) =>
+        section.nodes
+          .filter(
+            (node) =>
+              section.title.toLowerCase().includes(text) || node.title.toLowerCase().includes(text),
+          )
+          .map((node) => ({ section, node })),
+      );
   });
 }

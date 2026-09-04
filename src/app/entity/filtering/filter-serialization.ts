@@ -9,9 +9,11 @@ export interface ListFilterScope {
 
 export function serializeListFilter(items: FilterItem[], scope?: ListFilterScope): string {
   const normalizedItems = normalizeFilterItems(items);
-  const json = JSON.stringify(scope
-    ? { ...scope, filter: { operator: 'and', items: normalizedItems } }
-    : { operator: 'and', items: normalizedItems });
+  const json = JSON.stringify(
+    scope
+      ? { ...scope, filter: { operator: 'and', items: normalizedItems } }
+      : { operator: 'and', items: normalizedItems },
+  );
   const bytes = new TextEncoder().encode(json);
   let binary = '';
 
@@ -19,13 +21,13 @@ export function serializeListFilter(items: FilterItem[], scope?: ListFilterScope
     binary += String.fromCharCode(byte);
   }
 
-  return btoa(binary)
-    .replaceAll('+', '-')
-    .replaceAll('/', '_')
-    .replace(/=+$/, '');
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
 }
 
-export function parseListFilter(value: string | null, scope?: ListFilterScope): ListFilter | undefined {
+export function parseListFilter(
+  value: string | null,
+  scope?: ListFilterScope,
+): ListFilter | undefined {
   if (!value || value.length > MAX_SERIALIZED_FILTER_LENGTH) {
     return undefined;
   }
@@ -34,7 +36,7 @@ export function parseListFilter(value: string | null, scope?: ListFilterScope): 
     const base64 = value.replaceAll('-', '+').replaceAll('_', '/');
     const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
     const binary = atob(padded);
-    const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
     const parsed = JSON.parse(new TextDecoder().decode(bytes)) as Partial<ListFilter> &
       Partial<ListFilterScope> & { filter?: Partial<ListFilter> };
 
@@ -62,9 +64,11 @@ function isFilterItem(item: unknown): item is FilterItem {
   }
 
   const candidate = item as Partial<FilterItem>;
-  return typeof candidate.field === 'string'
-    && isFilterValue(candidate.value)
-    && isFilterOperator(candidate.operator);
+  return (
+    typeof candidate.field === 'string' &&
+    isFilterValue(candidate.value) &&
+    isFilterOperator(candidate.operator)
+  );
 }
 
 function isFilterValue(value: unknown): value is FilterValue {
@@ -80,28 +84,33 @@ function isFilterValue(value: unknown): value is FilterValue {
     return true;
   }
 
-  return Array.isArray(value)
-    && value.length > 0
-    && value.every(item =>
-      (typeof item === 'string' && item.trim().length > 0)
-      || (typeof item === 'number' && Number.isFinite(item))
-    );
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every(
+      (item) =>
+        (typeof item === 'string' && item.trim().length > 0) ||
+        (typeof item === 'number' && Number.isFinite(item)),
+    )
+  );
 }
 
 function isFilterOperator(operator: unknown): operator is FilterOperator {
-  return operator === 'contains'
-    || operator === 'equals'
-    || operator === 'startsWith'
-    || operator === 'endsWith'
-    || operator === 'notEquals'
-    || operator === 'in'
-    || operator === 'notIn'
-    || operator === 'greaterThan'
-    || operator === 'greaterThanOrEqual'
-    || operator === 'lessThan'
-    || operator === 'lessThanOrEqual'
-    || operator === 'between'
-    || operator === 'before'
-    || operator === 'after'
-    || operator === 'inThePast';
+  return (
+    operator === 'contains' ||
+    operator === 'equals' ||
+    operator === 'startsWith' ||
+    operator === 'endsWith' ||
+    operator === 'notEquals' ||
+    operator === 'in' ||
+    operator === 'notIn' ||
+    operator === 'greaterThan' ||
+    operator === 'greaterThanOrEqual' ||
+    operator === 'lessThan' ||
+    operator === 'lessThanOrEqual' ||
+    operator === 'between' ||
+    operator === 'before' ||
+    operator === 'after' ||
+    operator === 'inThePast'
+  );
 }

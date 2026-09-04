@@ -29,9 +29,7 @@ export class AdminLayout {
   protected readonly navigationState = inject(NavigationState);
 
   protected readonly isMobile = toSignal(
-    this.breakpointObserver
-      .observe('(max-width: 768px)')
-      .pipe(map(({ matches }) => matches)),
+    this.breakpointObserver.observe('(max-width: 768px)').pipe(map(({ matches }) => matches)),
     { initialValue: false },
   );
 }

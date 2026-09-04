@@ -14,11 +14,11 @@ export const createNavigationHandlers = (apiBaseUrl: string) => [
               type: 'rest-entity',
               icon: {
                 name: 'people',
-                color: '#2f80ed'
+                color: '#2f80ed',
               },
               config: {
-                resource: 'customers'
-              }
+                resource: 'customers',
+              },
             },
             {
               id: 'products',
@@ -26,11 +26,11 @@ export const createNavigationHandlers = (apiBaseUrl: string) => [
               type: 'rest-entity',
               icon: {
                 name: 'inventory_2',
-                color: '#7b61ff'
+                color: '#7b61ff',
               },
               config: {
-                resource: 'products'
-              }
+                resource: 'products',
+              },
             },
             {
               id: 'categories',
@@ -38,13 +38,13 @@ export const createNavigationHandlers = (apiBaseUrl: string) => [
               type: 'rest-entity',
               icon: {
                 name: 'category',
-                color: '#27ae60'
+                color: '#27ae60',
               },
               config: {
-                resource: 'categories'
-              }
-            }
-          ]
+                resource: 'categories',
+              },
+            },
+          ],
         },
         {
           id: 'accounting',
@@ -56,19 +56,20 @@ export const createNavigationHandlers = (apiBaseUrl: string) => [
               type: 'rest-entity',
               icon: {
                 name: 'receipt_long',
-                color: '#f2994a'
+                color: '#f2994a',
               },
               config: {
-                resource: 'invoices'
-              }
+                resource: 'invoices',
+              },
             },
             {
               id: 'test',
-              title: 'Test Very Long Title That Should Be Properly Processed and Displayed in the Navigation UI',
+              title:
+                'Test Very Long Title That Should Be Properly Processed and Displayed in the Navigation UI',
               type: 'rest-entity',
               config: {
-                resource: 'tests'
-              }
+                resource: 'tests',
+              },
             },
             {
               id: 'payments',
@@ -76,15 +77,15 @@ export const createNavigationHandlers = (apiBaseUrl: string) => [
               type: 'rest-entity',
               icon: {
                 name: 'payments',
-                color: '#eb5757'
+                color: '#eb5757',
               },
               config: {
-                resource: 'payments'
-              }
-            }
-          ]
-        }
-      ]
-    })
-  )
+                resource: 'payments',
+              },
+            },
+          ],
+        },
+      ],
+    }),
+  ),
 ];

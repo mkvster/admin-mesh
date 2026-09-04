@@ -8,21 +8,17 @@ describe('normalizeFilterItems', () => {
       { field: 'firstName', operator: 'contains', value: 'a' },
       { field: 'lastName', operator: 'contains', value: 'a' },
       { field: 'firstName', operator: 'contains', value: 'a' },
-      { field: 'firstName', operator: 'contains', value: 'ab' }
+      { field: 'firstName', operator: 'contains', value: 'ab' },
     ];
 
-    expect(normalizeFilterItems(items)).toEqual([
-      items[0],
-      items[1],
-      items[3]
-    ]);
+    expect(normalizeFilterItems(items)).toEqual([items[0], items[1], items[3]]);
   });
 
   it('compares structured values as complete values', () => {
     const items = [
       { field: 'total', operator: 'between' as const, value: [100, 500] },
       { field: 'total', operator: 'between' as const, value: [100, 500] },
-      { field: 'total', operator: 'between' as const, value: [100, 600] }
+      { field: 'total', operator: 'between' as const, value: [100, 600] },
     ];
 
     expect(normalizeFilterItems(items)).toEqual([items[0], items[2]]);

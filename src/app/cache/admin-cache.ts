@@ -1,14 +1,12 @@
-import { Injectable } from "@angular/core";
-import { ObservableCache } from "./observable-cache";
-import { EntityMetadata, ListMetadata } from "../entity/entity-types";
+import { Injectable } from '@angular/core';
+import { ObservableCache } from './observable-cache';
+import { EntityMetadata, ListMetadata } from '../entity/entity-types';
 
 @Injectable({ providedIn: 'root' })
 export class AdminCache {
-  readonly entityMetadata =
-    new ObservableCache<string, EntityMetadata>();
+  readonly entityMetadata = new ObservableCache<string, EntityMetadata>();
 
-  readonly listMetadata =
-    new ObservableCache<string, ListMetadata>();
+  readonly listMetadata = new ObservableCache<string, ListMetadata>();
 
   //readonly formMetadata =
   //  new ObservableCache<string, FormMetadata>();

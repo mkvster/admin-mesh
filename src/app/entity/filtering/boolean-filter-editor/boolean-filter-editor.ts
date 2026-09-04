@@ -8,16 +8,24 @@ import { MatSelectModule } from '@angular/material/select';
   template: `
     <mat-form-field appearance="outline">
       <mat-label>Value</mat-label>
-      <mat-select [value]="value()" (selectionChange)="onChange($event.value)" aria-label="Boolean value">
+      <mat-select
+        [value]="value()"
+        (selectionChange)="onChange($event.value)"
+        aria-label="Boolean value"
+      >
         <mat-option [value]="true">Yes</mat-option>
         <mat-option [value]="false">No</mat-option>
       </mat-select>
     </mat-form-field>
   `,
   styles: `
-    :host, mat-form-field { display: block; width: 100%; }
+    :host,
+    mat-form-field {
+      display: block;
+      width: 100%;
+    }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BooleanFilterEditor {
   readonly value = model<unknown>();

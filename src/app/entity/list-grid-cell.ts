@@ -7,13 +7,9 @@ import { ListColumn, ListField } from './entity-types';
 
 @Component({
   selector: 'app-list-grid-cell',
-  imports: [
-    MatCheckboxModule,
-    MatChipsModule,
-    MatIconModule
-  ],
+  imports: [MatCheckboxModule, MatChipsModule, MatIconModule],
   templateUrl: './list-grid-cell.html',
-  styleUrl: './list-grid-cell.scss'
+  styleUrl: './list-grid-cell.scss',
 })
 export class ListGridCell {
   readonly field = input.required<ListField>();
@@ -30,20 +26,14 @@ export class ListGridCell {
   protected readonly enumLabel = computed(() => {
     const value = this.value();
 
-    return this.field().values
-      ?.find(item => item.value === value)
-      ?.label ?? this.textValue();
+    return this.field().values?.find((item) => item.value === value)?.label ?? this.textValue();
   });
 
   protected readonly referenceValue = computed(() => {
     const display = this.column().display;
-    const displayValue = display?.type === 'reference'
-      ? this.row()[display.valueField]
-      : undefined;
+    const displayValue = display?.type === 'reference' ? this.row()[display.valueField] : undefined;
 
-    return displayValue == null || displayValue === ''
-      ? this.textValue()
-      : String(displayValue);
+    return displayValue == null || displayValue === '' ? this.textValue() : String(displayValue);
   });
 
   protected readonly hasRenderableValue = computed(() => {
@@ -52,9 +42,7 @@ export class ListGridCell {
     }
 
     const display = this.column().display;
-    const displayValue = display?.type === 'reference'
-      ? this.row()[display.valueField]
-      : undefined;
+    const displayValue = display?.type === 'reference' ? this.row()[display.valueField] : undefined;
 
     return displayValue != null && displayValue !== '';
   });

@@ -1,17 +1,10 @@
 @if (hasRenderableValue()) {
-
   @switch (field().type) {
-
     @case ('boolean') {
       @if (column().display?.type === 'boolean') {
-
         @switch (booleanStyle()) {
-
           @case ('checkbox') {
-            <mat-checkbox
-              [checked]="value() === true"
-              disabled
-            />
+            <mat-checkbox [checked]="value() === true" disabled />
           }
 
           @case ('text') {
@@ -24,7 +17,6 @@
             </mat-icon>
           }
         }
-
       } @else {
         <mat-icon>
           {{ value() === true ? 'check' : 'close' }}
@@ -33,15 +25,12 @@
     }
 
     @case ('enum') {
-      @if (
-        column().display?.type === 'enum' &&
-        enumStyle() === 'label'
-      ) {
+      @if (column().display?.type === 'enum' && enumStyle() === 'label') {
         <span class="enum-badge">
-          {{  enumLabel() }}
+          {{ enumLabel() }}
         </span>
       } @else {
-        {{ textValue()}}
+        {{ textValue() }}
       }
     }
 

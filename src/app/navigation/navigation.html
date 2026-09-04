@@ -2,7 +2,8 @@
   @for (section of state.navigation().sections; track section.id) {
     <mat-expansion-panel expanded>
       <mat-expansion-panel-header
-        [class.has-selected-node]="section.nodes.some(node => isSelected(node))">
+        [class.has-selected-node]="section.nodes.some((node) => isSelected(node))"
+      >
         <mat-panel-title>{{ section.title }}</mat-panel-title>
       </mat-expansion-panel-header>
 
@@ -13,11 +14,13 @@
             type="button"
             [routerLink]="['/node', section.id, node.id]"
             [class.is-active]="isSelected(node)"
-            (click)="select(section, node)">
+            (click)="select(section, node)"
+          >
             <mat-icon
               matListItemIcon
               [class.is-placeholder]="!node.icon"
-              [style.color]="node.icon?.color">
+              [style.color]="node.icon?.color"
+            >
               {{ node.icon?.name ?? '' }}
             </mat-icon>
 

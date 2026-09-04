@@ -11,11 +11,11 @@ export class ObservableCache<K, V> {
     }
 
     const value = factory().pipe(
-      catchError(error => {
+      catchError((error) => {
         this.cache.delete(key);
         return throwError(() => error);
       }),
-      shareReplay(1)
+      shareReplay(1),
     );
 
     this.cache.set(key, value);

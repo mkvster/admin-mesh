@@ -24,21 +24,20 @@ describe('ListGridCell', () => {
     fixture.componentRef.setInput('field', {
       name: 'categoryId',
       label: 'Category',
-      type: 'reference'
+      type: 'reference',
     });
     fixture.componentRef.setInput('column', {
       field: 'categoryId',
-      display: { type: 'reference', valueField: 'categoryName' }
+      display: { type: 'reference', valueField: 'categoryName' },
     });
     fixture.componentRef.setInput('value', 3);
     fixture.componentRef.setInput('row', {
       categoryId: 3,
-      categoryName: 'Electronics'
+      categoryName: 'Electronics',
     });
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.reference-link'))
-      .toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.reference-link')).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('Electronics');
     expect(fixture.nativeElement.textContent).not.toContain('3');
   });
@@ -47,16 +46,16 @@ describe('ListGridCell', () => {
     fixture.componentRef.setInput('field', {
       name: 'categoryId',
       label: 'Category',
-      type: 'reference'
+      type: 'reference',
     });
     fixture.componentRef.setInput('column', {
       field: 'categoryId',
-      display: { type: 'reference', valueField: 'categoryName' }
+      display: { type: 'reference', valueField: 'categoryName' },
     });
     fixture.componentRef.setInput('value', 3);
     fixture.componentRef.setInput('row', {
       categoryId: 3,
-      categoryName: ''
+      categoryName: '',
     });
     fixture.detectChanges();
 

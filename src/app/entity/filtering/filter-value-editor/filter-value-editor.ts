@@ -18,7 +18,8 @@ import { DateFilterEditor } from '../date-filter-editor/date-filter-editor';
           multiple
           [value]="selectValue()"
           (selectionChange)="onChange($event.value)"
-          aria-label="Enum values">
+          aria-label="Enum values"
+        >
           @for (option of field().values ?? []; track option.value) {
             <mat-option [value]="option.value">{{ option.label }}</mat-option>
           }
@@ -28,7 +29,8 @@ import { DateFilterEditor } from '../date-filter-editor/date-filter-editor';
           placeholder="Select a value"
           [value]="selectValue()"
           (selectionChange)="onChange($event.value)"
-          aria-label="Enum value">
+          aria-label="Enum value"
+        >
           @for (option of field().values ?? []; track option.value) {
             <mat-option [value]="option.value">{{ option.label }}</mat-option>
           }
@@ -37,17 +39,21 @@ import { DateFilterEditor } from '../date-filter-editor/date-filter-editor';
     </mat-form-field>
   `,
   styles: `
-    :host, mat-form-field { display: block; width: 100%; }
+    :host,
+    mat-form-field {
+      display: block;
+      width: 100%;
+    }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EnumFilterEditor {
   readonly field = input.required<ListField>();
   readonly operator = input.required<FilterOperator>();
   readonly value = model<unknown>();
 
-  protected readonly isMultiple = computed(() =>
-    this.operator() === 'in' || this.operator() === 'notIn'
+  protected readonly isMultiple = computed(
+    () => this.operator() === 'in' || this.operator() === 'notIn',
   );
 
   protected selectValue(): unknown {
@@ -73,9 +79,15 @@ export class EnumFilterEditor {
   host: {
     '[class.filter-value-datetime]': "field().type === 'datetime'",
     '[class.filter-value-numeric]': "field().type === 'integer' || field().type === 'decimal'",
-    '[class.filter-value-string]': "field().type === 'string'"
+    '[class.filter-value-string]': "field().type === 'string'",
   },
-  imports: [StringFilterEditor, NumericFilterEditor, BooleanFilterEditor, DateFilterEditor, EnumFilterEditor],
+  imports: [
+    StringFilterEditor,
+    NumericFilterEditor,
+    BooleanFilterEditor,
+    DateFilterEditor,
+    EnumFilterEditor,
+  ],
   template: `
     @switch (field().type) {
       @case ('string') {
@@ -86,19 +98,37 @@ export class EnumFilterEditor {
         />
       }
       @case ('integer') {
-        <app-numeric-filter-editor [operator]="operator()" [(value)]="value" [integer]="true" [showError]="showError()" />
+        <app-numeric-filter-editor
+          [operator]="operator()"
+          [(value)]="value"
+          [integer]="true"
+          [showError]="showError()"
+        />
       }
       @case ('decimal') {
-        <app-numeric-filter-editor [operator]="operator()" [(value)]="value" [showError]="showError()" />
+        <app-numeric-filter-editor
+          [operator]="operator()"
+          [(value)]="value"
+          [showError]="showError()"
+        />
       }
       @case ('boolean') {
         <app-boolean-filter-editor [(value)]="value" />
       }
       @case ('date') {
-        <app-date-filter-editor [operator]="operator()" [(value)]="value" [showError]="showError()" />
+        <app-date-filter-editor
+          [operator]="operator()"
+          [(value)]="value"
+          [showError]="showError()"
+        />
       }
       @case ('datetime') {
-        <app-date-filter-editor [operator]="operator()" [(value)]="value" [datetime]="true" [showError]="showError()" />
+        <app-date-filter-editor
+          [operator]="operator()"
+          [(value)]="value"
+          [datetime]="true"
+          [showError]="showError()"
+        />
       }
       @case ('enum') {
         <app-enum-filter-editor [field]="field()" [operator]="operator()" [(value)]="value" />
@@ -108,7 +138,7 @@ export class EnumFilterEditor {
       }
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FilterValueEditor {
   readonly field = input.required<ListField>();
