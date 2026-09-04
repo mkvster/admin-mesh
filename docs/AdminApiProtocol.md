@@ -333,6 +333,10 @@ For a `datetime` field, values are timezone-aware instants serialized as UTC
 ISO 8601 timestamps with millisecond precision, for example
 `2026-09-03T14:30:00.000Z`.
 
+Relative date and datetime filters use the `inThePast` operator and retain a
+relative period value. Their semantics are defined in
+[FilterOperators.md](FilterOperators.md).
+
 For an `enum` field, `values` defines the values exchanged with the API and the corresponding labels displayed to the user.
 
 For a `reference` field:

@@ -1,4 +1,4 @@
-import { FilterItem, FilterOperator, ListFilter } from '../entity-types';
+import { FilterItem, FilterOperator, FilterValue, ListFilter } from '../entity-types';
 import { MAX_FILTER_ITEMS, MAX_SERIALIZED_FILTER_LENGTH } from './filter-constraints';
 import { normalizeFilterItems } from './filter-normalization';
 
@@ -63,14 +63,43 @@ function isFilterItem(item: unknown): item is FilterItem {
 
   const candidate = item as Partial<FilterItem>;
   return typeof candidate.field === 'string'
-    && typeof candidate.value === 'string'
-    && candidate.value.trim().length > 0
+    && isFilterValue(candidate.value)
     && isFilterOperator(candidate.operator);
+}
+
+function isFilterValue(value: unknown): value is FilterValue {
+  if (typeof value === 'string') {
+    return value.trim().length > 0;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value);
+  }
+
+  if (typeof value === 'boolean') {
+    return true;
+  }
+
+  return Array.isArray(value)
+    && value.length === 2
+    && value.every(item =>
+      (typeof item === 'string' && item.trim().length > 0)
+      || (typeof item === 'number' && Number.isFinite(item))
+    );
 }
 
 function isFilterOperator(operator: unknown): operator is FilterOperator {
   return operator === 'contains'
     || operator === 'equals'
     || operator === 'startsWith'
-    || operator === 'endsWith';
+    || operator === 'endsWith'
+    || operator === 'notEquals'
+    || operator === 'greaterThan'
+    || operator === 'greaterThanOrEqual'
+    || operator === 'lessThan'
+    || operator === 'lessThanOrEqual'
+    || operator === 'between'
+    || operator === 'before'
+    || operator === 'after'
+    || operator === 'inThePast';
 }

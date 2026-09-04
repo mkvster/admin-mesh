@@ -3,20 +3,43 @@
   <button
     mat-icon-button
     type="button"
-    mat-dialog-close
+    (click)="cancel()"
     aria-label="Close filters">
     <mat-icon aria-hidden="true">close</mat-icon>
   </button>
 </div>
 
 <mat-dialog-content class="filter-dialog-content">
+  <!-- <div class="test-fields">
+    <mat-form-field>
+      <mat-label>Meeting date</mat-label>
+      <input matInput [matDatepicker]="datepicker" [(ngModel)]="value" />
+      <mat-datepicker #datepicker />
+      <mat-datepicker-toggle [for]="datepicker" matSuffix />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Meeting time</mat-label>
+      <input
+        matInput
+        [matTimepicker]="timepicker"
+        [(ngModel)]="value"
+        [ngModelOptions]="{ updateOn: 'blur' }" />
+      <mat-timepicker #timepicker />
+      <mat-timepicker-toggle [for]="timepicker" matSuffix />
+    </mat-form-field>
+  </div>
+
+  <p>Value: {{ value }}</p> -->
+
   <div #filterRows class="filter-rows">
     @if (draft().length === 0) {
       <p class="empty-state">No filters configured.</p>
     }
 
     @for (item of draft(); track $index) {
-      <div class="filter-row">
+      <div class="filter-item">
+        <div class="filter-row">
       <mat-form-field appearance="outline" class="filter-field-control">
         <mat-label>Field</mat-label>
         <mat-select
@@ -24,7 +47,7 @@
           (selectionChange)="updateField($index, $event.value)"
           [attr.aria-label]="'Filter field ' + ($index + 1)">
           <mat-option value="">Select a field</mat-option>
-          @for (field of stringFields; track field.name) {
+          @for (field of filterableFields; track field.name) {
             <mat-option [value]="field.name">{{ field.label }}</mat-option>
           }
         </mat-select>
@@ -38,7 +61,7 @@
           [disabled]="!item.field"
           [attr.aria-label]="'Filter operator ' + ($index + 1)">
           <mat-option value="">Select an operator</mat-option>
-          @for (operator of operators; track operator.value) {
+          @for (operator of operatorsFor(item); track operator.value) {
             <mat-option [value]="operator.value">{{ operator.label }}</mat-option>
           }
         </mat-select>
@@ -51,7 +74,7 @@
             [operator]="operator"
             [value]="item.value ?? ''"
             (valueChange)="updateValue($index, $event)"
-            [showError]="!item.value?.trim()"
+            [showError]="showValueError(item)"
           />
         } @else {
           <mat-form-field appearance="outline" class="filter-value-placeholder">
@@ -74,12 +97,16 @@
         [attr.aria-label]="'Remove filter ' + ($index + 1)">
         <mat-icon aria-hidden="true">delete_outline</mat-icon>
       </button>
+        </div>
+        @if (showValueError(item)) {
+          <p class="filter-row-error" role="alert">{{ valueErrorMessage(item) }}</p>
+        }
       </div>
     }
   </div>
-
-  @if (hasIncompleteFilter()) {
-    <p class="validation-message" role="alert">Complete each filter before applying.</p>
+  
+  @if (hasIncompleteFilter() && !hasRowError()) {
+    <p class="validation-message" role="alert">Please correct the invalid or incomplete filters before applying.</p>
   }
   @if (hasReachedFilterLimit()) {
     <p class="limit-message" role="status">Maximum 50 filters reached.</p>
@@ -87,6 +114,7 @@
   @if (hasOversizedFilter()) {
     <p class="validation-message" role="alert">The filter is too large to save in the URL.</p>
   }
+  
 </mat-dialog-content>
 
 <mat-dialog-actions class="dialog-actions">

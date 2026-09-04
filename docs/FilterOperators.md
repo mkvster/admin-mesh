@@ -79,12 +79,36 @@ Date and datetime fields support:
 | `before` | Earlier than the supplied date or instant. |
 | `after` | Later than the supplied date or instant. |
 | `between` | Within the supplied inclusive range. |
+| `inThePast` | Within a dynamic rolling period before the current time. |
 
 `date` values are calendar dates in `YYYY-MM-DD` format and have no timezone.
 
 `datetime` values are UTC ISO 8601 instants with millisecond precision:
 `YYYY-MM-DDTHH:mm:ss.SSSZ`. The UI may edit the value in the browser's local
 timezone, but the API representation is always UTC.
+
+`inThePast` uses one of these relative period values:
+
+| Value | Meaning |
+| --- | --- |
+| `hour` | The previous hour. |
+| `24hours` | The previous 24 hours. |
+| `week` | The previous 7 days. |
+| `month` | The previous 30 days. |
+| `year` | The previous 365 days. |
+
+Relative periods are evaluated against the current time for every query. They
+are stored as relative values so a saved URL remains dynamic.
+
+Example:
+
+```json
+{
+  "field": "paymentDate",
+  "operator": "inThePast",
+  "value": "24hours"
+}
+```
 
 Examples:
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FilterItem } from './entity-types';
+import { FilterItem } from '../entity-types';
 import { parseListFilter, serializeListFilter } from './filter-serialization';
 
 describe('filter serialization', () => {
@@ -20,5 +20,15 @@ describe('filter serialization', () => {
 
   it('rejects malformed or incomplete filters', () => {
     expect(parseListFilter('not-a-filter')).toBeUndefined();
+  });
+
+  it('round-trips typed scalar and range values', () => {
+    const items: FilterItem[] = [
+      { field: 'total', operator: 'greaterThanOrEqual', value: 100 },
+      { field: 'enabled', operator: 'equals', value: false },
+      { field: 'issueDate', operator: 'between', value: ['2026-08-01', '2026-08-31'] }
+    ];
+
+    expect(parseListFilter(serializeListFilter(items))).toEqual({ operator: 'and', items });
   });
 });

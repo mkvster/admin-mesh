@@ -5,12 +5,12 @@ status: Done
 assignee:
   - '@codex'
 created_date: '2026-09-02 12:42'
-updated_date: '2026-09-02 20:25'
+updated_date: '2026-09-04 02:44'
 labels: []
 milestone: s-001
 dependencies: []
 priority: high
-ordinal: 1000
+ordinal: 1500
 ---
 
 ## Description
