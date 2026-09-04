@@ -28,7 +28,11 @@ jobs:
 
       - run: npm ci
 
+      - run: npm run format:check
+
       - run: npm run build -- --base-href "/${{ github.event.repository.name }}/"
+
+      - run: npm test -- --watch=false
 
       - name: Prepare SPA fallback
         run: |
