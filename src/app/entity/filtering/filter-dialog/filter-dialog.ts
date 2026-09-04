@@ -46,7 +46,7 @@ export class FilterDialog {
   private readonly dialogRef = inject(MatDialogRef<FilterDialog, FilterItem[] | undefined>);
   readonly data = inject<FilterDialogData>(MAT_DIALOG_DATA);
   readonly filterableFields = this.data.fields.filter(field =>
-    ['string', 'integer', 'decimal', 'boolean', 'date', 'datetime'].includes(field.type)
+    ['string', 'integer', 'decimal', 'boolean', 'date', 'datetime', 'enum'].includes(field.type)
   );
   readonly draft = signal<DraftFilter[]>(this.data.filters.length
     ? this.data.filters.map(filter => ({ ...filter }))
@@ -85,6 +85,8 @@ export class FilterDialog {
         ? ['equals', 'notEquals', 'greaterThan', 'greaterThanOrEqual', 'lessThan', 'lessThanOrEqual', 'between']
         : field.type === 'boolean'
           ? ['equals']
+          : field.type === 'enum'
+            ? ['equals', 'notEquals', 'in', 'notIn']
           : ['equals', 'before', 'after', 'between', 'inThePast'];
 
     return values.map(value => ({ value, label: this.operatorLabel(value) }));
@@ -115,6 +117,10 @@ export class FilterDialog {
         ? item.operator === 'between' ? 'Enter valid range boundaries' : 'Enter a valid date'
         : field?.type === 'datetime'
           ? item.operator === 'between' ? 'Enter valid range boundaries' : 'Enter a valid date and times'
+        : field?.type === 'enum'
+          ? item.operator === 'in' || item.operator === 'notIn'
+            ? 'Choose a value(s)'
+            : 'Choose a value'
         : field?.type === 'string'
           ? 'Enter a value'
           : 'Enter a valid value';
@@ -181,6 +187,12 @@ export class FilterDialog {
       return ['hour', '24hours', 'week', 'month', 'year'].includes(String(value));
     }
 
+    if (field.type === 'enum') {
+      return operator === 'in' || operator === 'notIn'
+        ? Array.isArray(value) && value.length > 0 && value.every(item => this.isScalarForField(field, item))
+        : this.isScalarForField(field, value);
+    }
+
     return this.isScalarForField(field, value);
   }
 
@@ -191,6 +203,9 @@ export class FilterDialog {
     if (field.type === 'integer' || field.type === 'decimal') {
       return typeof value === 'number' && Number.isFinite(value)
         && (field.type !== 'integer' || Number.isInteger(value));
+    }
+    if (field.type === 'enum') {
+      return field.values?.some(item => item.value === value) ?? false;
     }
     return typeof value === 'string' && value.trim().length > 0 && !Number.isNaN(Date.parse(value));
   }
@@ -231,7 +246,10 @@ export class FilterDialog {
 
   private isFilterValue(value: unknown): value is FilterValue {
     return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
-      || (Array.isArray(value) && value.length === 2);
+      || (Array.isArray(value) && value.every(item =>
+        (typeof item === 'string' && item.trim().length > 0)
+        || (typeof item === 'number' && Number.isFinite(item))
+      ));
   }
 
   private operatorLabel(operator: FilterOperator): string {
@@ -241,6 +259,8 @@ export class FilterDialog {
       case 'startsWith': return 'Starts with';
       case 'endsWith': return 'Ends with';
       case 'notEquals': return 'Not equals';
+      case 'in': return 'In';
+      case 'notIn': return 'Not in';
       case 'greaterThan': return 'Greater than';
       case 'greaterThanOrEqual': return 'Greater than or equal';
       case 'lessThan': return 'Less than';

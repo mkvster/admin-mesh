@@ -81,7 +81,7 @@ function isFilterValue(value: unknown): value is FilterValue {
   }
 
   return Array.isArray(value)
-    && value.length === 2
+    && value.length > 0
     && value.every(item =>
       (typeof item === 'string' && item.trim().length > 0)
       || (typeof item === 'number' && Number.isFinite(item))
@@ -94,6 +94,8 @@ function isFilterOperator(operator: unknown): operator is FilterOperator {
     || operator === 'startsWith'
     || operator === 'endsWith'
     || operator === 'notEquals'
+    || operator === 'in'
+    || operator === 'notIn'
     || operator === 'greaterThan'
     || operator === 'greaterThanOrEqual'
     || operator === 'lessThan'
