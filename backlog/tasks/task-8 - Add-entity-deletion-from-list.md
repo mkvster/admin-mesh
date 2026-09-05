@@ -1,13 +1,14 @@
 ---
 id: TASK-8
 title: Add entity deletion from list
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-04 13:06'
-updated_date: '2026-09-04 13:07'
+updated_date: '2026-09-05 16:31'
 labels: []
 milestone: s-002
 dependencies: []
+ordinal: 1000
 ---
 
 ## Description
