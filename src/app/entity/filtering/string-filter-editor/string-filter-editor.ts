@@ -7,35 +7,8 @@ import { MAX_STRING_FILTER_VALUE_LENGTH } from '../filter-constraints';
 @Component({
   selector: 'app-string-filter-editor',
   imports: [MatFormFieldModule, MatInputModule],
-  template: `
-    <mat-form-field appearance="outline">
-      <mat-label>{{ label() }}</mat-label>
-      <input
-        matInput
-        [value]="stringValue()"
-        [attr.maxlength]="maxLength"
-        (input)="onInput($event)"
-        [attr.aria-label]="label()"
-      />
-      <mat-hint align="end">{{ stringValue().length }} / {{ maxLength }}</mat-hint>
-    </mat-form-field>
-  `,
-  styles: `
-    :host {
-      display: block;
-      width: 100%;
-    }
-
-    mat-form-field {
-      width: 100%;
-    }
-
-    input {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  `,
+  templateUrl: './string-filter-editor.html',
+  styleUrl: './string-filter-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StringFilterEditor {

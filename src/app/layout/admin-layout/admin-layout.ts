@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { Navigation } from '../../navigation/navigation';
+import { Navigation } from '../../navigation/navigation/navigation';
 import { map } from 'rxjs';
 import { NavigationState } from '../../navigation/navigation-state';
 

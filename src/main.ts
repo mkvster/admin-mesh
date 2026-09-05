@@ -1,6 +1,6 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
-import { App } from './app/app';
+import { Root } from './app/root/root';
 import { ADMINMESH_CONFIG, AdminMeshConfig } from './app/config/adminmesh-config';
 import { normalizeBaseUrl } from './app/shared/api-url';
 
@@ -23,7 +23,7 @@ if (config.mockApi) {
   });
 }
 
-bootstrapApplication(App, {
+bootstrapApplication(Root, {
   ...appConfig,
   providers: [
     ...(appConfig.providers ?? []),

@@ -4,11 +4,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSidenav } from '@angular/material/sidenav';
-import { NavigationState } from './navigation-state';
-import { AdminNode, NavigationSection } from './navigation-types';
+import { NavigationState } from '../navigation-state';
+import { AdminNode, NavigationSection } from '../navigation-types';
 import { RouterLink } from '@angular/router';
-import { ErrorState } from '../shared/error-state/error-state';
-import { AsyncErrorHandler } from '../shared/async-error-handler/async-error-handler';
+import { ErrorState } from '../../shared/error-state/error-state';
+import { AsyncErrorHandler } from '../../shared/async-error-handler';
 
 @Component({
   selector: 'app-navigation',

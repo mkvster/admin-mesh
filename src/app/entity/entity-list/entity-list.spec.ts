@@ -5,9 +5,9 @@ import { of } from 'rxjs';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { EntityList } from './entity-list';
-import { EntityApi } from './entity-api';
-import { EntityMetadataStore } from './entity-metadata-store';
-import { ListMetadataStore } from './list-metadata-store';
+import { EntityApi } from '../entity-api';
+import { EntityMetadataStore } from '../entity-metadata-store';
+import { ListMetadataStore } from '../list-metadata-store';
 
 describe('EntityList', () => {
   let component: EntityList;

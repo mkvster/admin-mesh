@@ -1,0 +1,35 @@
+@if (isRelative()) {
+  <mat-form-field appearance="outline"
+    ><mat-label>Period</mat-label
+    ><mat-select
+      [value]="relativePeriod()"
+      (selectionChange)="onRelativeChange($event.value)"
+      aria-label="Relative period"
+    >
+      @for (period of relativePeriods; track period.value) {
+        <mat-option [value]="period.value">{{ period.label }}</mat-option>
+      }
+    </mat-select></mat-form-field
+  >
+} @else if (isBetween()) {
+  <div class="range-fields" [class.datetime-range]="datetime()">
+    <app-date-value-input
+      label="From"
+      [value]="fromDate()"
+      [datetime]="datetime()"
+      (dateChange)="onDateChange($event, 'from')"
+    /><app-date-value-input
+      label="To"
+      [value]="toDate()"
+      [datetime]="datetime()"
+      (dateChange)="onDateChange($event, 'to')"
+    />
+  </div>
+} @else {
+  <app-date-value-input
+    label="Value"
+    [value]="singleDate()"
+    [datetime]="datetime()"
+    (dateChange)="onDateChange($event, 'single')"
+  />
+}

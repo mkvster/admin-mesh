@@ -1,0 +1,26 @@
+<mat-form-field appearance="outline">
+  <mat-label>Value</mat-label>
+  @if (isMultiple()) {
+    <mat-select
+      multiple
+      [value]="selectValue()"
+      (selectionChange)="onChange($event.value)"
+      aria-label="Enum values"
+    >
+      @for (option of field().values ?? []; track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+      }
+    </mat-select>
+  } @else {
+    <mat-select
+      placeholder="Select a value"
+      [value]="selectValue()"
+      (selectionChange)="onChange($event.value)"
+      aria-label="Enum value"
+    >
+      @for (option of field().values ?? []; track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+      }
+    </mat-select>
+  }
+</mat-form-field>

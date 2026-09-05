@@ -3,13 +3,13 @@ import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { App } from './app';
-import { NavigationState } from './navigation/navigation-state';
+import { Root } from './root';
+import { NavigationState } from '../navigation/navigation-state';
 
-describe('App', () => {
+describe('Root', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [App],
+      imports: [Root],
       providers: [
         provideRouter([]),
         {
@@ -26,13 +26,13 @@ describe('App', () => {
   });
 
   it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
+    const fixture = TestBed.createComponent(Root);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
   });
 
   it('should render the admin layout', async () => {
-    const fixture = TestBed.createComponent(App);
+    const fixture = TestBed.createComponent(Root);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('app-admin-layout')).toBeTruthy();

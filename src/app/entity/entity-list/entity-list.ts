@@ -7,9 +7,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { EntityApi } from './entity-api';
-import { EntityMetadataStore } from './entity-metadata-store';
-import { ListMetadataStore } from './list-metadata-store';
+import { EntityApi } from '../entity-api';
+import { EntityMetadataStore } from '../entity-metadata-store';
+import { ListMetadataStore } from '../list-metadata-store';
 
 import {
   EntityMetadata,
@@ -18,13 +18,13 @@ import {
   ListQuery,
   ListQueryResult,
   ListSort,
-} from './entity-types';
-import { ListGrid, ListPageChange, ListSortChange } from './list-grid';
-import { FilterDialog } from './filtering/filter-dialog/filter-dialog';
-import { MAX_SERIALIZED_FILTER_LENGTH } from './filtering/filter-constraints';
-import { parseListFilter, serializeListFilter } from './filtering/filter-serialization';
-import { ErrorState } from '../shared/error-state/error-state';
-import { AsyncErrorHandler } from '../shared/async-error-handler/async-error-handler';
+} from '../entity-types';
+import { ListGrid, ListPageChange, ListSortChange } from '../list-grid/list-grid';
+import { FilterDialog } from '../filtering/filter-dialog/filter-dialog';
+import { MAX_SERIALIZED_FILTER_LENGTH } from '../filtering/filter-constraints';
+import { parseListFilter, serializeListFilter } from '../filtering/filter-serialization';
+import { ErrorState } from '../../shared/error-state/error-state';
+import { AsyncErrorHandler } from '../../shared/async-error-handler';
 
 type EntityListState =
   | { status: 'loading' }

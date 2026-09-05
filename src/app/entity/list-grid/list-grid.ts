@@ -3,8 +3,8 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { FilterItem, ListMetadata, ListSort } from './entity-types';
-import { ListGridCell } from './list-grid-cell';
+import { FilterItem, ListMetadata, ListSort } from '../entity-types';
+import { ListGridCell } from '../list-grid-cell/list-grid-cell';
 
 export interface ListPageChange {
   page: number;

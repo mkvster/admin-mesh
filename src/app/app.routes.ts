@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { Home } from './home/home';
-import { NodeHost } from './node/node-host';
+import { NodeHost } from './node-host/node-host';
 import { PageNotFound } from './page-not-found/page-not-found';
 
 export const routes: Routes = [

@@ -5,7 +5,7 @@ import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 
 import { Navigation } from './navigation';
-import { NavigationApi } from './navigation-api';
+import { NavigationApi } from '../navigation-api';
 
 describe('Navigation', () => {
   let component: Navigation;

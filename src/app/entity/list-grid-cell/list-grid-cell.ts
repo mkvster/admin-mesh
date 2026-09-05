@@ -3,7 +3,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 
-import { ListColumn, ListField } from './entity-types';
+import { ListColumn, ListField } from '../entity-types';
 
 @Component({
   selector: 'app-list-grid-cell',

@@ -6,67 +6,8 @@ import { FilterOperator } from '../../entity-types';
 @Component({
   selector: 'app-numeric-filter-editor',
   imports: [MatFormFieldModule, MatInputModule],
-  template: `
-    @if (isBetween()) {
-      <div class="range-fields">
-        <mat-form-field appearance="outline">
-          <mat-label>From</mat-label>
-          <input
-            matInput
-            type="number"
-            [step]="step()"
-            [value]="fromValue()"
-            (input)="onInput($event, 'from')"
-            aria-label="From"
-          />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>To</mat-label>
-          <input
-            matInput
-            type="number"
-            [step]="step()"
-            [value]="toValue()"
-            (input)="onInput($event, 'to')"
-            aria-label="To"
-          />
-        </mat-form-field>
-      </div>
-    } @else {
-      <div class="single-field">
-        <mat-form-field appearance="outline">
-          <mat-label>Value</mat-label>
-          <input
-            matInput
-            type="number"
-            [step]="step()"
-            [value]="singleValue()"
-            (input)="onInput($event, 'single')"
-            aria-label="Value"
-          />
-        </mat-form-field>
-      </div>
-    }
-  `,
-  styles: `
-    :host {
-      display: block;
-      width: 100%;
-    }
-    .range-fields {
-      display: flex;
-      gap: 8px;
-      width: 100%;
-    }
-    .single-field,
-    .single-field mat-form-field {
-      width: 100%;
-    }
-    mat-form-field {
-      flex: 1;
-      min-width: 0;
-    }
-  `,
+  templateUrl: './numeric-filter-editor.html',
+  styleUrl: './numeric-filter-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NumericFilterEditor {
