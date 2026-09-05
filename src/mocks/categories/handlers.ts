@@ -14,12 +14,12 @@ export const createCategoryHandlers = (apiBaseUrl: string) => [
       permissions: {
         create: true,
         edit: true,
-        delete: true
+        delete: true,
       },
       views: {
         list: 'main',
-        form: 'edit'
-      }
+        form: 'edit',
+      },
     });
   }),
   http.get(`${apiBaseUrl}/entities/categories/lists/main/metadata`, async () => {
@@ -30,28 +30,28 @@ export const createCategoryHandlers = (apiBaseUrl: string) => [
         {
           name: 'categoryId',
           label: 'ID',
-          type: 'integer'
+          type: 'integer',
         },
         {
           name: 'name',
           label: 'Name',
-          type: 'string'
+          type: 'string',
         },
         {
           name: 'slug',
           label: 'Slug',
-          type: 'string'
+          type: 'string',
         },
         {
           name: 'description',
           label: 'Description',
-          type: 'string'
+          type: 'string',
         },
         {
           name: 'enabled',
           label: 'Enabled',
-          type: 'boolean'
-        }
+          type: 'boolean',
+        },
       ],
       columns: [
         { field: 'categoryId', sizeType: 'width', size: 80 },
@@ -64,16 +64,16 @@ export const createCategoryHandlers = (apiBaseUrl: string) => [
           size: 120,
           display: {
             type: 'boolean',
-            style: 'checkbox'
-          }
-        }
-      ]
+            style: 'checkbox',
+          },
+        },
+      ],
     });
   }),
   http.post(`${apiBaseUrl}/entities/categories/lists/main/query`, async ({ request }) => {
     await delay(700);
 
-    const query = await request.json() as ListQuery;
+    const query = (await request.json()) as ListQuery;
     return HttpResponse.json(applyListQuery(categories, query));
-  })
+  }),
 ];

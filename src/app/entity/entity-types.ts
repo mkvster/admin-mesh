@@ -82,7 +82,8 @@ export type FilterOperator =
 
 export type RelativePastPeriod = 'hour' | '24hours' | 'week' | 'month' | 'year';
 
-export type FilterValue = string | number | boolean | [string | number, string | number] | (string | number)[];
+export type FilterValue =
+  string | number | boolean | [string | number, string | number] | (string | number)[];
 
 export interface FilterItem {
   field: string;

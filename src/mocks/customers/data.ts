@@ -5,7 +5,7 @@ export const customers = [
     lastName: 'Smith',
     email: 'john.smith@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 2,
@@ -13,7 +13,7 @@ export const customers = [
     lastName: 'Johnson',
     email: 'mary.johnson@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 3,
@@ -21,7 +21,7 @@ export const customers = [
     lastName: 'Brown',
     email: 'robert.brown@example.com',
     status: 'inactive',
-    enabled: false
+    enabled: false,
   },
   {
     customerId: 4,
@@ -29,7 +29,7 @@ export const customers = [
     lastName: 'Davis',
     email: 'emily.davis@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 5,
@@ -37,7 +37,7 @@ export const customers = [
     lastName: 'Miller',
     email: 'michael.miller@example.com',
     status: 'inactive',
-    enabled: false
+    enabled: false,
   },
   {
     customerId: 6,
@@ -45,7 +45,7 @@ export const customers = [
     lastName: 'Wilson',
     email: 'sarah.wilson@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 7,
@@ -53,7 +53,7 @@ export const customers = [
     lastName: 'Moore',
     email: 'david.moore@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 8,
@@ -61,7 +61,7 @@ export const customers = [
     lastName: 'Taylor',
     email: 'jessica.taylor@example.com',
     status: 'inactive',
-    enabled: false
+    enabled: false,
   },
   {
     customerId: 9,
@@ -69,7 +69,7 @@ export const customers = [
     lastName: 'Anderson',
     email: 'daniel.anderson@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 10,
@@ -77,7 +77,7 @@ export const customers = [
     lastName: 'Thomas',
     email: 'sophia.thomas@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 11,
@@ -85,7 +85,7 @@ export const customers = [
     lastName: 'Jackson',
     email: 'matthew.jackson@example.com',
     status: 'inactive',
-    enabled: false
+    enabled: false,
   },
   {
     customerId: 12,
@@ -93,7 +93,7 @@ export const customers = [
     lastName: 'White',
     email: 'olivia.white@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 13,
@@ -101,7 +101,7 @@ export const customers = [
     lastName: 'Harris',
     email: 'james.harris@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 14,
@@ -109,7 +109,7 @@ export const customers = [
     lastName: 'Martin',
     email: 'ava.martin@example.com',
     status: 'inactive',
-    enabled: false
+    enabled: false,
   },
   {
     customerId: 15,
@@ -117,7 +117,7 @@ export const customers = [
     lastName: 'Thompson',
     email: 'benjamin.thompson@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 16,
@@ -125,7 +125,7 @@ export const customers = [
     lastName: 'Garcia',
     email: 'mia.garcia@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 17,
@@ -133,7 +133,7 @@ export const customers = [
     lastName: 'Martinez',
     email: 'ethan.martinez@example.com',
     status: 'inactive',
-    enabled: false
+    enabled: false,
   },
   {
     customerId: 18,
@@ -141,7 +141,7 @@ export const customers = [
     lastName: 'Robinson',
     email: 'isabella.robinson@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 19,
@@ -149,7 +149,7 @@ export const customers = [
     lastName: 'Clark',
     email: 'alexander.clark@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 20,
@@ -157,7 +157,7 @@ export const customers = [
     lastName: 'Rodriguez',
     email: 'charlotte.rodriguez@example.com',
     status: 'inactive',
-    enabled: false
+    enabled: false,
   },
   {
     customerId: 21,
@@ -165,7 +165,7 @@ export const customers = [
     lastName: 'Lewis',
     email: 'henry.lewis@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 22,
@@ -173,7 +173,7 @@ export const customers = [
     lastName: 'Lee',
     email: 'amelia.lee@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 23,
@@ -181,7 +181,7 @@ export const customers = [
     lastName: 'Walker',
     email: 'william.walker@example.com',
     status: 'inactive',
-    enabled: false
+    enabled: false,
   },
   {
     customerId: 24,
@@ -189,7 +189,7 @@ export const customers = [
     lastName: 'Hall',
     email: 'harper.hall@example.com',
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     customerId: 25,
@@ -197,6 +197,6 @@ export const customers = [
     lastName: 'Allen',
     email: 'lucas.allen@example.com',
     status: 'active',
-    enabled: true
-  }
+    enabled: true,
+  },
 ];

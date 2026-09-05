@@ -13,7 +13,7 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
       singularTitle: 'Invoice',
       idField: 'invoiceId',
       permissions: { create: true, edit: true, delete: true },
-      views: { list: 'main', form: 'edit' }
+      views: { list: 'main', form: 'edit' },
     });
   }),
   http.get(`${apiBaseUrl}/entities/invoices/lists/main/metadata`, async () => {
@@ -27,7 +27,7 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
           name: 'customerId',
           label: 'Customer',
           type: 'reference',
-          reference: { resource: 'customers', listId: 'main', displayField: 'email' }
+          reference: { resource: 'customers', listId: 'main', displayField: 'email' },
         },
         { name: 'issueDate', label: 'Issue Date', type: 'date' },
         { name: 'dueDate', label: 'Due Date', type: 'date' },
@@ -40,11 +40,11 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
             { value: 'open', label: 'Open' },
             { value: 'paid', label: 'Paid' },
             { value: 'overdue', label: 'Overdue' },
-            { value: 'cancelled', label: 'Cancelled' }
-          ]
+            { value: 'cancelled', label: 'Cancelled' },
+          ],
         },
         { name: 'total', label: 'Total', type: 'decimal' },
-        { name: 'paidAmount', label: 'Paid Amount', type: 'decimal' }
+        { name: 'paidAmount', label: 'Paid Amount', type: 'decimal' },
       ],
       columns: [
         { field: 'invoiceId', sizeType: 'width', size: 50 },
@@ -53,35 +53,36 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
           field: 'customerId',
           sizeType: 'width',
           size: 250,
-          display: { type: 'reference', valueField: 'customerDisplayName' }
+          display: { type: 'reference', valueField: 'customerDisplayName' },
         },
         { field: 'issueDate', sizeType: 'width', size: 120 },
         { field: 'dueDate', sizeType: 'width', size: 120 },
-        { field: 'status', sizeType: 'width', size: 120, display: { type: 'enum', style: 'label' } },
+        {
+          field: 'status',
+          sizeType: 'width',
+          size: 120,
+          display: { type: 'enum', style: 'label' },
+        },
         { field: 'total', sizeType: 'width', size: 120 },
-        { field: 'paidAmount', sizeType: 'width', size: 120 }
-      ]
+        { field: 'paidAmount', sizeType: 'width', size: 120 },
+      ],
     });
   }),
   http.post(`${apiBaseUrl}/entities/invoices/lists/main/query`, async ({ request }) => {
     await delay(700);
-    const query = await request.json() as ListQuery;
-    const customerById = new Map(customers.map(customer => [customer.customerId, customer]));
-    const rows = invoices.map(invoice => ({
+    const query = (await request.json()) as ListQuery;
+    const customerById = new Map(customers.map((customer) => [customer.customerId, customer]));
+    const rows = invoices.map((invoice) => ({
       ...invoice,
-      customerDisplayName: formatCustomerDisplayName(
-        customerById.get(invoice.customerId)
-      )
+      customerDisplayName: formatCustomerDisplayName(customerById.get(invoice.customerId)),
     }));
 
     return HttpResponse.json(applyListQuery(rows, query));
-  })
+  }),
 ];
 
 function formatCustomerDisplayName(
-  customer: (typeof customers)[number] | undefined
+  customer: (typeof customers)[number] | undefined,
 ): string | undefined {
-  return customer
-    ? `${customer.firstName} ${customer.lastName} (${customer.email})`
-    : undefined;
+  return customer ? `${customer.firstName} ${customer.lastName} (${customer.email})` : undefined;
 }

@@ -4,11 +4,11 @@
  * scalar and range filter values without type-specific deduplication logic.
  */
 export function normalizeFilterItems<T extends { field: string; operator: string; value: unknown }>(
-  items: T[]
+  items: T[],
 ): T[] {
   const seen = new Set<string>();
 
-  return items.filter(item => {
+  return items.filter((item) => {
     const key = `${item.field}\u0000${item.operator}\u0000${JSON.stringify(item.value)}`;
     if (seen.has(key)) {
       return false;

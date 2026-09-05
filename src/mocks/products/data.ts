@@ -7,7 +7,7 @@ export const products = [
     price: 1899.99,
     stock: 12,
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     productId: 2,
@@ -17,7 +17,7 @@ export const products = [
     price: 29.99,
     stock: 160,
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     productId: 3,
@@ -27,7 +27,7 @@ export const products = [
     price: 129,
     stock: 48,
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     productId: 4,
@@ -37,7 +37,7 @@ export const products = [
     price: 89.5,
     stock: 73,
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     productId: 5,
@@ -47,7 +47,7 @@ export const products = [
     price: 349,
     stock: 25,
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     productId: 6,
@@ -57,7 +57,7 @@ export const products = [
     price: 249.99,
     stock: 34,
     status: 'inactive',
-    enabled: false
+    enabled: false,
   },
   {
     productId: 7,
@@ -67,7 +67,7 @@ export const products = [
     price: 45,
     stock: 91,
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     productId: 8,
@@ -77,7 +77,7 @@ export const products = [
     price: 79,
     stock: 58,
     status: 'active',
-    enabled: true
+    enabled: true,
   },
   {
     productId: 9,
@@ -87,6 +87,6 @@ export const products = [
     price: 100,
     stock: 0,
     status: 'inactive',
-    enabled: false
-  }
+    enabled: false,
+  },
 ];

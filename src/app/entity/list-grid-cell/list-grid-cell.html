@@ -1,0 +1,52 @@
+@if (hasRenderableValue()) {
+  @switch (field().type) {
+    @case ('boolean') {
+      @if (column().display?.type === 'boolean') {
+        @switch (booleanStyle()) {
+          @case ('checkbox') {
+            <mat-checkbox [checked]="value() === true" disabled />
+          }
+
+          @case ('text') {
+            {{ value() === true ? 'Yes' : 'No' }}
+          }
+
+          @default {
+            <mat-icon>
+              {{ value() === true ? 'check' : 'close' }}
+            </mat-icon>
+          }
+        }
+      } @else {
+        <mat-icon>
+          {{ value() === true ? 'check' : 'close' }}
+        </mat-icon>
+      }
+    }
+
+    @case ('enum') {
+      @if (column().display?.type === 'enum' && enumStyle() === 'label') {
+        <span class="enum-badge">
+          {{ enumLabel() }}
+        </span>
+      } @else {
+        {{ textValue() }}
+      }
+    }
+
+    @case ('reference') {
+      @if (column().display?.type === 'reference') {
+        <span class="reference-link">
+          <mat-icon aria-hidden="true">open_in_new</mat-icon>
+          <span>{{ referenceValue() }}</span>
+        </span>
+      } @else {
+        {{ textValue() }}
+      }
+    }
+
+    @default {
+      {{ textValue() }}
+    }
+  }
+}

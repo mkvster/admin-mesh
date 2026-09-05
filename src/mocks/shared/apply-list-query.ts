@@ -1,14 +1,18 @@
-import { FilterItem, FilterValue, ListQuery, ListQueryResult, ListSort, RelativePastPeriod } from '../../app/entity/entity-types';
+import {
+  FilterItem,
+  FilterValue,
+  ListQuery,
+  ListQueryResult,
+  ListSort,
+  RelativePastPeriod,
+} from '../../app/entity/entity-types';
 
-export function applyListQuery(
-  rows: Record<string, unknown>[],
-  query: ListQuery
-): ListQueryResult {
+export function applyListQuery(rows: Record<string, unknown>[], query: ListQuery): ListQueryResult {
   let result = [...rows];
 
-  const filters = query.filter?.items.filter(item => hasFilterValue(item.value)) ?? [];
+  const filters = query.filter?.items.filter((item) => hasFilterValue(item.value)) ?? [];
   if (filters.length) {
-    result = result.filter(row => filters.every(item => matchesFilter(row, item)));
+    result = result.filter((row) => filters.every((item) => matchesFilter(row, item)));
   }
 
   if (query.sort?.length) {
@@ -22,21 +26,26 @@ export function applyListQuery(
 
   return {
     items: result,
-    totalCount
+    totalCount,
   };
 }
 
 function matchesFilter(row: Record<string, unknown>, filter: FilterItem): boolean {
   const actual = row[filter.field];
 
-  if ((filter.operator === 'in' || filter.operator === 'notIn')
-      && (typeof actual === 'string' || typeof actual === 'number')
-      && Array.isArray(filter.value)) {
-    const included = filter.value.some(value => value === actual);
+  if (
+    (filter.operator === 'in' || filter.operator === 'notIn') &&
+    (typeof actual === 'string' || typeof actual === 'number') &&
+    Array.isArray(filter.value)
+  ) {
+    const included = filter.value.some((value) => value === actual);
     return filter.operator === 'in' ? included : !included;
   }
 
-  if (typeof actual === 'number' && (typeof filter.value === 'number' || Array.isArray(filter.value))) {
+  if (
+    typeof actual === 'number' &&
+    (typeof filter.value === 'number' || Array.isArray(filter.value))
+  ) {
     return matchesNumeric(actual, filter.operator, filter.value);
   }
 
@@ -56,40 +65,65 @@ function matchesFilter(row: Record<string, unknown>, filter: FilterItem): boolea
   const expected = filter.value.toLocaleLowerCase();
 
   switch (filter.operator) {
-    case 'equals': return source === expected;
-    case 'startsWith': return source.startsWith(expected);
-    case 'endsWith': return source.endsWith(expected);
-    case 'contains': return source.includes(expected);
-    case 'notEquals': return source !== expected;
-    default: return false;
+    case 'equals':
+      return source === expected;
+    case 'startsWith':
+      return source.startsWith(expected);
+    case 'endsWith':
+      return source.endsWith(expected);
+    case 'contains':
+      return source.includes(expected);
+    case 'notEquals':
+      return source !== expected;
+    default:
+      return false;
   }
 }
 
-function matchesNumeric(actual: number, operator: FilterItem['operator'], value: FilterValue): boolean {
+function matchesNumeric(
+  actual: number,
+  operator: FilterItem['operator'],
+  value: FilterValue,
+): boolean {
   if (typeof value === 'number') {
     switch (operator) {
-      case 'equals': return actual === value;
-      case 'notEquals': return actual !== value;
-      case 'greaterThan': return actual > value;
-      case 'greaterThanOrEqual': return actual >= value;
-      case 'lessThan': return actual < value;
-      case 'lessThanOrEqual': return actual <= value;
-      default: return false;
+      case 'equals':
+        return actual === value;
+      case 'notEquals':
+        return actual !== value;
+      case 'greaterThan':
+        return actual > value;
+      case 'greaterThanOrEqual':
+        return actual >= value;
+      case 'lessThan':
+        return actual < value;
+      case 'lessThanOrEqual':
+        return actual <= value;
+      default:
+        return false;
     }
   }
 
-  return operator === 'between'
-    && Array.isArray(value)
-    && typeof value[0] === 'number'
-    && typeof value[1] === 'number'
-    && actual >= value[0]
-    && actual <= value[1];
+  return (
+    operator === 'between' &&
+    Array.isArray(value) &&
+    typeof value[0] === 'number' &&
+    typeof value[1] === 'number' &&
+    actual >= value[0] &&
+    actual <= value[1]
+  );
 }
 
-function matchesDate(actual: string, operator: FilterItem['operator'], value: FilterValue): boolean {
+function matchesDate(
+  actual: string,
+  operator: FilterItem['operator'],
+  value: FilterValue,
+): boolean {
   if (operator === 'inThePast' && isRelativePastPeriod(value)) {
     const actualTime = Date.parse(actual);
-    return Number.isFinite(actualTime) && actualTime >= Date.now() - relativePeriodMilliseconds(value);
+    return (
+      Number.isFinite(actualTime) && actualTime >= Date.now() - relativePeriodMilliseconds(value)
+    );
   }
 
   const actualTime = Date.parse(actual);
@@ -104,37 +138,60 @@ function matchesDate(actual: string, operator: FilterItem['operator'], value: Fi
     }
 
     switch (operator) {
-      case 'equals': return actualTime === expectedTime;
-      case 'before': return actualTime < expectedTime;
-      case 'after': return actualTime > expectedTime;
-      default: return false;
+      case 'equals':
+        return actualTime === expectedTime;
+      case 'before':
+        return actualTime < expectedTime;
+      case 'after':
+        return actualTime > expectedTime;
+      default:
+        return false;
     }
   }
 
-  return operator === 'between'
-    && Array.isArray(value)
-    && value.every(item => typeof item === 'string' && Number.isFinite(Date.parse(item)))
-    && actualTime >= Date.parse(value[0] as string)
-    && actualTime <= Date.parse(value[1] as string);
+  return (
+    operator === 'between' &&
+    Array.isArray(value) &&
+    value.every((item) => typeof item === 'string' && Number.isFinite(Date.parse(item))) &&
+    actualTime >= Date.parse(value[0] as string) &&
+    actualTime <= Date.parse(value[1] as string)
+  );
 }
 
 function isDateFilter(filter: FilterItem): boolean {
-  return filter.operator === 'before' || filter.operator === 'after' || filter.operator === 'between'
-    || filter.operator === 'inThePast'
-    || (filter.operator === 'equals' && typeof filter.value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(filter.value));
+  return (
+    filter.operator === 'before' ||
+    filter.operator === 'after' ||
+    filter.operator === 'between' ||
+    filter.operator === 'inThePast' ||
+    (filter.operator === 'equals' &&
+      typeof filter.value === 'string' &&
+      /^\d{4}-\d{2}-\d{2}/.test(filter.value))
+  );
 }
 
 function isRelativePastPeriod(value: FilterValue): value is RelativePastPeriod {
-  return value === 'hour' || value === '24hours' || value === 'week' || value === 'month' || value === 'year';
+  return (
+    value === 'hour' ||
+    value === '24hours' ||
+    value === 'week' ||
+    value === 'month' ||
+    value === 'year'
+  );
 }
 
 function relativePeriodMilliseconds(period: RelativePastPeriod): number {
   switch (period) {
-    case 'hour': return 60 * 60 * 1000;
-    case '24hours': return 24 * 60 * 60 * 1000;
-    case 'week': return 7 * 24 * 60 * 60 * 1000;
-    case 'month': return 30 * 24 * 60 * 60 * 1000;
-    case 'year': return 365 * 24 * 60 * 60 * 1000;
+    case 'hour':
+      return 60 * 60 * 1000;
+    case '24hours':
+      return 24 * 60 * 60 * 1000;
+    case 'week':
+      return 7 * 24 * 60 * 60 * 1000;
+    case 'month':
+      return 30 * 24 * 60 * 60 * 1000;
+    case 'year':
+      return 365 * 24 * 60 * 60 * 1000;
   }
 }
 
@@ -143,19 +200,24 @@ function isDateLike(value: string): boolean {
 }
 
 function hasFilterValue(value: FilterValue): boolean {
-  return typeof value === 'boolean'
-    || (typeof value === 'string' && value.trim().length > 0)
-    || (typeof value === 'number' && Number.isFinite(value))
-    || (Array.isArray(value) && value.length > 0 && value.every(item =>
-      (typeof item === 'string' && item.trim().length > 0)
-      || (typeof item === 'number' && Number.isFinite(item))
-    ));
+  return (
+    typeof value === 'boolean' ||
+    (typeof value === 'string' && value.trim().length > 0) ||
+    (typeof value === 'number' && Number.isFinite(value)) ||
+    (Array.isArray(value) &&
+      value.length > 0 &&
+      value.every(
+        (item) =>
+          (typeof item === 'string' && item.trim().length > 0) ||
+          (typeof item === 'number' && Number.isFinite(item)),
+      ))
+  );
 }
 
 function compareRows(
   a: Record<string, unknown>,
   b: Record<string, unknown>,
-  sort: ListSort[]
+  sort: ListSort[],
 ): number {
   for (const item of sort) {
     const result = compareValues(a[item.field], b[item.field]);

@@ -4,7 +4,8 @@
       mat-icon-button
       class="mobile-menu-button"
       aria-label="Открыть меню"
-      (click)="sidenav.toggle()">
+      (click)="sidenav.toggle()"
+    >
       <mat-icon>menu</mat-icon>
     </button>
   }
@@ -18,34 +19,26 @@
   </button>
 </mat-toolbar>
 
-  <div class="content-header">
-    <button
-      mat-button
-      [routerLink]="['/']"
-      (click)="navigationState.clear()">
-      <mat-icon>home</mat-icon>
-      Home
-    </button>
+<div class="content-header">
+  <button mat-button [routerLink]="['/']" (click)="navigationState.clear()">
+    <mat-icon>home</mat-icon>
+    Home
+  </button>
 
-    @if (navigationState.selected(); as selected) {
-      <mat-icon class="separator">chevron_right</mat-icon>
-      <span>{{ selected.section.title }}</span>
-      <mat-icon class="separator">chevron_right</mat-icon>
-      <strong>{{ selected.node.title }}</strong>
-    }
-  </div>
-  
+  @if (navigationState.selected(); as selected) {
+    <mat-icon class="separator">chevron_right</mat-icon>
+    <span>{{ selected.section.title }}</span>
+    <mat-icon class="separator">chevron_right</mat-icon>
+    <strong>{{ selected.node.title }}</strong>
+  }
+</div>
+
 <mat-sidenav-container class="layout">
-  <mat-sidenav
-    #sidenav
-    [mode]="isMobile() ? 'over' : 'side'"
-    [opened]="!isMobile()">
+  <mat-sidenav #sidenav [mode]="isMobile() ? 'over' : 'side'" [opened]="!isMobile()">
     <app-navigation></app-navigation>
   </mat-sidenav>
 
   <mat-sidenav-content>
-
-
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

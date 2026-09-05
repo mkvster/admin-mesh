@@ -8,9 +8,6 @@ export class EntityMetadataStore {
   private readonly cache = inject(AdminCache);
 
   get(resource: string) {
-    return this.cache.entityMetadata.getOrCreate(
-      resource,
-      () => this.api.getMetadata(resource)
-    );
+    return this.cache.entityMetadata.getOrCreate(resource, () => this.api.getMetadata(resource));
   }
 }

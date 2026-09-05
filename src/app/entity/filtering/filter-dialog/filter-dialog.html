@@ -1,10 +1,6 @@
 <div class="dialog-title-row">
   <h2 mat-dialog-title>Filters</h2>
-  <button
-    mat-icon-button
-    type="button"
-    (click)="cancel()"
-    aria-label="Close filters">
+  <button mat-icon-button type="button" (click)="cancel()" aria-label="Close filters">
     <mat-icon aria-hidden="true">close</mat-icon>
   </button>
 </div>
@@ -40,63 +36,66 @@
     @for (item of draft(); track $index) {
       <div class="filter-item">
         <div class="filter-row">
-      <mat-form-field appearance="outline" class="filter-field-control">
-        <mat-label>Field</mat-label>
-        <mat-select
-          [value]="item.field ?? ''"
-          (selectionChange)="updateField($index, $event.value)"
-          [attr.aria-label]="'Filter field ' + ($index + 1)">
-          <mat-option value="">Select a field</mat-option>
-          @for (field of filterableFields; track field.name) {
-            <mat-option [value]="field.name">{{ field.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filter-operator-control">
-        <mat-label>Operator</mat-label>
-        <mat-select
-          [value]="item.operator ?? ''"
-          (selectionChange)="updateOperator($index, $event.value)"
-          [disabled]="!item.field"
-          [attr.aria-label]="'Filter operator ' + ($index + 1)">
-          <mat-option value="">Select an operator</mat-option>
-          @for (operator of operatorsFor(item); track operator.value) {
-            <mat-option [value]="operator.value">{{ operator.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
-      @if (fieldFor(item); as field) {
-        @if (item.operator; as operator) {
-          <app-filter-value-editor
-            [field]="field"
-            [operator]="operator"
-            [value]="item.value ?? ''"
-            (valueChange)="updateValue($index, $event)"
-            [showError]="showValueError(item)"
-          />
-        } @else {
-          <mat-form-field appearance="outline" class="filter-value-placeholder">
-            <mat-label>Value</mat-label>
-            <input matInput disabled placeholder="Select an operator" />
+          <mat-form-field appearance="outline" class="filter-field-control">
+            <mat-label>Field</mat-label>
+            <mat-select
+              [value]="item.field ?? ''"
+              (selectionChange)="updateField($index, $event.value)"
+              [attr.aria-label]="'Filter field ' + ($index + 1)"
+            >
+              <mat-option value="">Select a field</mat-option>
+              @for (field of filterableFields; track field.name) {
+                <mat-option [value]="field.name">{{ field.label }}</mat-option>
+              }
+            </mat-select>
           </mat-form-field>
-        }
-      } @else {
-        <mat-form-field appearance="outline" class="filter-value-placeholder">
-          <mat-label>Value</mat-label>
-          <input matInput disabled placeholder="Select a field" />
-        </mat-form-field>
-      }
 
-      <button
-        mat-icon-button
-        type="button"
-        class="remove-filter-button"
-        (click)="removeFilter($index)"
-        [attr.aria-label]="'Remove filter ' + ($index + 1)">
-        <mat-icon aria-hidden="true">delete_outline</mat-icon>
-      </button>
+          <mat-form-field appearance="outline" class="filter-operator-control">
+            <mat-label>Operator</mat-label>
+            <mat-select
+              [value]="item.operator ?? ''"
+              (selectionChange)="updateOperator($index, $event.value)"
+              [disabled]="!item.field"
+              [attr.aria-label]="'Filter operator ' + ($index + 1)"
+            >
+              <mat-option value="">Select an operator</mat-option>
+              @for (operator of operatorsFor(item); track operator.value) {
+                <mat-option [value]="operator.value">{{ operator.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          @if (fieldFor(item); as field) {
+            @if (item.operator; as operator) {
+              <app-filter-value-editor
+                [field]="field"
+                [operator]="operator"
+                [value]="item.value ?? ''"
+                (valueChange)="updateValue($index, $event)"
+                [showError]="showValueError(item)"
+              />
+            } @else {
+              <mat-form-field appearance="outline" class="filter-value-placeholder">
+                <mat-label>Value</mat-label>
+                <input matInput disabled placeholder="Select an operator" />
+              </mat-form-field>
+            }
+          } @else {
+            <mat-form-field appearance="outline" class="filter-value-placeholder">
+              <mat-label>Value</mat-label>
+              <input matInput disabled placeholder="Select a field" />
+            </mat-form-field>
+          }
+
+          <button
+            mat-icon-button
+            type="button"
+            class="remove-filter-button"
+            (click)="removeFilter($index)"
+            [attr.aria-label]="'Remove filter ' + ($index + 1)"
+          >
+            <mat-icon aria-hidden="true">delete_outline</mat-icon>
+          </button>
         </div>
         @if (showValueError(item)) {
           <p class="filter-row-error" role="alert">{{ valueErrorMessage(item) }}</p>
@@ -104,9 +103,11 @@
       </div>
     }
   </div>
-  
+
   @if (hasIncompleteFilter() && !hasRowError()) {
-    <p class="validation-message" role="alert">Please correct the invalid or incomplete filters before applying.</p>
+    <p class="validation-message" role="alert">
+      Please correct the invalid or incomplete filters before applying.
+    </p>
   }
   @if (hasReachedFilterLimit()) {
     <p class="limit-message" role="status">Maximum 50 filters reached.</p>
@@ -114,7 +115,6 @@
   @if (hasOversizedFilter()) {
     <p class="validation-message" role="alert">The filter is too large to save in the URL.</p>
   }
-  
 </mat-dialog-content>
 
 <mat-dialog-actions class="dialog-actions">
@@ -123,7 +123,8 @@
     type="button"
     class="add-filter-button"
     (click)="addFilter()"
-    [disabled]="draft().length >= maxFilterItems">
+    [disabled]="draft().length >= maxFilterItems"
+  >
     <mat-icon aria-hidden="true">add</mat-icon>
     Add filter
   </button>
@@ -131,6 +132,8 @@
   <div class="dialog-actions-end">
     <button mat-button type="button" (click)="clearAll()">Clear all</button>
     <button mat-button type="button" (click)="cancel()">Cancel</button>
-    <button mat-flat-button type="button" (click)="apply()" [disabled]="cannotApply()">Apply</button>
+    <button mat-flat-button type="button" (click)="apply()" [disabled]="cannotApply()">
+      Apply
+    </button>
   </div>
 </mat-dialog-actions>

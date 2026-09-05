@@ -8,9 +8,8 @@ export class ListMetadataStore {
   private readonly cache = inject(AdminCache);
 
   get(resource: string, listId: string) {
-    return this.cache.listMetadata.getOrCreate(
-      `${resource}:${listId}`,
-      () => this.api.getListMetadata(resource, listId)
+    return this.cache.listMetadata.getOrCreate(`${resource}:${listId}`, () =>
+      this.api.getListMetadata(resource, listId),
     );
   }
 }

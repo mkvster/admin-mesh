@@ -14,12 +14,12 @@ export const createTestHandlers = (apiBaseUrl: string) => [
       permissions: {
         create: true,
         edit: true,
-        delete: true
+        delete: true,
       },
       views: {
         list: 'main',
-        form: 'edit'
-      }
+        form: 'edit',
+      },
     });
   }),
   http.get(`${apiBaseUrl}/entities/tests/lists/main/metadata`, async () => {
@@ -30,12 +30,12 @@ export const createTestHandlers = (apiBaseUrl: string) => [
         {
           name: 'testId',
           label: 'ID',
-          type: 'integer'
+          type: 'integer',
         },
         {
           name: 'name',
           label: 'Name',
-          type: 'string'
+          type: 'string',
         },
         {
           name: 'status',
@@ -44,21 +44,26 @@ export const createTestHandlers = (apiBaseUrl: string) => [
           values: [
             { value: 'draft', label: 'Draft' },
             { value: 'active', label: 'Active' },
-            { value: 'archived', label: 'Archived' }
-          ]
-        }
+            { value: 'archived', label: 'Archived' },
+          ],
+        },
       ],
       columns: [
         { field: 'testId', sizeType: 'width', size: 80 },
         { field: 'name', sizeType: 'flex', size: 1 },
-        { field: 'status', sizeType: 'width', size: 200, display: { type: 'enum', style: 'label' } }
-      ]
+        {
+          field: 'status',
+          sizeType: 'width',
+          size: 200,
+          display: { type: 'enum', style: 'label' },
+        },
+      ],
     });
   }),
   http.post(`${apiBaseUrl}/entities/tests/lists/main/query`, async ({ request }) => {
     await delay(700);
 
-    const query = await request.json() as ListQuery;
+    const query = (await request.json()) as ListQuery;
     return HttpResponse.json(applyListQuery(tests, query));
-  })
+  }),
 ];

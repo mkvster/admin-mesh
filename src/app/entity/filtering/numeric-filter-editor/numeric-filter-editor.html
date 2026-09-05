@@ -1,0 +1,40 @@
+@if (isBetween()) {
+  <div class="range-fields">
+    <mat-form-field appearance="outline">
+      <mat-label>From</mat-label>
+      <input
+        matInput
+        type="number"
+        [step]="step()"
+        [value]="fromValue()"
+        (input)="onInput($event, 'from')"
+        aria-label="From"
+      />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>To</mat-label>
+      <input
+        matInput
+        type="number"
+        [step]="step()"
+        [value]="toValue()"
+        (input)="onInput($event, 'to')"
+        aria-label="To"
+      />
+    </mat-form-field>
+  </div>
+} @else {
+  <div class="single-field">
+    <mat-form-field appearance="outline">
+      <mat-label>Value</mat-label>
+      <input
+        matInput
+        type="number"
+        [step]="step()"
+        [value]="singleValue()"
+        (input)="onInput($event, 'single')"
+        aria-label="Value"
+      />
+    </mat-form-field>
+  </div>
+}

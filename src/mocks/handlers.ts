@@ -13,5 +13,5 @@ export const createHandlers = (baseUrl: string) => [
   ...createCategoryHandlers(baseUrl),
   ...createInvoiceHandlers(baseUrl),
   ...createPaymentHandlers(baseUrl),
-  ...createTestHandlers(baseUrl)
+  ...createTestHandlers(baseUrl),
 ];

@@ -1,0 +1,6 @@
+backlog/
+docs/
+dist/
+node_modules/
+public/mockServiceWorker.js
+*.md

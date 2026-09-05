@@ -1,0 +1,40 @@
+@switch (field().type) {
+  @case ('string') {
+    <app-string-filter-editor [operator]="operator()" [(value)]="value" [showError]="showError()" />
+  }
+  @case ('integer') {
+    <app-numeric-filter-editor
+      [operator]="operator()"
+      [(value)]="value"
+      [integer]="true"
+      [showError]="showError()"
+    />
+  }
+  @case ('decimal') {
+    <app-numeric-filter-editor
+      [operator]="operator()"
+      [(value)]="value"
+      [showError]="showError()"
+    />
+  }
+  @case ('boolean') {
+    <app-boolean-filter-editor [(value)]="value" />
+  }
+  @case ('date') {
+    <app-date-filter-editor [operator]="operator()" [(value)]="value" [showError]="showError()" />
+  }
+  @case ('datetime') {
+    <app-date-filter-editor
+      [operator]="operator()"
+      [(value)]="value"
+      [datetime]="true"
+      [showError]="showError()"
+    />
+  }
+  @case ('enum') {
+    <app-enum-filter-editor [field]="field()" [operator]="operator()" [(value)]="value" />
+  }
+  @default {
+    <p role="status">Filtering this field type is not supported yet.</p>
+  }
+}

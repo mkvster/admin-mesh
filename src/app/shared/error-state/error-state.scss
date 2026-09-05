@@ -1,0 +1,19 @@
+:host {
+  display: block;
+}
+
+.error-card {
+  background-color: var(--mat-sys-error-container);
+  border-color: var(--mat-sys-error);
+  color: var(--mat-sys-on-error-container);
+}
+
+.error-card mat-card-content {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.error-icon {
+  color: var(--mat-sys-error);
+}

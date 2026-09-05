@@ -5,5 +5,4 @@ export interface AdminMeshConfig {
   mockApi: boolean;
 }
 
-export const ADMINMESH_CONFIG =
-  new InjectionToken<AdminMeshConfig>('ADMINMESH_CONFIG');
+export const ADMINMESH_CONFIG = new InjectionToken<AdminMeshConfig>('ADMINMESH_CONFIG');

@@ -1,0 +1,88 @@
+@if (state(); as state) {
+  @switch (state.status) {
+    @case ('loading') {
+      <div class="initial-loading-state" role="status" aria-live="polite">
+        <mat-progress-spinner mode="indeterminate" diameter="40" aria-label="Loading" />
+        <span>Loading</span>
+      </div>
+    }
+    @case ('loaded') {
+      <div class="list-content">
+        <app-list-grid
+          [metadata]="state.listMetadata"
+          [rows]="state.data.items"
+          [totalCount]="state.data.totalCount"
+          [page]="state.page"
+          [pageSize]="state.pageSize"
+          [sort]="state.sort"
+          [filters]="state.filters"
+          (pageChange)="onPageChange($event)"
+          (sortChange)="onSortChange($event)"
+        >
+          <div list-grid-actions>
+            @if (state.data.items.length > 0) {
+              <div class="filters-group" [class.filters-active]="state.filters.length > 0">
+                <button
+                  mat-button
+                  type="button"
+                  class="filters-action"
+                  aria-label="Open filters"
+                  (click)="openFilters(state)"
+                >
+                  <mat-icon aria-hidden="true">filter_alt</mat-icon>
+                  <span class="list-action-label">
+                    Filter
+                    @if (state.filters.length > 0) {
+                      <span aria-hidden="true">
+                        · {{ filterCountLabel(state.filters.length) }}</span
+                      >
+                    }
+                  </span>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="clear-filters-action"
+                  aria-label="Clear all filters"
+                  [disabled]="state.filters.length === 0"
+                  (click)="clearFilters()"
+                >
+                  <mat-icon aria-hidden="true">close</mat-icon>
+                </button>
+              </div>
+            }
+            <!-- Future list actions, such as Add, belong beside the filter group. -->
+          </div>
+
+          <div list-grid-empty class="empty-state" role="status" aria-live="polite">
+            <mat-icon aria-hidden="true">search_off</mat-icon>
+            @if (state.filters.length > 0) {
+              <p>
+                No records match the selected
+                <button type="button" class="inline-filter-action" (click)="openFilters(state)">
+                  filters
+                </button>
+                .
+              </p>
+              <button mat-stroked-button type="button" (click)="clearFilters()">
+                Clear filters
+              </button>
+            } @else {
+              <p>No records found.</p>
+            }
+          </div>
+        </app-list-grid>
+
+        @if (isListLoading()) {
+          <div class="list-loading-overlay" role="status" aria-live="polite">
+            <mat-progress-spinner mode="indeterminate" diameter="40" aria-label="Loading" />
+            <span>Loading</span>
+          </div>
+        }
+      </div>
+    }
+    @case ('error') {
+      <app-error-state [message]="state.message" />
+    }
+  }
+}

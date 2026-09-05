@@ -1,18 +1,16 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
-import { App } from './app/app';
+import { Root } from './app/root/root';
 import { ADMINMESH_CONFIG, AdminMeshConfig } from './app/config/adminmesh-config';
 import { normalizeBaseUrl } from './app/shared/api-url';
 
-const rawConfig: AdminMeshConfig = (await fetch(
-  new URL('adminmesh-config.json', document.baseURI)
-).then((response) =>
-  response.json()
-));
+const rawConfig: AdminMeshConfig = await fetch(
+  new URL('adminmesh-config.json', document.baseURI),
+).then((response) => response.json());
 
 const config: AdminMeshConfig = {
   ...rawConfig,
-  apiBaseUrl: normalizeBaseUrl(rawConfig.apiBaseUrl)
+  apiBaseUrl: normalizeBaseUrl(rawConfig.apiBaseUrl),
 };
 
 if (config.mockApi) {
@@ -20,18 +18,18 @@ if (config.mockApi) {
 
   await createWorker(config.apiBaseUrl).start({
     serviceWorker: {
-      url: new URL('mockServiceWorker.js', document.baseURI).toString()
-    }
+      url: new URL('mockServiceWorker.js', document.baseURI).toString(),
+    },
   });
 }
 
-bootstrapApplication(App, {
+bootstrapApplication(Root, {
   ...appConfig,
   providers: [
     ...(appConfig.providers ?? []),
     {
       provide: ADMINMESH_CONFIG,
-      useValue: config
-    }
-  ]
+      useValue: config,
+    },
+  ],
 }).catch((err) => console.error(err));

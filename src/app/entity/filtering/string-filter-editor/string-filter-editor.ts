@@ -7,36 +7,9 @@ import { MAX_STRING_FILTER_VALUE_LENGTH } from '../filter-constraints';
 @Component({
   selector: 'app-string-filter-editor',
   imports: [MatFormFieldModule, MatInputModule],
-  template: `
-    <mat-form-field appearance="outline">
-      <mat-label>{{ label() }}</mat-label>
-      <input
-        matInput
-        [value]="stringValue()"
-        [attr.maxlength]="maxLength"
-        (input)="onInput($event)"
-        [attr.aria-label]="label()"
-      />
-      <mat-hint align="end">{{ stringValue().length }} / {{ maxLength }}</mat-hint>
-    </mat-form-field>
-  `,
-  styles: `
-    :host {
-      display: block;
-      width: 100%;
-    }
-
-    mat-form-field {
-      width: 100%;
-    }
-
-    input {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  templateUrl: './string-filter-editor.html',
+  styleUrl: './string-filter-editor.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StringFilterEditor {
   protected readonly maxLength = MAX_STRING_FILTER_VALUE_LENGTH;
@@ -45,15 +18,19 @@ export class StringFilterEditor {
   readonly showError = input(false);
 
   protected readonly stringValue = computed(() =>
-    typeof this.value() === 'string' ? this.value() as string : ''
+    typeof this.value() === 'string' ? (this.value() as string) : '',
   );
 
   protected readonly label = computed(() => {
     switch (this.operator()) {
-      case 'equals': return 'Equals';
-      case 'startsWith': return 'Starts with';
-      case 'endsWith': return 'Ends with';
-      default: return 'Contains';
+      case 'equals':
+        return 'Equals';
+      case 'startsWith':
+        return 'Starts with';
+      case 'endsWith':
+        return 'Ends with';
+      default:
+        return 'Contains';
     }
   });
 
