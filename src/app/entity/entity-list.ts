@@ -1,8 +1,8 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { catchError, defer, finalize, map, of, startWith, switchMap, tap } from 'rxjs';
-import { MatCardModule } from '@angular/material/card';
+import { catchError, defer, finalize, map, of, startWith, switchMap, tap, throwError } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,6 +23,8 @@ import { ListGrid, ListPageChange, ListSortChange } from './list-grid';
 import { FilterDialog } from './filtering/filter-dialog/filter-dialog';
 import { MAX_SERIALIZED_FILTER_LENGTH } from './filtering/filter-constraints';
 import { parseListFilter, serializeListFilter } from './filtering/filter-serialization';
+import { ErrorState } from '../shared/error-state/error-state';
+import { AsyncErrorHandler } from '../shared/async-error-handler/async-error-handler';
 
 type EntityListState =
   | { status: 'loading' }
@@ -37,11 +39,11 @@ type EntityListState =
       sort: ListSort[];
       filters: FilterItem[];
     }
-  | { status: 'error'; message: string };
+  | { status: 'error'; message: string; cause: unknown };
 
 @Component({
   selector: 'app-entity-list',
-  imports: [MatCardModule, MatIconModule, MatProgressSpinnerModule, MatButtonModule, ListGrid],
+  imports: [MatIconModule, MatProgressSpinnerModule, MatButtonModule, ListGrid, ErrorState],
   templateUrl: './entity-list.html',
   styleUrl: './entity-list.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +55,7 @@ export class EntityList {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+  private readonly asyncErrorHandler = inject(AsyncErrorHandler);
   private readonly entityMetadataStore = inject(EntityMetadataStore);
   private readonly listMetadataStore = inject(ListMetadataStore);
   private listRequestVersion = 0;
@@ -124,23 +127,29 @@ export class EntityList {
   }
 
   protected onPageChange(event: ListPageChange): void {
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: event,
-      queryParamsHandling: 'merge',
-    });
+    this.asyncErrorHandler.run(
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: event,
+        queryParamsHandling: 'merge',
+      }),
+      'Entity list page navigation failed',
+    );
   }
 
   protected onSortChange(event: ListSortChange): void {
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        page: 1,
-        sort: this.serializeSort(event.sort),
-        dir: null,
-      },
-      queryParamsHandling: 'merge',
-    });
+    this.asyncErrorHandler.run(
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          page: 1,
+          sort: this.serializeSort(event.sort),
+          dir: null,
+        },
+        queryParamsHandling: 'merge',
+      }),
+      'Entity list sorting navigation failed',
+    );
   }
 
   protected openFilters(state: Extract<EntityListState, { status: 'loaded' }>): void {
@@ -174,28 +183,34 @@ export class EntityList {
         return;
       }
 
-      void this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: {
-          page: 1,
-          filter: serializedFilter,
-          filters: null,
-        },
-        queryParamsHandling: 'merge',
-      });
+      this.asyncErrorHandler.run(
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {
+            page: 1,
+            filter: serializedFilter,
+            filters: null,
+          },
+          queryParamsHandling: 'merge',
+        }),
+        'Entity list filter navigation failed',
+      );
     });
   }
 
   protected clearFilters(): void {
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        page: 1,
-        filter: null,
-        filters: null,
-      },
-      queryParamsHandling: 'merge',
-    });
+    this.asyncErrorHandler.run(
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          page: 1,
+          filter: null,
+          filters: null,
+        },
+        queryParamsHandling: 'merge',
+      }),
+      'Entity list filter clearing navigation failed',
+    );
   }
 
   protected filterCountLabel(count: number): string {
@@ -263,24 +278,32 @@ export class EntityList {
       return;
     }
 
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        page: query.page,
-        pageSize: query.pageSize,
-      },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
+    this.asyncErrorHandler.run(
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          page: query.page,
+          pageSize: query.pageSize,
+        },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      }),
+      'Entity list paging normalization failed',
+    );
   }
 
   private handleLoadError(error: unknown) {
+    if (!(error instanceof HttpErrorResponse)) {
+      return throwError(() => error);
+    }
+
     console.error('Entity list loading failed', error);
     this.isListLoading.set(false);
 
     return of<EntityListState>({
       status: 'error',
       message: 'Failed to load entity list',
+      cause: error,
     });
   }
 }

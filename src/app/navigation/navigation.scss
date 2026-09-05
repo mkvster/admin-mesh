@@ -7,6 +7,15 @@ mat-accordion {
   display: block;
 }
 
+.loading-state {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  min-height: 96px;
+}
+
 mat-expansion-panel {
   margin-bottom: 8px;
 }

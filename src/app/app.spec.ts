@@ -16,6 +16,7 @@ describe('App', () => {
           provide: NavigationState,
           useValue: {
             navigation: signal({ sections: [] }),
+            navigationState: signal({ status: 'loaded', data: { sections: [] } }),
             selected: signal(null),
             clear: () => undefined,
           },

@@ -29,6 +29,7 @@ describe('NodeHost', () => {
         {
           provide: NavigationState,
           useValue: {
+            navigationState: () => ({ status: 'loaded', data: { sections: [] } }),
             navigation: () => ({ sections: [] }),
             selectByIds: () => undefined,
           },
@@ -43,5 +44,6 @@ describe('NodeHost', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('Node not found');
   });
 });

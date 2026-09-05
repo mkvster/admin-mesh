@@ -39,20 +39,38 @@
   z-index: 2;
 }
 
-.error-card {
-  background-color: var(--mat-sys-error-container);
-  border-color: var(--mat-sys-error);
-  color: var(--mat-sys-on-error-container);
-}
-
-.error-card mat-card-content {
+.empty-state {
   align-items: center;
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
 }
 
-.error-icon {
-  color: var(--mat-sys-error);
+.empty-state mat-icon {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 32px;
+  height: 32px;
+  width: 32px;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.inline-filter-action {
+  background: transparent;
+  border: 0;
+  color: var(--mat-sys-primary);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.inline-filter-action:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .filters-group {

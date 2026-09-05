@@ -1,33 +1,48 @@
-<mat-accordion multi>
-  @for (section of state.navigation().sections; track section.id) {
-    <mat-expansion-panel expanded>
-      <mat-expansion-panel-header
-        [class.has-selected-node]="section.nodes.some((node) => isSelected(node))"
-      >
-        <mat-panel-title>{{ section.title }}</mat-panel-title>
-      </mat-expansion-panel-header>
-
-      <mat-nav-list>
-        @for (node of section.nodes; track node.id) {
-          <button
-            mat-list-item
-            type="button"
-            [routerLink]="['/node', section.id, node.id]"
-            [class.is-active]="isSelected(node)"
-            (click)="select(section, node)"
-          >
-            <mat-icon
-              matListItemIcon
-              [class.is-placeholder]="!node.icon"
-              [style.color]="node.icon?.color"
+@if (state.navigationState(); as navigation) {
+  @switch (navigation.status) {
+    @case ('loading') {
+      <div class="loading-state" role="status" aria-live="polite">
+        <mat-progress-spinner mode="indeterminate" diameter="32" aria-label="Loading" />
+        <span>Loading navigation</span>
+      </div>
+    }
+    @case ('loaded') {
+      <mat-accordion multi>
+        @for (section of navigation.data.sections; track section.id) {
+          <mat-expansion-panel expanded>
+            <mat-expansion-panel-header
+              [class.has-selected-node]="section.nodes.some((node) => isSelected(node))"
             >
-              {{ node.icon?.name ?? '' }}
-            </mat-icon>
+              <mat-panel-title>{{ section.title }}</mat-panel-title>
+            </mat-expansion-panel-header>
 
-            <span matListItemTitle>{{ node.title }}</span>
-          </button>
+            <mat-nav-list>
+              @for (node of section.nodes; track node.id) {
+                <button
+                  mat-list-item
+                  type="button"
+                  [routerLink]="['/node', section.id, node.id]"
+                  [class.is-active]="isSelected(node)"
+                  (click)="select(section, node)"
+                >
+                  <mat-icon
+                    matListItemIcon
+                    [class.is-placeholder]="!node.icon"
+                    [style.color]="node.icon?.color"
+                  >
+                    {{ node.icon?.name ?? '' }}
+                  </mat-icon>
+
+                  <span matListItemTitle>{{ node.title }}</span>
+                </button>
+              }
+            </mat-nav-list>
+          </mat-expansion-panel>
         }
-      </mat-nav-list>
-    </mat-expansion-panel>
+      </mat-accordion>
+    }
+    @case ('error') {
+      <app-error-state [message]="navigation.message" />
+    }
   }
-</mat-accordion>
+}

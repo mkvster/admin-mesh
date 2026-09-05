@@ -19,7 +19,7 @@ mat-toolbar {
   min-height: 0;
 }
 
-mat-sidenav-content:has(app-list-grid) {
+mat-sidenav-content {
   overflow: hidden;
 }
 

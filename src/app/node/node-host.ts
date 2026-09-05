@@ -4,17 +4,27 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationState } from '../navigation/navigation-state';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EntityList } from '../entity/entity-list';
+import { ErrorState } from '../shared/error-state/error-state';
+import { NotFoundState } from '../shared/not-found-state/not-found-state';
 
 @Component({
   selector: 'app-node-host',
-  imports: [MatCardModule, MatIconModule, EntityList],
+  imports: [
+    MatCardModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    EntityList,
+    ErrorState,
+    NotFoundState,
+  ],
   templateUrl: './node-host.html',
   styleUrl: './node-host.scss',
 })
 export class NodeHost {
   private readonly route = inject(ActivatedRoute);
-  private readonly state = inject(NavigationState);
+  protected readonly state = inject(NavigationState);
 
   protected toString(value: unknown): string {
     return String(value);
