@@ -1,14 +1,14 @@
 ---
 id: TASK-7
 title: 'Codebase brush-up: component structure and project conventions'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-04 12:43'
-updated_date: '2026-09-04 19:37'
+updated_date: '2026-09-05 00:59'
 labels: []
 milestone: s-001
 dependencies: []
-ordinal: 1000
+ordinal: 2750
 ---
 
 ## Description
