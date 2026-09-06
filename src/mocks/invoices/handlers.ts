@@ -3,6 +3,7 @@ import { ListQuery } from '../../app/entity/entity-types';
 import { invoices } from './data';
 import { customers } from '../customers/data';
 import { applyListQuery } from '../shared/apply-list-query';
+import { removeMockEntity } from '../shared/remove-mock-entity';
 
 export const createInvoiceHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/invoices/metadata`, async () => {
@@ -78,6 +79,12 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
     }));
 
     return HttpResponse.json(applyListQuery(rows, query));
+  }),
+  http.delete(`${apiBaseUrl}/entities/invoices/:id`, async ({ params }) => {
+    const removed = removeMockEntity(invoices, 'invoiceId', String(params['id']));
+    return removed
+      ? new HttpResponse(null, { status: 204 })
+      : new HttpResponse(null, { status: 404 });
   }),
 ];
 

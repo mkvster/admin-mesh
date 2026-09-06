@@ -24,4 +24,10 @@ export class EntityApi {
       query,
     );
   }
+
+  deleteEntity(resource: string, id: string | number) {
+    return this.http.delete<void>(
+      this.api.url(`entities/${resource}/${encodeURIComponent(String(id))}`),
+    );
+  }
 }

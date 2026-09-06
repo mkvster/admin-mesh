@@ -1,10 +1,17 @@
 import { Routes } from '@angular/router';
-import { Home } from './home/home';
-import { NodeHost } from './node-host/node-host';
-import { PageNotFound } from './page-not-found/page-not-found';
 
 export const routes: Routes = [
-  { path: '', component: Home },
-  { path: 'node/:sectionId/:nodeId', component: NodeHost },
-  { path: '**', component: PageNotFound },
+  {
+    path: '',
+    loadComponent: () => import('./home/home').then(({ Home }) => Home),
+  },
+  {
+    path: 'node/:sectionId/:nodeId',
+    loadComponent: () => import('./node-host/node-host').then(({ NodeHost }) => NodeHost),
+  },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./page-not-found/page-not-found').then(({ PageNotFound }) => PageNotFound),
+  },
 ];

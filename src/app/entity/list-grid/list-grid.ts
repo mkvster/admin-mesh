@@ -1,10 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FilterItem, ListMetadata, ListSort } from '../entity-types';
 import { ListGridCell } from '../list-grid-cell/list-grid-cell';
+
+const ROW_ACTIONS_COLUMN = '__rowActions';
 
 export interface ListPageChange {
   page: number;
@@ -15,9 +18,21 @@ export interface ListSortChange {
   sort: ListSort[];
 }
 
+export interface ListGridRowAction {
+  action: 'delete';
+  row: Record<string, unknown>;
+}
+
 @Component({
   selector: 'app-list-grid',
-  imports: [MatPaginatorModule, MatTableModule, MatIconModule, MatTooltipModule, ListGridCell],
+  imports: [
+    MatButtonModule,
+    MatPaginatorModule,
+    MatTableModule,
+    MatIconModule,
+    MatTooltipModule,
+    ListGridCell,
+  ],
   templateUrl: './list-grid.html',
   styleUrl: './list-grid.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,9 +47,13 @@ export class ListGrid {
   readonly sort = input<ListSort[]>([]);
   readonly filters = input<FilterItem[]>([]);
   readonly sortChange = output<ListSortChange>();
+  readonly showDeleteAction = input(false);
+  readonly rowAction = output<ListGridRowAction>();
 
   protected readonly displayedColumns = computed(() =>
-    this.metadata().columns.map((column) => column.field),
+    this.showDeleteAction()
+      ? [...this.metadata().columns.map((column) => column.field), ROW_ACTIONS_COLUMN]
+      : this.metadata().columns.map((column) => column.field),
   );
 
   protected readonly columns = computed(() => {
@@ -224,5 +243,9 @@ export class ListGrid {
       page: event.pageIndex + 1,
       pageSize: event.pageSize,
     });
+  }
+
+  protected onDelete(row: Record<string, unknown>): void {
+    this.rowAction.emit({ action: 'delete', row });
   }
 }
