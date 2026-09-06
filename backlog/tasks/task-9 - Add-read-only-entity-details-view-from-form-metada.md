@@ -1,121 +1,37 @@
 ---
 id: TASK-9
-title: Add read-only entity details view from form metadata
+title: Add entity preview dialog from metadata-driven view action
 status: To Do
 assignee: []
 created_date: '2026-09-04 13:47'
-updated_date: '2026-09-04 13:48'
+updated_date: '2026-09-06 23:35'
 labels: []
 milestone: s-002
-dependencies: []
+dependencies:
+  - TASK-15
+references:
+  - >-
+    backlog/tasks/task-15 -
+    Prepare-shared-entity-field-value-rendering-for-TASK-9.md
+documentation:
+  - docs/AdminApiProtocol.md
 ---
 
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Implement a reusable read-only entity details view for `rest-entity` nodes.
-
-The view should use the existing entity metadata and form metadata to render a complete entity representation without editable controls.
-
-The implementation should be designed so the same layout and field-definition logic can later be reused by Edit and Create modes.
-
-### Data loading
-
-When opening an entity:
-
-* determine the form definition from entity metadata;
-* load the selected form metadata;
-* load the entity using the form projection, when specified;
-* use the entity `idField` from metadata rather than assuming a specific ID property.
-
-Example:
-
-`GET /entities/{resource}/{id}?projection={projection}`
-
-### Layout
-
-Render fields according to the form metadata layout:
-
-* respect `layout.columns`;
-* respect each field item's `start`;
-* respect each field item's `span`;
-* preserve field ordering from metadata.
-
-The layout implementation should be reusable by future editable forms.
-
-### Field rendering
-
-Render values as read-only content rather than disabled form controls.
-
-Initial field rendering should support:
-
-* `string`
-* `integer`
-* `decimal`
-* `boolean`
-* `date`
-* `datetime`
-* `enum`
-
-Use type-aware display formatting where appropriate:
-
-* enum values should display labels;
-* boolean values should use a readable visual representation;
-* dates and datetimes should use user-friendly formatting.
-
-`reference` fields may initially fall back to their raw value if reusable reference display support is not yet available.
-
-### Architecture
-
-Separate layout rendering from field value rendering.
-
-Prefer a structure that can later support:
-
-`view | edit | create`
-
-without duplicating form layout logic.
-
-For example:
-
-* a reusable entity form/details layout component;
-* a read-only field renderer for view mode;
-* future editable field controls for edit/create mode.
-
-The current task should implement only the read-only mode, but the component boundaries should allow editable controls to be added later without rebuilding the layout system.
-
-### UI
-
-Provide a clear entity details view with:
-
-* entity title;
-* field labels;
-* read-only values;
-* consistent spacing and alignment;
-* responsive layout where practical.
-
-The view should not show Save or validation controls.
-
-### Error and loading states
-
-Handle:
-
-* form metadata loading;
-* entity data loading;
-* missing entity;
-* API errors.
-
-### Out of scope
-
-* editing values;
-* saving changes;
-* create mode;
-* validation;
-* reference lookup/editing;
-* delete;
-* print/PDF behavior;
-* relation tabs or master-detail sections.
+Add a reusable read-only EntityPreview and an EntityPreviewDialog for viewing a selected entity from the list. The list metadata exposes optional row actions, initially supporting a view-form action with an explicit formId. ListGrid renders the action button, and selecting it opens the dialog, which loads the selected form metadata and the entity using that form projection, then renders the read-only result according to the form layout. This task prepares the shared renderer used later by delete confirmation preview. It does not implement editing, create mode, deletion preview, displayProfile adaptation, navigate actions, reference lookup, or relation sections.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
+- [ ] #1 List metadata supports optional row actions with an initial view-form action containing an explicit formId.
+- [ ] #2 ListGrid renders the configured view-form action for a row and passes the entity identifier from EntityMetadata.idField.
+- [ ] #3 Selecting the view action opens one EntityPreviewDialog immediately and shows a loading state while preview data is loaded.
+- [ ] #4 EntityPreview loads form metadata by resource and formId with caching and loads the selected entity with the projection declared by that form.
+- [ ] #5 EntityPreview renders the form fields according to layout columns, start, span, and metadata order.
+- [ ] #6 Read-only rendering supports string, integer, decimal, boolean, date, datetime, enum, and reference fallback values using the shared EntityFieldValue renderer from TASK-15.
+- [ ] #7 The dialog presents loading, missing-entity, and API-error states without silently ignoring errors and can be cancelled or closed without mutation.
+- [ ] #8 Automated tests cover view-action rendering, dialog opening, loading, successful preview rendering, projection requests, cancellation, missing entity, and preview-load failure.
+- [ ] #9 This task does not add editable controls, save or validation behavior, delete-dialog preview, displayProfile selection, navigate actions, reference lookup, or relation sections.
 <!-- AC:END -->

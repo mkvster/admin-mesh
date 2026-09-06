@@ -4,10 +4,11 @@ title: 'Add basic entity editing for string, numeric, and boolean fields'
 status: To Do
 assignee: []
 created_date: '2026-09-04 13:54'
-updated_date: '2026-09-04 13:55'
+updated_date: '2026-09-06 23:41'
 labels: []
 milestone: s-002
-dependencies: []
+dependencies:
+  - TASK-9
 ---
 
 ## Description

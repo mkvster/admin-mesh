@@ -4,10 +4,11 @@ title: Add hover preview for reference fields
 status: To Do
 assignee: []
 created_date: '2026-09-04 14:21'
-updated_date: '2026-09-04 14:21'
+updated_date: '2026-09-06 23:43'
 labels: []
 milestone: s-002
-dependencies: []
+dependencies:
+  - TASK-9
 ---
 
 ## Description
