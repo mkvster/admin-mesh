@@ -2,10 +2,10 @@
 id: TASK-15
 title: Prepare shared entity field value rendering for TASK-9
 type: chore
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-06 22:33'
-updated_date: '2026-09-06 23:39'
+updated_date: '2026-09-06 23:47'
 labels:
   - refactor
 milestone: s-002
@@ -15,7 +15,7 @@ references:
 documentation:
   - docs/AdminApiProtocol.md
 priority: high
-ordinal: 4750
+ordinal: 1000
 ---
 
 ## Description
