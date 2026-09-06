@@ -1,0 +1,14 @@
+<h2 mat-dialog-title>Delete {{ data.entityTitle }}?</h2>
+
+<mat-dialog-content>
+  <p>Are you sure you want to delete this {{ data.entityTitle.toLocaleLowerCase() }}?</p>
+  <p>
+    <strong>{{ data.idLabel }}:</strong> {{ data.id }}
+  </p>
+  <p class="warning">This action cannot be undone.</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-flat-button type="button" class="delete-button" (click)="confirm()">Delete</button>
+</mat-dialog-actions>

@@ -1,0 +1,17 @@
+:host {
+  display: block;
+  min-width: min(360px, 80vw);
+}
+
+mat-dialog-content p {
+  margin: 0 0 12px;
+}
+
+.warning {
+  color: var(--mat-sys-error);
+}
+
+.delete-button {
+  background: var(--mat-sys-error);
+  color: var(--mat-sys-on-error);
+}

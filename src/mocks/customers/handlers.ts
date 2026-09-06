@@ -2,6 +2,7 @@ import { delay, HttpResponse, http } from 'msw';
 import { ListQuery } from '../../app/entity/entity-types';
 import { customers } from './data';
 import { applyListQuery } from '../shared/apply-list-query';
+import { removeMockEntity } from '../shared/remove-mock-entity';
 
 export const createCustomerHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/customers/metadata`, async () => {
@@ -75,5 +76,11 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
 
     const query = (await request.json()) as ListQuery;
     return HttpResponse.json(applyListQuery(customers, query));
+  }),
+  http.delete(`${apiBaseUrl}/entities/customers/:id`, async ({ params }) => {
+    const removed = removeMockEntity(customers, 'customerId', String(params['id']));
+    return removed
+      ? new HttpResponse(null, { status: 204 })
+      : new HttpResponse(null, { status: 404 });
   }),
 ];

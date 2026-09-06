@@ -3,6 +3,7 @@ import { ListQuery } from '../../app/entity/entity-types';
 import { payments } from './data';
 import { invoices } from '../invoices/data';
 import { applyListQuery } from '../shared/apply-list-query';
+import { removeMockEntity } from '../shared/remove-mock-entity';
 
 export const createPaymentHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/payments/metadata`, async () => {
@@ -90,5 +91,11 @@ export const createPaymentHandlers = (apiBaseUrl: string) => [
     }));
 
     return HttpResponse.json(applyListQuery(rows, query));
+  }),
+  http.delete(`${apiBaseUrl}/entities/payments/:id`, async ({ params }) => {
+    const removed = removeMockEntity(payments, 'paymentId', String(params['id']));
+    return removed
+      ? new HttpResponse(null, { status: 204 })
+      : new HttpResponse(null, { status: 404 });
   }),
 ];

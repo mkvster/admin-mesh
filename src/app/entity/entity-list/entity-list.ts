@@ -2,7 +2,19 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { catchError, defer, finalize, map, of, startWith, switchMap, tap, throwError } from 'rxjs';
+import {
+  catchError,
+  combineLatest,
+  defer,
+  finalize,
+  map,
+  of,
+  startWith,
+  Subject,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,8 +31,17 @@ import {
   ListQueryResult,
   ListSort,
 } from '../entity-types';
-import { ListGrid, ListPageChange, ListSortChange } from '../list-grid/list-grid';
+import {
+  ListGrid,
+  ListGridRowAction,
+  ListPageChange,
+  ListSortChange,
+} from '../list-grid/list-grid';
 import { FilterDialog } from '../filtering/filter-dialog/filter-dialog';
+import {
+  DeleteConfirmationDialog,
+  DeleteConfirmationDialogData,
+} from '../delete-confirmation-dialog/delete-confirmation-dialog';
 import { MAX_SERIALIZED_FILTER_LENGTH } from '../filtering/filter-constraints';
 import { parseListFilter, serializeListFilter } from '../filtering/filter-serialization';
 import { ErrorState } from '../../shared/error-state/error-state';
@@ -58,9 +79,12 @@ export class EntityList {
   private readonly asyncErrorHandler = inject(AsyncErrorHandler);
   private readonly entityMetadataStore = inject(EntityMetadataStore);
   private readonly listMetadataStore = inject(ListMetadataStore);
+  private readonly listRefresh = new Subject<void>();
   private listRequestVersion = 0;
 
   readonly isListLoading = signal(true);
+  readonly deletionError = signal<string | null>(null);
+  private readonly deletionInProgress = signal(false);
 
   readonly state = toSignal<EntityListState, EntityListState>(
     toObservable(this.resource).pipe(
@@ -88,8 +112,8 @@ export class EntityList {
 
     return this.loadListMetadata(resource, listId).pipe(
       switchMap((listMetadata) =>
-        this.route.queryParamMap.pipe(
-          map((params) => this.readListQuery(params, resource, listId)),
+        combineLatest([this.route.queryParamMap, this.listRefresh.pipe(startWith(undefined))]).pipe(
+          map(([params]) => this.readListQuery(params, resource, listId)),
           tap((query) => this.ensurePagingParams(query)),
           switchMap((query) => {
             const requestVersion = ++this.listRequestVersion;
@@ -101,20 +125,21 @@ export class EntityList {
                   this.isListLoading.set(false);
                 }
               }),
-              map(
-                (data) =>
-                  ({
-                    status: 'loaded',
-                    resource,
-                    metadata,
-                    listMetadata,
-                    data,
-                    page: query.page,
-                    pageSize: query.pageSize,
-                    sort: query.sort ?? [],
-                    filters: query.filter?.items ?? [],
-                  }) as EntityListState,
-              ),
+              map((data) => {
+                this.ensureValidPage(query, data);
+
+                return {
+                  status: 'loaded',
+                  resource,
+                  metadata,
+                  listMetadata,
+                  data,
+                  page: query.page,
+                  pageSize: query.pageSize,
+                  sort: query.sort ?? [],
+                  filters: query.filter?.items ?? [],
+                } as EntityListState;
+              }),
             );
           }),
         ),
@@ -150,6 +175,70 @@ export class EntityList {
       }),
       'Entity list sorting navigation failed',
     );
+  }
+
+  protected onRowAction(
+    event: ListGridRowAction,
+    state: Extract<EntityListState, { status: 'loaded' }>,
+  ): void {
+    if (event.action === 'delete' && state.metadata.permissions.delete) {
+      this.openDeleteConfirmation(state, event.row);
+    }
+  }
+
+  private openDeleteConfirmation(
+    state: Extract<EntityListState, { status: 'loaded' }>,
+    row: Record<string, unknown>,
+  ): void {
+    if (this.deletionInProgress()) {
+      return;
+    }
+
+    const idValue = row[state.metadata.idField];
+    if (idValue === undefined || idValue === null) {
+      this.deletionError.set(
+        `Cannot delete ${state.metadata.singularTitle}: the row has no identifier.`,
+      );
+      return;
+    }
+
+    this.deletionError.set(null);
+    const idLabel =
+      state.listMetadata.fields.find((field) => field.name === state.metadata.idField)?.label ??
+      state.metadata.idField;
+    const dialogData: DeleteConfirmationDialogData = {
+      entityTitle: state.metadata.singularTitle,
+      idLabel,
+      id: String(idValue),
+    };
+    const dialogRef = this.dialog.open(DeleteConfirmationDialog, { data: dialogData });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed === true) {
+        this.deleteEntity(state.resource, idValue);
+      }
+    });
+  }
+
+  private deleteEntity(resource: string, id: unknown): void {
+    if (typeof id !== 'string' && typeof id !== 'number') {
+      this.deletionError.set('Cannot delete the selected row: its identifier is invalid.');
+      return;
+    }
+
+    this.deletionInProgress.set(true);
+    this.api.deleteEntity(resource, id).subscribe({
+      next: () => {
+        this.deletionError.set(null);
+        this.listRefresh.next();
+      },
+      error: (error: unknown) => {
+        console.error('Entity deletion failed', error);
+        this.deletionError.set('Failed to delete the selected entity.');
+        this.deletionInProgress.set(false);
+      },
+      complete: () => this.deletionInProgress.set(false),
+    });
   }
 
   protected openFilters(state: Extract<EntityListState, { status: 'loaded' }>): void {
@@ -289,6 +378,21 @@ export class EntityList {
         replaceUrl: true,
       }),
       'Entity list paging normalization failed',
+    );
+  }
+
+  private ensureValidPage(query: ListQuery, data: ListQueryResult): void {
+    if (query.page <= 1 || data.items.length > 0 || data.totalCount === 0) {
+      return;
+    }
+
+    this.asyncErrorHandler.run(
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { page: query.page - 1 },
+        queryParamsHandling: 'merge',
+      }),
+      'Entity list page correction failed',
     );
   }
 

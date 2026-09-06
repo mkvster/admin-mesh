@@ -16,8 +16,10 @@
           [pageSize]="state.pageSize"
           [sort]="state.sort"
           [filters]="state.filters"
+          [showDeleteAction]="state.metadata.permissions.delete"
           (pageChange)="onPageChange($event)"
           (sortChange)="onSortChange($event)"
+          (rowAction)="onRowAction($event, state)"
         >
           <div list-grid-actions>
             @if (state.data.items.length > 0) {
@@ -78,6 +80,9 @@
             <mat-progress-spinner mode="indeterminate" diameter="40" aria-label="Loading" />
             <span>Loading</span>
           </div>
+        }
+        @if (deletionError(); as message) {
+          <div class="deletion-error" role="alert">{{ message }}</div>
         }
       </div>
     }

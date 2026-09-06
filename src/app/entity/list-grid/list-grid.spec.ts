@@ -23,4 +23,26 @@ describe('ListGrid', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('emits a delete row action when delete actions are enabled', () => {
+    const row = { customerId: 7, name: 'Ada' };
+    const actions: unknown[] = [];
+    component.rowAction.subscribe((action) => actions.push(action));
+    fixture.componentRef.setInput('metadata', {
+      fields: [
+        { name: 'customerId', label: 'ID', type: 'integer' },
+        { name: 'name', label: 'Name', type: 'string' },
+      ],
+      columns: [{ field: 'customerId' }, { field: 'name' }],
+    });
+    fixture.componentRef.setInput('rows', [row]);
+    fixture.componentRef.setInput('totalCount', 1);
+    fixture.componentRef.setInput('showDeleteAction', true);
+    fixture.detectChanges();
+
+    const deleteButton = fixture.nativeElement.querySelector('.row-actions-cell .delete-button');
+    deleteButton.click();
+
+    expect(actions).toEqual([{ action: 'delete', row }]);
+  });
 });

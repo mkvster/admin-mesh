@@ -2,6 +2,7 @@ import { delay, HttpResponse, http } from 'msw';
 import { ListQuery } from '../../app/entity/entity-types';
 import { categories } from './data';
 import { applyListQuery } from '../shared/apply-list-query';
+import { removeMockEntity } from '../shared/remove-mock-entity';
 
 export const createCategoryHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/categories/metadata`, async () => {
@@ -75,5 +76,11 @@ export const createCategoryHandlers = (apiBaseUrl: string) => [
 
     const query = (await request.json()) as ListQuery;
     return HttpResponse.json(applyListQuery(categories, query));
+  }),
+  http.delete(`${apiBaseUrl}/entities/categories/:id`, async ({ params }) => {
+    const removed = removeMockEntity(categories, 'categoryId', String(params['id']));
+    return removed
+      ? new HttpResponse(null, { status: 204 })
+      : new HttpResponse(null, { status: 404 });
   }),
 ];
