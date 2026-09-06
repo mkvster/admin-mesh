@@ -5,7 +5,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FilterItem, ListMetadata, ListSort } from '../entity-types';
-import { ListGridCell } from '../list-grid-cell/list-grid-cell';
+import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 
 const ROW_ACTIONS_COLUMN = '__rowActions';
 
@@ -31,7 +31,7 @@ export interface ListGridRowAction {
     MatTableModule,
     MatIconModule,
     MatTooltipModule,
-    ListGridCell,
+    EntityFieldValue,
   ],
   templateUrl: './list-grid.html',
   styleUrl: './list-grid.scss',

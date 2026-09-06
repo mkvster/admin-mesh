@@ -45,4 +45,17 @@ describe('ListGrid', () => {
 
     expect(actions).toEqual([{ action: 'delete', row }]);
   });
+
+  it('renders field values through the shared entity field value component', () => {
+    fixture.componentRef.setInput('metadata', {
+      fields: [{ name: 'name', label: 'Name', type: 'string' }],
+      columns: [{ field: 'name' }],
+    });
+    fixture.componentRef.setInput('rows', [{ name: 'Ada' }]);
+    fixture.componentRef.setInput('totalCount', 1);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-entity-field-value')).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('Ada');
+  });
 });

@@ -47,9 +47,9 @@
 
           <td mat-cell *matCellDef="let row">
             @if (item.field) {
-              <app-list-grid-cell
+              <app-entity-field-value
                 [field]="item.field"
-                [column]="item.column"
+                [display]="item.column.display"
                 [row]="row"
                 [value]="row[item.column.field]"
               />

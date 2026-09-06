@@ -18,7 +18,7 @@ export interface EntityMetadata {
   views: EntityViews;
 }
 
-export interface ListField {
+export interface FieldMetadata {
   name: string;
   label: string;
   type: string;
@@ -30,7 +30,7 @@ export interface ListField {
   };
 }
 
-export type ListColumnDisplay =
+export type FieldDisplay =
   | {
       type: 'boolean';
       style: 'icon' | 'checkbox' | 'text';
@@ -50,11 +50,11 @@ export interface ListColumn {
   size?: number;
   disableSorting?: boolean;
   disableFiltering?: boolean;
-  display?: ListColumnDisplay;
+  display?: FieldDisplay;
 }
 
 export interface ListMetadata {
-  fields: ListField[];
+  fields: FieldMetadata[];
   columns: ListColumn[];
 }
 

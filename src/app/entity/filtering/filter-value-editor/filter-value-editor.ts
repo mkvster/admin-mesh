@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, model } from '@angular/core';
-import { FilterOperator, ListField } from '../../entity-types';
+import { FieldMetadata, FilterOperator } from '../../entity-types';
 import { StringFilterEditor } from '../string-filter-editor/string-filter-editor';
 import { NumericFilterEditor } from '../numeric-filter-editor/numeric-filter-editor';
 import { BooleanFilterEditor } from '../boolean-filter-editor/boolean-filter-editor';
@@ -25,7 +25,7 @@ import { EnumFilterEditor } from '../enum-filter-editor/enum-filter-editor';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FilterValueEditor {
-  readonly field = input.required<ListField>();
+  readonly field = input.required<FieldMetadata>();
   readonly operator = input.required<FilterOperator>();
   readonly value = model<unknown>();
   readonly showError = input(false);
