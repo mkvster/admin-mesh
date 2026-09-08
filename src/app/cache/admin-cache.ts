@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ObservableCache } from './observable-cache';
-import { EntityMetadata, ListMetadata } from '../entity/entity-types';
+import { EntityMetadata, FormMetadata, ListMetadata } from '../entity/entity-types';
 
 @Injectable({ providedIn: 'root' })
 export class AdminCache {
@@ -8,12 +8,11 @@ export class AdminCache {
 
   readonly listMetadata = new ObservableCache<string, ListMetadata>();
 
-  //readonly formMetadata =
-  //  new ObservableCache<string, FormMetadata>();
+  readonly formMetadata = new ObservableCache<string, FormMetadata>();
 
   clear(): void {
     this.entityMetadata.clear();
     this.listMetadata.clear();
-    //this.formMetadata.clear();
+    this.formMetadata.clear();
   }
 }

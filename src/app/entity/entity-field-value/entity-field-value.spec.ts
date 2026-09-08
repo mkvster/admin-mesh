@@ -68,6 +68,57 @@ describe('EntityFieldValue', () => {
     expect(fixture.nativeElement.textContent).toContain('3');
   });
 
+  it('renders currency formatting for numeric fields', () => {
+    fixture.componentRef.setInput('field', { name: 'amount', label: 'Amount', type: 'decimal' });
+    fixture.componentRef.setInput('value', 1200);
+    fixture.componentRef.setInput('display', {
+      type: 'numeric',
+      style: 'currency',
+      currency: 'USD',
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('$1,200.00');
+  });
+
+  it('falls back to the raw value when a numeric field is not a valid number', () => {
+    fixture.componentRef.setInput('field', { name: 'amount', label: 'Amount', type: 'decimal' });
+    fixture.componentRef.setInput('value', 'n/a');
+    fixture.componentRef.setInput('display', {
+      type: 'numeric',
+      style: 'currency',
+      currency: 'USD',
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent.trim()).toBe('n/a');
+  });
+
+  it('renders formatted date and datetime values', () => {
+    fixture.componentRef.setInput('field', {
+      name: 'paymentDate',
+      label: 'Payment Date',
+      type: 'date',
+    });
+    fixture.componentRef.setInput('value', '2026-08-15');
+    fixture.componentRef.setInput('display', { type: 'date', style: 'medium' });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Aug 15, 2026');
+
+    fixture.componentRef.setInput('field', {
+      name: 'paymentDate',
+      label: 'Payment Date',
+      type: 'datetime',
+    });
+    fixture.componentRef.setInput('value', '2026-08-15T14:35:00');
+    fixture.componentRef.setInput('display', { type: 'datetime', style: 'medium' });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Aug 15, 2026');
+    expect(fixture.nativeElement.textContent).toMatch(/2:35/);
+  });
+
   it('renders an empty value as empty', () => {
     fixture.detectChanges();
 

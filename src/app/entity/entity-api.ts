@@ -1,7 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { ApiEndpoint } from '../config/api-endpoint';
-import { EntityMetadata, ListMetadata, ListQuery, ListQueryResult } from './entity-types';
+import {
+  EntityMetadata,
+  FormMetadata,
+  ListMetadata,
+  ListQuery,
+  ListQueryResult,
+} from './entity-types';
 
 @Injectable({ providedIn: 'root' })
 export class EntityApi {
@@ -15,6 +21,19 @@ export class EntityApi {
   getListMetadata(resource: string, listId: string) {
     return this.http.get<ListMetadata>(
       this.api.url(`entities/${resource}/lists/${listId}/metadata`),
+    );
+  }
+
+  getFormMetadata(resource: string, formId: string) {
+    return this.http.get<FormMetadata>(
+      this.api.url(`entities/${resource}/forms/${encodeURIComponent(formId)}/metadata`),
+    );
+  }
+
+  getEntity(resource: string, id: string | number, projection?: string) {
+    return this.http.get<Record<string, unknown>>(
+      this.api.url(`entities/${resource}/${encodeURIComponent(String(id))}`),
+      projection ? { params: { projection } } : undefined,
     );
   }
 

@@ -1,0 +1,17 @@
+<h2 mat-dialog-title class="preview-title">
+  <span class="preview-avatar" [style.--preview-avatar-color]="data.iconColor">
+    <mat-icon [fontSet]="data.iconSet ?? 'material-icons'" aria-hidden="true">
+      {{ data.icon }}
+    </mat-icon>
+  </span>
+  <span class="preview-heading">{{ title() }}</span>
+  <button mat-icon-button type="button" class="preview-close" aria-label="Close" (click)="close()">
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+</h2>
+<mat-dialog-content>
+  <app-entity-preview [resource]="data.resource" [formId]="data.formId" [id]="data.id" />
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-flat-button type="button" (click)="close()">Close</button>
+</mat-dialog-actions>

@@ -69,7 +69,72 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
           },
         },
       ],
+      rowActions: [
+        {
+          type: 'view-form',
+          formId: 'briefview',
+          label: 'Name',
+          icon: 'visibility',
+          iconSet: 'material-icons-outlined',
+          iconColor: 'rgb(29, 212, 38)',
+        },
+        {
+          type: 'view-form',
+          formId: 'view',
+          label: 'Details',
+          icon: 'person',
+          iconSet: 'material-icons-outlined',
+          iconColor: '#1565c0',
+        },
+      ],
     });
+  }),
+  http.get(`${apiBaseUrl}/entities/customers/forms/view/metadata`, async () => {
+    await delay(400);
+
+    return HttpResponse.json({
+      projection: 'view',
+      fields: [
+        { name: 'name', label: 'Name', type: 'string' },
+        { name: 'email', label: 'Email', type: 'string' },
+        { name: 'enabled', label: 'Enabled', type: 'boolean' },
+      ],
+      layout: {
+        columns: 2,
+        items: [
+          { field: 'name', format: 'jumbo' },
+          { field: 'enabled', display: { type: 'boolean', style: 'icon' }, format: 'jumbo' },
+          { field: 'email', span: 2 },
+        ],
+      },
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/customers/forms/briefview/metadata`, async () => {
+    await delay(400);
+
+    return HttpResponse.json({
+      projection: 'view',
+      fields: [
+        { name: 'name', label: 'Name', type: 'string' },
+        { name: 'email', label: 'Email', type: 'string' },
+      ],
+      layout: {
+        columns: 1,
+        items: [{ field: 'name', format: 'jumbo' }, { field: 'email' }],
+      },
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/customers/:id`, async ({ params }) => {
+    await delay(500);
+    const customer = customers.find((item) => String(item.customerId) === String(params['id']));
+    return customer
+      ? HttpResponse.json({
+          customerId: customer.customerId,
+          name: `${customer.firstName} ${customer.lastName}`,
+          email: customer.email,
+          enabled: customer.enabled,
+        })
+      : new HttpResponse(null, { status: 404 });
   }),
   http.post(`${apiBaseUrl}/entities/customers/lists/main/query`, async ({ request }) => {
     await delay(700);

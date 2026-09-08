@@ -48,6 +48,47 @@ export class EntityFieldValue {
     return displayValue != null && displayValue !== '';
   });
 
+  protected readonly currencyValue = computed(() => {
+    const display = this.display();
+    const value = this.value();
+    if (display?.type !== 'numeric' || value == null || value === '') {
+      return this.textValue();
+    }
+
+    const amount = Number(value);
+    return Number.isNaN(amount)
+      ? this.textValue()
+      : new Intl.NumberFormat(undefined, { style: 'currency', currency: display.currency }).format(
+          amount,
+        );
+  });
+
+  protected readonly formattedDateValue = computed(() => {
+    const display = this.display();
+    const value = this.value();
+    if (
+      (display?.type !== 'date' && display?.type !== 'datetime') ||
+      value == null ||
+      value === ''
+    ) {
+      return this.textValue();
+    }
+
+    const date =
+      display.type === 'date' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+        ? this.parseLocalDate(value)
+        : new Date(value as string | number);
+    if (Number.isNaN(date.getTime())) {
+      return this.textValue();
+    }
+
+    const options: Intl.DateTimeFormatOptions =
+      display.type === 'datetime'
+        ? { dateStyle: display.style, timeStyle: display.style }
+        : { dateStyle: display.style };
+    return new Intl.DateTimeFormat(undefined, options).format(date);
+  });
+
   protected booleanStyle(): 'icon' | 'checkbox' | 'text' | undefined {
     const display = this.display();
     return display?.type === 'boolean' ? display.style : undefined;
@@ -56,5 +97,10 @@ export class EntityFieldValue {
   protected enumStyle(): 'label' | 'value' | undefined {
     const display = this.display();
     return display?.type === 'enum' ? display.style : undefined;
+  }
+
+  private parseLocalDate(value: string): Date {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year, month - 1, day);
   }
 }

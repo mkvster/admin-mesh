@@ -1,0 +1,50 @@
+.preview-state {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  min-height: 140px;
+}
+.preview-fields {
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(var(--preview-columns), minmax(0, 1fr));
+  margin: 0 -12px;
+}
+.preview-field {
+  align-items: center;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  display: flex;
+  gap: 24px;
+  min-width: 0;
+  padding: 12px;
+}
+dt {
+  color: var(--mat-sys-on-surface-variant);
+  flex: 0 0 auto;
+  font-weight: 400;
+}
+dd {
+  flex: 0 1 auto;
+  font-weight: 500;
+  margin: 0 0 0 auto;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.preview-field-jumbo {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 2px;
+}
+.preview-field-jumbo dt {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.preview-field-jumbo dd {
+  font-size: 28px;
+  font-weight: 600;
+  margin-left: 0;
+  text-align: left;
+}

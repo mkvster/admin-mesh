@@ -45,6 +45,22 @@
       }
     }
 
+    @case ('integer') {
+      {{ display()?.type === 'numeric' ? currencyValue() : textValue() }}
+    }
+
+    @case ('decimal') {
+      {{ display()?.type === 'numeric' ? currencyValue() : textValue() }}
+    }
+
+    @case ('date') {
+      {{ display()?.type === 'date' ? formattedDateValue() : textValue() }}
+    }
+
+    @case ('datetime') {
+      {{ display()?.type === 'datetime' ? formattedDateValue() : textValue() }}
+    }
+
     @default {
       {{ textValue() }}
     }

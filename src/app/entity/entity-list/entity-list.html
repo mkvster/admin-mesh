@@ -16,6 +16,7 @@
           [pageSize]="state.pageSize"
           [sort]="state.sort"
           [filters]="state.filters"
+          [idField]="state.metadata.idField"
           [showDeleteAction]="state.metadata.permissions.delete"
           (pageChange)="onPageChange($event)"
           (sortChange)="onSortChange($event)"
