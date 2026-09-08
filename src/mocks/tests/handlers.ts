@@ -3,15 +3,31 @@ import { ListQuery } from '../../app/entity/entity-types';
 import { tests } from './data';
 import { applyListQuery } from '../shared/apply-list-query';
 import { removeMockEntity } from '../shared/remove-mock-entity';
+import { randomMockDelay } from '../shared/random-mock-delay';
 
 export const createTestHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/tests/metadata`, async () => {
-    await delay(1500);
+    await delay(randomMockDelay());
 
     return HttpResponse.json({
       title: 'Tests',
       singularTitle: 'Test',
       idField: 'testId',
+      fields: [
+        { name: 'testId', label: 'ID', type: 'integer' },
+        { name: 'name', label: 'Name', type: 'string' },
+        {
+          name: 'status',
+          label: 'Status',
+          type: 'enum',
+          display: { type: 'enum', style: 'value' },
+          values: [
+            { value: 'draft', label: 'Draft' },
+            { value: 'active', label: 'Active' },
+            { value: 'archived', label: 'Archived' },
+          ],
+        },
+      ],
       permissions: {
         create: true,
         edit: true,
@@ -24,45 +40,18 @@ export const createTestHandlers = (apiBaseUrl: string) => [
     });
   }),
   http.get(`${apiBaseUrl}/entities/tests/lists/main/metadata`, async () => {
-    await delay(500);
+    await delay(randomMockDelay());
 
     return HttpResponse.json({
-      fields: [
-        {
-          name: 'testId',
-          label: 'ID',
-          type: 'integer',
-        },
-        {
-          name: 'name',
-          label: 'Name',
-          type: 'string',
-        },
-        {
-          name: 'status',
-          label: 'Status',
-          type: 'enum',
-          values: [
-            { value: 'draft', label: 'Draft' },
-            { value: 'active', label: 'Active' },
-            { value: 'archived', label: 'Archived' },
-          ],
-        },
-      ],
       columns: [
         { field: 'testId', sizeType: 'width', size: 80 },
         { field: 'name', sizeType: 'flex', size: 1 },
-        {
-          field: 'status',
-          sizeType: 'width',
-          size: 200,
-          display: { type: 'enum', style: 'label' },
-        },
+        { field: 'status', sizeType: 'width', size: 200 },
       ],
     });
   }),
   http.post(`${apiBaseUrl}/entities/tests/lists/main/query`, async ({ request }) => {
-    await delay(700);
+    await delay(randomMockDelay());
 
     const query = (await request.json()) as ListQuery;
     return HttpResponse.json(applyListQuery(tests, query));

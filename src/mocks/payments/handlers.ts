@@ -4,33 +4,32 @@ import { payments } from './data';
 import { invoices } from '../invoices/data';
 import { applyListQuery } from '../shared/apply-list-query';
 import { removeMockEntity } from '../shared/remove-mock-entity';
+import { randomMockDelay } from '../shared/random-mock-delay';
 
 export const createPaymentHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/payments/metadata`, async () => {
-    await delay(1500);
+    await delay(randomMockDelay());
 
     return HttpResponse.json({
       title: 'Payments',
       singularTitle: 'Payment',
       idField: 'paymentId',
-      permissions: { create: true, edit: true, delete: true },
-      views: { list: 'main', form: 'edit' },
-    });
-  }),
-  http.get(`${apiBaseUrl}/entities/payments/lists/main/metadata`, async () => {
-    await delay(500);
-
-    return HttpResponse.json({
       fields: [
         { name: 'paymentId', label: 'ID', type: 'integer' },
         {
           name: 'invoiceId',
           label: 'Invoice',
           type: 'reference',
+          display: { type: 'reference', valueField: 'invoiceNumber' },
           reference: { resource: 'invoices', listId: 'main', displayField: 'invoiceNumber' },
         },
         { name: 'paymentDate', label: 'Payment Date', type: 'datetime' },
-        { name: 'amount', label: 'Amount', type: 'decimal' },
+        {
+          name: 'amount',
+          label: 'Amount',
+          type: 'decimal',
+          display: { type: 'numeric', style: 'currency', currency: 'USD' },
+        },
         {
           name: 'method',
           label: 'Method',
@@ -55,28 +54,26 @@ export const createPaymentHandlers = (apiBaseUrl: string) => [
         },
         { name: 'reference', label: 'Reference', type: 'string' },
       ],
+      permissions: { create: true, edit: true, delete: true },
+      views: { list: 'main', form: 'edit' },
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/payments/lists/main/metadata`, async () => {
+    await delay(randomMockDelay());
+
+    return HttpResponse.json({
       columns: [
         { field: 'paymentId', sizeType: 'width', size: 80 },
+        { field: 'invoiceId', sizeType: 'width', size: 150 },
         {
-          field: 'invoiceId',
+          field: 'paymentDate',
           sizeType: 'width',
-          size: 150,
-          display: { type: 'reference', valueField: 'invoiceNumber' },
+          size: 180,
+          display: { type: 'datetime', style: 'medium' },
         },
-        { field: 'paymentDate', sizeType: 'width', size: 180 },
         { field: 'amount', sizeType: 'width', size: 120 },
-        {
-          field: 'method',
-          sizeType: 'width',
-          size: 110,
-          display: { type: 'enum', style: 'label' },
-        },
-        {
-          field: 'status',
-          sizeType: 'width',
-          size: 120,
-          display: { type: 'enum', style: 'label' },
-        },
+        { field: 'method', sizeType: 'width', size: 110 },
+        { field: 'status', sizeType: 'width', size: 120 },
         { field: 'reference', sizeType: 'width', size: 140 },
       ],
       rowActions: [
@@ -91,75 +88,25 @@ export const createPaymentHandlers = (apiBaseUrl: string) => [
     });
   }),
   http.get(`${apiBaseUrl}/entities/payments/forms/view/metadata`, async () => {
-    await delay(400);
+    await delay(randomMockDelay());
 
     return HttpResponse.json({
       projection: 'view',
-      fields: [
-        { name: 'paymentId', label: 'ID', type: 'integer' },
-        {
-          name: 'invoiceId',
-          label: 'Invoice',
-          type: 'reference',
-          reference: { resource: 'invoices', listId: 'main', displayField: 'invoiceNumber' },
-        },
-        { name: 'paymentDate', label: 'Payment Date', type: 'datetime' },
-        { name: 'amount', label: 'Amount', type: 'decimal' },
-        {
-          name: 'method',
-          label: 'Method',
-          type: 'enum',
-          values: [
-            { value: 'card', label: 'Card' },
-            { value: 'ach', label: 'ACH' },
-            { value: 'check', label: 'Check' },
-            { value: 'cash', label: 'Cash' },
-          ],
-        },
-        {
-          name: 'status',
-          label: 'Status',
-          type: 'enum',
-          values: [
-            { value: 'pending', label: 'Pending' },
-            { value: 'completed', label: 'Completed' },
-            { value: 'failed', label: 'Failed' },
-            { value: 'refunded', label: 'Refunded' },
-          ],
-        },
-        { name: 'reference', label: 'Reference', type: 'string' },
-      ],
       layout: {
         columns: 2,
         items: [
-          {
-            field: 'amount',
-            format: 'jumbo',
-            display: { type: 'numeric', style: 'currency', currency: 'USD' },
-          },
-          {
-            field: 'status',
-            display: { type: 'enum', style: 'label' },
-            hideLabel: true,
-          },
+          { field: 'amount', format: 'jumbo' },
+          { field: 'status', hideLabel: true },
           { field: 'reference', span: 2 },
-          {
-            field: 'invoiceId',
-            span: 2,
-            display: { type: 'reference', valueField: 'invoiceNumber' },
-          },
-          {
-            field: 'paymentDate',
-            span: 2,
-            display: { type: 'datetime', style: 'medium' },
-          },
-          { field: 'method', span: 2, display: { type: 'enum', style: 'label' } },
+          { field: 'invoiceId', span: 2 },
+          { field: 'paymentDate', span: 2 },
+          { field: 'method', span: 2 },
         ],
       },
     });
   }),
   http.get(`${apiBaseUrl}/entities/payments/:id`, async ({ params }) => {
-    await delay(500);
+    await delay(randomMockDelay());
     const payment = payments.find((item) => String(item.paymentId) === String(params['id']));
     if (!payment) {
       return new HttpResponse(null, { status: 404 });
@@ -178,7 +125,7 @@ export const createPaymentHandlers = (apiBaseUrl: string) => [
     });
   }),
   http.post(`${apiBaseUrl}/entities/payments/lists/main/query`, async ({ request }) => {
-    await delay(700);
+    await delay(randomMockDelay());
     const query = (await request.json()) as ListQuery;
     const invoiceById = new Map(invoices.map((invoice) => [invoice.invoiceId, invoice]));
     const rows = payments.map((payment) => ({

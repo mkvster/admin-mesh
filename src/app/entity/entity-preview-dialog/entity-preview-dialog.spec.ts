@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { EntityPreviewDialog, EntityPreviewDialogData } from './entity-preview-dialog';
 import { FormMetadataStore } from '../form-metadata-store';
 import { EntityApi } from '../entity-api';
+import { EntityMetadataStore } from '../entity-metadata-store';
 
 describe('EntityPreviewDialog title', () => {
   let fixture: ComponentFixture<EntityPreviewDialog>;
@@ -24,6 +25,7 @@ describe('EntityPreviewDialog title', () => {
         { provide: MAT_DIALOG_DATA, useValue: data },
         { provide: MatDialogRef, useValue: { close: () => undefined } },
         { provide: FormMetadataStore, useValue: { get: () => of(formMetadata) } },
+        { provide: EntityMetadataStore, useValue: { get: () => of({ fields: [] }) } },
         { provide: EntityApi, useValue: { getEntity: () => of({}) } },
       ],
     }).compileComponents();

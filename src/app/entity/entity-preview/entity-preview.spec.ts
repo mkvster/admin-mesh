@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EntityPreview } from './entity-preview';
 import { EntityApi } from '../entity-api';
 import { FormMetadataStore } from '../form-metadata-store';
+import { EntityMetadataStore } from '../entity-metadata-store';
 
 describe('EntityPreview', () => {
   let fixture: ComponentFixture<EntityPreview>;
@@ -16,6 +17,10 @@ describe('EntityPreview', () => {
       imports: [EntityPreview],
       providers: [
         { provide: EntityApi, useValue: api },
+        {
+          provide: EntityMetadataStore,
+          useValue: { get: () => of({ fields: [] }) },
+        },
         {
           provide: FormMetadataStore,
           useValue: {
@@ -85,6 +90,10 @@ describe('EntityPreview field formats', () => {
       imports: [EntityPreview],
       providers: [
         { provide: EntityApi, useValue: { getEntity: () => of({ amount: 500, method: 'Card' }) } },
+        {
+          provide: EntityMetadataStore,
+          useValue: { get: () => of({ fields: [] }) },
+        },
         {
           provide: FormMetadataStore,
           useValue: {

@@ -7,6 +7,8 @@ import { EntityApi } from '../entity-api';
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 import { FormLayoutItem, FormMetadata } from '../entity-types';
 import { FormMetadataStore } from '../form-metadata-store';
+import { EntityMetadataStore } from '../entity-metadata-store';
+import { FieldMetadataResolver } from '../field-metadata-resolver';
 
 export type EntityPreviewState =
   | { status: 'loading' }
@@ -28,6 +30,8 @@ export class EntityPreview {
 
   private readonly api = inject(EntityApi);
   private readonly formMetadataStore = inject(FormMetadataStore);
+  private readonly entityMetadataStore = inject(EntityMetadataStore);
+  private readonly fieldMetadataResolver = inject(FieldMetadataResolver);
 
   readonly state = toSignal(
     combineLatest([
@@ -36,14 +40,25 @@ export class EntityPreview {
       toObservable(this.id),
     ]).pipe(
       switchMap(([resource, formId, id]) =>
-        this.formMetadataStore.get(resource, formId).pipe(
-          switchMap((metadata) =>
-            this.api
+        combineLatest([
+          this.entityMetadataStore.get(resource),
+          this.formMetadataStore.get(resource, formId),
+        ]).pipe(
+          switchMap(([entityMetadata, formMetadata]) => {
+            const metadata: FormMetadata = {
+              ...formMetadata,
+              fields: this.fieldMetadataResolver.mergeFields(
+                entityMetadata.fields,
+                formMetadata.fields,
+              ),
+            };
+
+            return this.api
               .getEntity(resource, id, metadata.projection)
               .pipe(
                 map((entity) => ({ status: 'loaded', metadata, entity }) as EntityPreviewState),
-              ),
-          ),
+              );
+          }),
           catchError((cause: unknown) =>
             of<EntityPreviewState>(
               this.isMissingError(cause) ? { status: 'missing' } : { status: 'error', cause },

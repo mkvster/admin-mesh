@@ -4,15 +4,40 @@ import { products } from './data';
 import { categories } from '../categories/data';
 import { applyListQuery } from '../shared/apply-list-query';
 import { removeMockEntity } from '../shared/remove-mock-entity';
+import { randomMockDelay } from '../shared/random-mock-delay';
 
 export const createProductHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/products/metadata`, async () => {
-    await delay(1500);
+    await delay(randomMockDelay());
 
     return HttpResponse.json({
       title: 'Products',
       singularTitle: 'Product',
       idField: 'productId',
+      fields: [
+        { name: 'productId', label: 'ID', type: 'integer' },
+        { name: 'name', label: 'Name', type: 'string' },
+        { name: 'sku', label: 'SKU', type: 'string' },
+        {
+          name: 'categoryId',
+          label: 'Category',
+          type: 'reference',
+          reference: { resource: 'categories', listId: 'main', displayField: 'name' },
+        },
+        {
+          name: 'price',
+          label: 'Price',
+          type: 'decimal',
+          display: { type: 'numeric', style: 'currency', currency: 'USD' },
+        },
+        { name: 'stock', label: 'Stock', type: 'integer' },
+        {
+          name: 'enabled',
+          label: 'Enabled',
+          type: 'boolean',
+          display: { type: 'boolean', style: 'checkbox' },
+        },
+      ],
       permissions: {
         create: true,
         edit: true,
@@ -25,51 +50,9 @@ export const createProductHandlers = (apiBaseUrl: string) => [
     });
   }),
   http.get(`${apiBaseUrl}/entities/products/lists/main/metadata`, async () => {
-    await delay(500);
+    await delay(randomMockDelay());
 
     return HttpResponse.json({
-      fields: [
-        {
-          name: 'productId',
-          label: 'ID',
-          type: 'integer',
-        },
-        {
-          name: 'name',
-          label: 'Name',
-          type: 'string',
-        },
-        {
-          name: 'sku',
-          label: 'SKU',
-          type: 'string',
-        },
-        {
-          name: 'categoryId',
-          label: 'Category',
-          type: 'reference',
-          reference: {
-            resource: 'categories',
-            listId: 'main',
-            displayField: 'name',
-          },
-        },
-        {
-          name: 'price',
-          label: 'Price',
-          type: 'decimal',
-        },
-        {
-          name: 'stock',
-          label: 'Stock',
-          type: 'integer',
-        },
-        {
-          name: 'enabled',
-          label: 'Enabled',
-          type: 'boolean',
-        },
-      ],
       columns: [
         { field: 'productId', sizeType: 'width', size: 80 },
         { field: 'name', sizeType: 'flex', size: 1 },
@@ -80,30 +63,14 @@ export const createProductHandlers = (apiBaseUrl: string) => [
           size: 140,
           display: { type: 'reference', valueField: 'categoryName' },
         },
-        {
-          field: 'price',
-          sizeType: 'width',
-          size: 120,
-          display: {
-            type: 'currency',
-            currency: 'USD',
-          },
-        },
+        { field: 'price', sizeType: 'width', size: 120 },
         { field: 'stock', sizeType: 'width', size: 100 },
-        {
-          field: 'enabled',
-          sizeType: 'width',
-          size: 120,
-          display: {
-            type: 'boolean',
-            style: 'checkbox',
-          },
-        },
+        { field: 'enabled', sizeType: 'width', size: 120 },
       ],
     });
   }),
   http.post(`${apiBaseUrl}/entities/products/lists/main/query`, async ({ request }) => {
-    await delay(700);
+    await delay(randomMockDelay());
 
     const query = (await request.json()) as ListQuery;
     const categoryById = new Map(categories.map((category) => [category.categoryId, category]));

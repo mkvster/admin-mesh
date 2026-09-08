@@ -59,6 +59,25 @@ describe('ListGrid', () => {
     expect(fixture.nativeElement.textContent).toContain('Ada');
   });
 
+  it('uses a field display when the column has no local display', () => {
+    fixture.componentRef.setInput('metadata', {
+      fields: [
+        {
+          name: 'enabled',
+          label: 'Enabled',
+          type: 'boolean',
+          display: { type: 'boolean', style: 'text' },
+        },
+      ],
+      columns: [{ field: 'enabled' }],
+    });
+    fixture.componentRef.setInput('rows', [{ enabled: true }]);
+    fixture.componentRef.setInput('totalCount', 1);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Yes');
+  });
+
   it('renders a configured view action and emits the id from the configured id field', () => {
     const row = { customerId: 7, name: 'Ada' };
     const actions: unknown[] = [];

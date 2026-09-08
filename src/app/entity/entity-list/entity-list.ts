@@ -22,6 +22,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { EntityApi } from '../entity-api';
 import { EntityMetadataStore } from '../entity-metadata-store';
 import { ListMetadataStore } from '../list-metadata-store';
+import { FieldMetadataResolver } from '../field-metadata-resolver';
 import {
   EntityPreviewDialog,
   EntityPreviewDialogData,
@@ -84,6 +85,7 @@ export class EntityList {
   private readonly asyncErrorHandler = inject(AsyncErrorHandler);
   private readonly entityMetadataStore = inject(EntityMetadataStore);
   private readonly listMetadataStore = inject(ListMetadataStore);
+  private readonly fieldMetadataResolver = inject(FieldMetadataResolver);
   private readonly listRefresh = new Subject<void>();
   private listRequestVersion = 0;
 
@@ -116,8 +118,16 @@ export class EntityList {
     const listId = metadata.views.list;
 
     return this.loadListMetadata(resource, listId).pipe(
-      switchMap((listMetadata) =>
-        combineLatest([this.route.queryParamMap, this.listRefresh.pipe(startWith(undefined))]).pipe(
+      switchMap((listMetadata) => {
+        const resolvedListMetadata: ListMetadata = {
+          ...listMetadata,
+          fields: this.fieldMetadataResolver.mergeFields(metadata.fields, listMetadata.fields),
+        };
+
+        return combineLatest([
+          this.route.queryParamMap,
+          this.listRefresh.pipe(startWith(undefined)),
+        ]).pipe(
           map(([params]) => this.readListQuery(params, resource, listId)),
           tap((query) => this.ensurePagingParams(query)),
           switchMap((query) => {
@@ -137,7 +147,7 @@ export class EntityList {
                   status: 'loaded',
                   resource,
                   metadata,
-                  listMetadata,
+                  listMetadata: resolvedListMetadata,
                   data,
                   page: query.page,
                   pageSize: query.pageSize,
@@ -147,8 +157,8 @@ export class EntityList {
               }),
             );
           }),
-        ),
-      ),
+        );
+      }),
     );
   }
 
