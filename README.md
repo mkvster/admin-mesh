@@ -143,6 +143,12 @@ Run tests:
 npm test
 ```
 
+## Backlog.md
+
+Project tasks are managed with [Backlog.md](https://backlog.md/). Install the
+Backlog.md extension for VS Code to browse and manage tasks directly in the
+editor.
+
 ## Status
 
 AdminMesh is currently under active development.
