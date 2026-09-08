@@ -1,16 +1,16 @@
 ---
 id: TASK-14
 title: Add entity preview to deletion confirmation dialog
-status: To Do
+type: enhancement
+status: In Progress
 assignee: []
 created_date: '2026-09-05 18:55'
-updated_date: '2026-09-05 18:55'
+updated_date: '2026-09-08 21:37'
 labels: []
 milestone: s-002
 dependencies:
   - TASK-9
-type: enhancement
-ordinal: 3750
+ordinal: 1000
 ---
 
 ## Description
