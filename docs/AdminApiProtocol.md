@@ -127,6 +127,23 @@ Example response:
   "singularTitle": "Customer",
   "idField": "customerId",
 
+  "fields": [
+    { "name": "customerId", "label": "ID", "type": "integer" },
+    { "name": "firstName", "label": "First Name", "type": "string" },
+    { "name": "lastName", "label": "Last Name", "type": "string" },
+    { "name": "email", "label": "Email", "type": "string" },
+    {
+      "name": "status",
+      "label": "Status",
+      "type": "enum",
+      "values": [
+        { "value": "new", "label": "New" },
+        { "value": "active", "label": "Active" },
+        { "value": "inactive", "label": "Inactive" }
+      ]
+    }
+  ],
+
   "permissions": {
     "create": true,
     "edit": true,
@@ -141,6 +158,23 @@ Example response:
 ```
 
 `idField` identifies the property that contains the entity identifier.
+
+Entity metadata may include an optional shared `fields` array. A list or form
+representation resolves its fields by combining this array with its own
+`fields` array:
+
+* a representation-level field replaces an entity-level field with the same
+  `name` in its entirety; field properties are not merged;
+* an overriding field keeps the entity-level position unless it defines an
+  `order` value;
+* a new representation-level field is appended unless it defines an `order`
+  value;
+* `order` is an optional numeric position used to explicitly order a field in
+  the resolved `fields` array.
+
+The client uses the same resolution rules for list and form metadata. Entity
+metadata is loaded through the entity metadata endpoint and may be cached by
+the client.
 
 List and form identifiers are scoped to the resource. Their detailed metadata is requested only when the corresponding view is needed.
 
@@ -164,23 +198,6 @@ Example response:
 
 ```json
 {
-  "fields": [
-    { "name": "customerId", "label": "ID", "type": "integer" },
-    { "name": "firstName", "label": "First Name", "type": "string" },
-    { "name": "lastName", "label": "Last Name", "type": "string" },
-    { "name": "email", "label": "Email", "type": "string" },
-    {
-      "name": "status",
-      "label": "Status",
-      "type": "enum",
-      "values": [
-        { "value": "new", "label": "New" },
-        { "value": "active", "label": "Active" },
-        { "value": "inactive", "label": "Inactive" }
-      ]
-    }
-  ],
-
   "columns": [
     { "field": "firstName", "sizeType": "flex", "size": 2 },
     { "field": "lastName", "sizeType": "flex", "size": 2 },
@@ -197,6 +214,12 @@ List columns support sorting and filtering unless `disableSorting` or `disableFi
 The resource identifier field does not have to be displayed as a column, but query results must still include it.
 
 A resource may expose additional named lists, for example a compact list used by a reference lookup.
+
+`FieldMetadata` may define an optional `display` configuration. It provides a
+default rendering configuration for the field. A column's local `display`
+configuration takes precedence when it is not omitted; otherwise the client
+uses the resolved field's `display` configuration. Columns remain
+representation-specific, and their array order determines the column order.
 
 For a reference field displayed in a list, the field keeps its shared `reference` metadata, while the column may define a list-specific display projection:
 
@@ -234,45 +257,6 @@ Example response:
 
   "fields": [
     {
-      "name": "customerId",
-      "label": "ID",
-      "type": "integer",
-      "readOnlyOnCreate": true,
-      "readOnlyOnUpdate": true
-    },
-    {
-      "name": "firstName",
-      "label": "First Name",
-      "type": "string",
-      "required": true
-    },
-    {
-      "name": "lastName",
-      "label": "Last Name",
-      "type": "string",
-      "required": true
-    },
-    {
-      "name": "email",
-      "label": "Email",
-      "type": "string",
-      "required": true,
-      "validation": {
-        "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
-        "patternMessage": "Enter a valid email address."
-      }
-    },
-    {
-      "name": "status",
-      "label": "Status",
-      "type": "enum",
-      "values": [
-        { "value": "new", "label": "New" },
-        { "value": "active", "label": "Active" },
-        { "value": "inactive", "label": "Inactive" }
-      ]
-    },
-    {
       "name": "categoryId",
       "label": "Category",
       "type": "reference",
@@ -306,9 +290,42 @@ Validation rules are optional.
 
 If `layout` is omitted, fields are displayed in their declared order using the default client layout.
 
+`FormLayoutItem.display` takes precedence when it is not omitted; otherwise the
+client uses the resolved field's `display` configuration. Form layout items
+remain representation-specific, and their array order determines the layout
+order.
+
 `start` is optional and identifies the first grid column occupied by a field. `span` identifies how many grid columns the field occupies.
 
 `projection` is optional and identifies the entity representation used when this form reads or writes entity data. If omitted, the resource default representation is used.
+
+For example, a customer view form may add a representation-specific computed
+field while using `email` and `enabled` from the entity-level field metadata:
+
+```json
+{
+  "projection": "view",
+
+  "fields": [
+    {
+      "name": "name",
+      "label": "Name",
+      "type": "string",
+      "readOnlyOnCreate": true,
+      "readOnlyOnUpdate": true
+    }
+  ],
+
+  "layout": {
+    "columns": 2,
+    "items": [
+      { "field": "name", "span": 2 },
+      { "field": "email", "span": 2 },
+      { "field": "enabled" }
+    ]
+  }
+}
+```
 
 ### Initial field types
 
@@ -691,7 +708,7 @@ The Admin API is responsible for authorization of every protected operation.
 
 The following capabilities are planned but are not part of protocol version 0.1:
 
-* additional filter operators
+* additional filter operators (current operators are defined in [FilterOperators.md](FilterOperators.md))
 * master/detail entities
 * relation tabs
 * many-to-many relations
