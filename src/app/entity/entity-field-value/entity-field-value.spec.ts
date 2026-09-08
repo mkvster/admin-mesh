@@ -33,7 +33,7 @@ describe('EntityFieldValue', () => {
     expect(fixture.nativeElement.querySelector('mat-checkbox')).toBeTruthy();
   });
 
-  it('renders enum labels when configured', () => {
+  it('renders enum labels by default', () => {
     fixture.componentRef.setInput('field', {
       name: 'status',
       label: 'Status',
@@ -41,11 +41,26 @@ describe('EntityFieldValue', () => {
       values: [{ value: 'active', label: 'Active' }],
     });
     fixture.componentRef.setInput('value', 'active');
-    fixture.componentRef.setInput('display', { type: 'enum', style: 'label' });
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.enum-badge')).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('Active');
+  });
+
+  it('renders the enum value only when explicitly configured', () => {
+    fixture.componentRef.setInput('field', {
+      name: 'status',
+      label: 'Status',
+      type: 'enum',
+      values: [{ value: 'active', label: 'Active' }],
+    });
+    fixture.componentRef.setInput('value', 'active');
+    fixture.componentRef.setInput('display', { type: 'enum', style: 'value' });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.enum-badge')).toBeFalsy();
+    expect(fixture.nativeElement.textContent).toContain('active');
+    expect(fixture.nativeElement.textContent).not.toContain('Active');
   });
 
   it('renders reference projections and falls back to the raw value', () => {

@@ -49,7 +49,7 @@
             @if (item.field) {
               <app-entity-field-value
                 [field]="item.field"
-                [display]="item.column.display"
+                [display]="item.column.display ?? item.field.display"
                 [row]="row"
                 [value]="row[item.column.field]"
               />

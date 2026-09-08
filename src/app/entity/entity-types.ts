@@ -14,6 +14,7 @@ export interface EntityMetadata {
   title: string;
   singularTitle: string;
   idField: string;
+  fields?: FieldMetadata[];
   permissions: EntityPermissions;
   views: EntityViews;
 }
@@ -22,6 +23,8 @@ export interface FieldMetadata {
   name: string;
   label: string;
   type: string;
+  display?: FieldDisplay;
+  order?: number;
   values?: { value: string | number; label: string }[];
   reference?: {
     resource: string;

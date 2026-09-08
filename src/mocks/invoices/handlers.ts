@@ -4,23 +4,16 @@ import { invoices } from './data';
 import { customers } from '../customers/data';
 import { applyListQuery } from '../shared/apply-list-query';
 import { removeMockEntity } from '../shared/remove-mock-entity';
+import { randomMockDelay } from '../shared/random-mock-delay';
 
 export const createInvoiceHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/invoices/metadata`, async () => {
-    await delay(1500);
+    await delay(randomMockDelay());
 
     return HttpResponse.json({
       title: 'Invoices',
       singularTitle: 'Invoice',
       idField: 'invoiceId',
-      permissions: { create: true, edit: true, delete: true },
-      views: { list: 'main', form: 'edit' },
-    });
-  }),
-  http.get(`${apiBaseUrl}/entities/invoices/lists/main/metadata`, async () => {
-    await delay(500);
-
-    return HttpResponse.json({
       fields: [
         { name: 'invoiceId', label: 'ID', type: 'integer' },
         { name: 'invoiceNumber', label: 'Invoice Number', type: 'string' },
@@ -47,6 +40,14 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
         { name: 'total', label: 'Total', type: 'decimal' },
         { name: 'paidAmount', label: 'Paid Amount', type: 'decimal' },
       ],
+      permissions: { create: true, edit: true, delete: true },
+      views: { list: 'main', form: 'edit' },
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/invoices/lists/main/metadata`, async () => {
+    await delay(randomMockDelay());
+
+    return HttpResponse.json({
       columns: [
         { field: 'invoiceId', sizeType: 'width', size: 50 },
         { field: 'invoiceNumber', sizeType: 'width', size: 100 },
@@ -58,19 +59,14 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
         },
         { field: 'issueDate', sizeType: 'width', size: 120 },
         { field: 'dueDate', sizeType: 'width', size: 120 },
-        {
-          field: 'status',
-          sizeType: 'width',
-          size: 120,
-          display: { type: 'enum', style: 'label' },
-        },
+        { field: 'status', sizeType: 'width', size: 120 },
         { field: 'total', sizeType: 'width', size: 120 },
         { field: 'paidAmount', sizeType: 'width', size: 120 },
       ],
     });
   }),
   http.post(`${apiBaseUrl}/entities/invoices/lists/main/query`, async ({ request }) => {
-    await delay(700);
+    await delay(randomMockDelay());
     const query = (await request.json()) as ListQuery;
     const customerById = new Map(customers.map((customer) => [customer.customerId, customer]));
     const rows = invoices.map((invoice) => ({

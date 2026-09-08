@@ -3,15 +3,28 @@ import { ListQuery } from '../../app/entity/entity-types';
 import { customers } from './data';
 import { applyListQuery } from '../shared/apply-list-query';
 import { removeMockEntity } from '../shared/remove-mock-entity';
+import { randomMockDelay } from '../shared/random-mock-delay';
 
 export const createCustomerHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/customers/metadata`, async () => {
-    await delay(1500);
+    await delay(randomMockDelay());
 
     return HttpResponse.json({
       title: 'Customers',
       singularTitle: 'Customer',
       idField: 'customerId',
+      fields: [
+        { name: 'customerId', label: 'ID', type: 'integer' },
+        { name: 'firstName', label: 'First Name', type: 'string' },
+        { name: 'lastName', label: 'Last Name', type: 'string' },
+        { name: 'email', label: 'Email', type: 'string' },
+        {
+          name: 'enabled',
+          label: 'Enabled',
+          type: 'boolean',
+          display: { type: 'boolean', style: 'checkbox' },
+        },
+      ],
       permissions: {
         create: true,
         edit: true,
@@ -24,56 +37,21 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
     });
   }),
   http.get(`${apiBaseUrl}/entities/customers/lists/main/metadata`, async () => {
-    await delay(500);
+    await delay(randomMockDelay());
 
     return HttpResponse.json({
-      fields: [
-        {
-          name: 'customerId',
-          label: 'ID',
-          type: 'integer',
-        },
-        {
-          name: 'firstName',
-          label: 'First Name',
-          type: 'string',
-        },
-        {
-          name: 'lastName',
-          label: 'Last Name',
-          type: 'string',
-        },
-        {
-          name: 'email',
-          label: 'Email',
-          type: 'string',
-        },
-        {
-          name: 'enabled',
-          label: 'Enabled',
-          type: 'boolean',
-        },
-      ],
       columns: [
         { field: 'customerId', sizeType: 'width', size: 80 },
         { field: 'firstName', sizeType: 'flex', size: 1 },
         { field: 'lastName', sizeType: 'flex', size: 1 },
         { field: 'email', sizeType: 'flex', size: 2 },
-        {
-          field: 'enabled',
-          sizeType: 'width',
-          size: 120,
-          display: {
-            type: 'boolean',
-            style: 'checkbox',
-          },
-        },
+        { field: 'enabled', sizeType: 'width', size: 120 },
       ],
       rowActions: [
         {
           type: 'view-form',
-          formId: 'briefview',
-          label: 'Name',
+          formId: 'nameView',
+          label: 'View Name',
           icon: 'visibility',
           iconSet: 'material-icons-outlined',
           iconColor: 'rgb(29, 212, 38)',
@@ -90,54 +68,53 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
     });
   }),
   http.get(`${apiBaseUrl}/entities/customers/forms/view/metadata`, async () => {
-    await delay(400);
+    await delay(randomMockDelay());
 
     return HttpResponse.json({
       projection: 'view',
-      fields: [
-        { name: 'name', label: 'Name', type: 'string' },
-        { name: 'email', label: 'Email', type: 'string' },
-        { name: 'enabled', label: 'Enabled', type: 'boolean' },
-      ],
       layout: {
-        columns: 2,
+        columns: 3,
         items: [
-          { field: 'name', format: 'jumbo' },
+          { field: 'firstName', format: 'jumbo' },
+          { field: 'lastName', format: 'jumbo' },
           { field: 'enabled', display: { type: 'boolean', style: 'icon' }, format: 'jumbo' },
-          { field: 'email', span: 2 },
+          { field: 'email', span: 3 },
         ],
       },
     });
   }),
-  http.get(`${apiBaseUrl}/entities/customers/forms/briefview/metadata`, async () => {
-    await delay(400);
+  http.get(`${apiBaseUrl}/entities/customers/forms/nameView/metadata`, async () => {
+    await delay(randomMockDelay());
 
     return HttpResponse.json({
-      projection: 'view',
-      fields: [
-        { name: 'name', label: 'Name', type: 'string' },
-        { name: 'email', label: 'Email', type: 'string' },
-      ],
+      projection: 'nameView',
+      fields: [{ name: 'name', label: 'Name', type: 'string' }],
       layout: {
+        title: 'Customer Name',
         columns: 1,
         items: [{ field: 'name', format: 'jumbo' }, { field: 'email' }],
       },
     });
   }),
-  http.get(`${apiBaseUrl}/entities/customers/:id`, async ({ params }) => {
-    await delay(500);
+  http.get(`${apiBaseUrl}/entities/customers/:id`, async ({ params, request }) => {
+    await delay(randomMockDelay());
     const customer = customers.find((item) => String(item.customerId) === String(params['id']));
-    return customer
-      ? HttpResponse.json({
-          customerId: customer.customerId,
-          name: `${customer.firstName} ${customer.lastName}`,
-          email: customer.email,
-          enabled: customer.enabled,
-        })
-      : new HttpResponse(null, { status: 404 });
+    if (!customer) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    if (new URL(request.url).searchParams.get('projection') === 'nameView') {
+      return HttpResponse.json({
+        customerId: customer.customerId,
+        name: `${customer.firstName} ${customer.lastName}`,
+        email: customer.email,
+      });
+    }
+
+    return HttpResponse.json(customer);
   }),
   http.post(`${apiBaseUrl}/entities/customers/lists/main/query`, async ({ request }) => {
-    await delay(700);
+    await delay(randomMockDelay());
 
     const query = (await request.json()) as ListQuery;
     return HttpResponse.json(applyListQuery(customers, query));

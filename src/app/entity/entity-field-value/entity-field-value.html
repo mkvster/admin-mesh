@@ -25,7 +25,7 @@
     }
 
     @case ('enum') {
-      @if (display()?.type === 'enum' && enumStyle() === 'label') {
+      @if (enumStyle() !== 'value') {
         <span class="enum-badge">
           {{ enumLabel() }}
         </span>

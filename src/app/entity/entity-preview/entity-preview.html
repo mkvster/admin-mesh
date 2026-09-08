@@ -29,7 +29,7 @@
             <dd>
               <app-entity-field-value
                 [field]="item.field"
-                [display]="item.item.display"
+                [display]="item.item.display ?? item.field.display"
                 [value]="previewState.entity[item.field.name]"
                 [row]="previewState.entity"
               />
