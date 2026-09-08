@@ -4,10 +4,11 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { FilterItem, ListMetadata, ListSort } from '../entity-types';
-import { ListGridCell } from '../list-grid-cell/list-grid-cell';
+import { FilterItem, ListMetadata, ListRowAction, ListSort } from '../entity-types';
+import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 
 const ROW_ACTIONS_COLUMN = '__rowActions';
+const ROW_ACTION_WIDTH = 56;
 
 export interface ListPageChange {
   page: number;
@@ -19,8 +20,10 @@ export interface ListSortChange {
 }
 
 export interface ListGridRowAction {
-  action: 'delete';
+  action: 'delete' | 'view-form';
   row: Record<string, unknown>;
+  id?: string | number;
+  formId?: string;
 }
 
 @Component({
@@ -31,7 +34,7 @@ export interface ListGridRowAction {
     MatTableModule,
     MatIconModule,
     MatTooltipModule,
-    ListGridCell,
+    EntityFieldValue,
   ],
   templateUrl: './list-grid.html',
   styleUrl: './list-grid.scss',
@@ -46,14 +49,25 @@ export class ListGrid {
   readonly pageChange = output<ListPageChange>();
   readonly sort = input<ListSort[]>([]);
   readonly filters = input<FilterItem[]>([]);
+  readonly idField = input('id');
   readonly sortChange = output<ListSortChange>();
   readonly showDeleteAction = input(false);
   readonly rowAction = output<ListGridRowAction>();
 
   protected readonly displayedColumns = computed(() =>
-    this.showDeleteAction()
+    this.hasRowActions()
       ? [...this.metadata().columns.map((column) => column.field), ROW_ACTIONS_COLUMN]
       : this.metadata().columns.map((column) => column.field),
+  );
+
+  protected readonly rowActions = computed(() => this.metadata().rowActions ?? []);
+
+  protected readonly hasRowActions = computed(
+    () => this.showDeleteAction() || this.rowActions().length > 0,
+  );
+
+  protected readonly rowActionsColumnWidth = computed(
+    () => (this.rowActions().length + (this.showDeleteAction() ? 1 : 0)) * ROW_ACTION_WIDTH,
   );
 
   protected readonly columns = computed(() => {
@@ -247,5 +261,30 @@ export class ListGrid {
 
   protected onDelete(row: Record<string, unknown>): void {
     this.rowAction.emit({ action: 'delete', row });
+  }
+
+  protected onRowAction(action: ListRowAction, row: Record<string, unknown>): void {
+    const id = row[this.idField()];
+    if ((typeof id !== 'string' && typeof id !== 'number') || action.type !== 'view-form') {
+      return;
+    }
+
+    this.rowAction.emit({ action: 'view-form', formId: action.formId, id, row });
+  }
+
+  protected rowActionLabel(action: ListRowAction): string {
+    return action.label ?? 'View';
+  }
+
+  protected rowActionIcon(action: ListRowAction): string {
+    return action.icon;
+  }
+
+  protected rowActionIconSet(action: ListRowAction): string {
+    return action.iconSet ?? 'material-icons';
+  }
+
+  protected rowActionColor(action: ListRowAction): string | undefined {
+    return action.iconColor;
   }
 }

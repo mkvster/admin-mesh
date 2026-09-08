@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { FilterOperator, ListField } from '../../entity-types';
+import { FieldMetadata, FilterOperator } from '../../entity-types';
 
 @Component({
   selector: 'app-enum-filter-editor',
@@ -11,7 +11,7 @@ import { FilterOperator, ListField } from '../../entity-types';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EnumFilterEditor {
-  readonly field = input.required<ListField>();
+  readonly field = input.required<FieldMetadata>();
   readonly operator = input.required<FilterOperator>();
   readonly value = model<unknown>();
   protected readonly isMultiple = computed(

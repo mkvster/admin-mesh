@@ -1,7 +1,7 @@
 @if (hasRenderableValue()) {
   @switch (field().type) {
     @case ('boolean') {
-      @if (column().display?.type === 'boolean') {
+      @if (display()?.type === 'boolean') {
         @switch (booleanStyle()) {
           @case ('checkbox') {
             <mat-checkbox [checked]="value() === true" disabled />
@@ -25,7 +25,7 @@
     }
 
     @case ('enum') {
-      @if (column().display?.type === 'enum' && enumStyle() === 'label') {
+      @if (display()?.type === 'enum' && enumStyle() === 'label') {
         <span class="enum-badge">
           {{ enumLabel() }}
         </span>
@@ -35,7 +35,7 @@
     }
 
     @case ('reference') {
-      @if (column().display?.type === 'reference') {
+      @if (display()?.type === 'reference') {
         <span class="reference-link">
           <mat-icon aria-hidden="true">open_in_new</mat-icon>
           <span>{{ referenceValue() }}</span>
@@ -43,6 +43,22 @@
       } @else {
         {{ textValue() }}
       }
+    }
+
+    @case ('integer') {
+      {{ display()?.type === 'numeric' ? currencyValue() : textValue() }}
+    }
+
+    @case ('decimal') {
+      {{ display()?.type === 'numeric' ? currencyValue() : textValue() }}
+    }
+
+    @case ('date') {
+      {{ display()?.type === 'date' ? formattedDateValue() : textValue() }}
+    }
+
+    @case ('datetime') {
+      {{ display()?.type === 'datetime' ? formattedDateValue() : textValue() }}
     }
 
     @default {

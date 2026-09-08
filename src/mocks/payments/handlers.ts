@@ -79,6 +79,102 @@ export const createPaymentHandlers = (apiBaseUrl: string) => [
         },
         { field: 'reference', sizeType: 'width', size: 140 },
       ],
+      rowActions: [
+        {
+          type: 'view-form',
+          formId: 'view',
+          label: 'View Payment',
+          icon: 'receipt',
+          iconColor: '#1565c0',
+        },
+      ],
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/payments/forms/view/metadata`, async () => {
+    await delay(400);
+
+    return HttpResponse.json({
+      projection: 'view',
+      fields: [
+        { name: 'paymentId', label: 'ID', type: 'integer' },
+        {
+          name: 'invoiceId',
+          label: 'Invoice',
+          type: 'reference',
+          reference: { resource: 'invoices', listId: 'main', displayField: 'invoiceNumber' },
+        },
+        { name: 'paymentDate', label: 'Payment Date', type: 'datetime' },
+        { name: 'amount', label: 'Amount', type: 'decimal' },
+        {
+          name: 'method',
+          label: 'Method',
+          type: 'enum',
+          values: [
+            { value: 'card', label: 'Card' },
+            { value: 'ach', label: 'ACH' },
+            { value: 'check', label: 'Check' },
+            { value: 'cash', label: 'Cash' },
+          ],
+        },
+        {
+          name: 'status',
+          label: 'Status',
+          type: 'enum',
+          values: [
+            { value: 'pending', label: 'Pending' },
+            { value: 'completed', label: 'Completed' },
+            { value: 'failed', label: 'Failed' },
+            { value: 'refunded', label: 'Refunded' },
+          ],
+        },
+        { name: 'reference', label: 'Reference', type: 'string' },
+      ],
+      layout: {
+        columns: 2,
+        items: [
+          {
+            field: 'amount',
+            format: 'jumbo',
+            display: { type: 'numeric', style: 'currency', currency: 'USD' },
+          },
+          {
+            field: 'status',
+            display: { type: 'enum', style: 'label' },
+            hideLabel: true,
+          },
+          { field: 'reference', span: 2 },
+          {
+            field: 'invoiceId',
+            span: 2,
+            display: { type: 'reference', valueField: 'invoiceNumber' },
+          },
+          {
+            field: 'paymentDate',
+            span: 2,
+            display: { type: 'datetime', style: 'medium' },
+          },
+          { field: 'method', span: 2, display: { type: 'enum', style: 'label' } },
+        ],
+      },
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/payments/:id`, async ({ params }) => {
+    await delay(500);
+    const payment = payments.find((item) => String(item.paymentId) === String(params['id']));
+    if (!payment) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    const invoice = invoices.find((item) => item.invoiceId === payment.invoiceId);
+    return HttpResponse.json({
+      paymentId: payment.paymentId,
+      invoiceId: payment.invoiceId,
+      invoiceNumber: invoice?.invoiceNumber,
+      paymentDate: payment.paymentDate,
+      amount: payment.amount,
+      method: payment.method,
+      status: payment.status,
+      reference: payment.reference,
     });
   }),
   http.post(`${apiBaseUrl}/entities/payments/lists/main/query`, async ({ request }) => {

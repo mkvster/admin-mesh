@@ -15,13 +15,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTimepickerModule } from '@angular/material/timepicker';
-import { FilterItem, FilterOperator, FilterValue, ListField } from '../../entity-types';
+import { FieldMetadata, FilterItem, FilterOperator, FilterValue } from '../../entity-types';
 import { FilterValueEditor } from '../filter-value-editor/filter-value-editor';
 import { MAX_FILTER_ITEMS, MAX_SERIALIZED_FILTER_LENGTH } from '../filter-constraints';
 import { ListFilterScope, serializeListFilter } from '../filter-serialization';
 
 export interface FilterDialogData {
-  fields: ListField[];
+  fields: FieldMetadata[];
   filters: FilterItem[];
   scope: ListFilterScope;
 }
@@ -116,7 +116,7 @@ export class FilterDialog {
     return values.map((value) => ({ value, label: this.operatorLabel(value) }));
   }
 
-  protected fieldFor(item: DraftFilter): ListField | undefined {
+  protected fieldFor(item: DraftFilter): FieldMetadata | undefined {
     return item.field ? this.fieldForName(item.field) : undefined;
   }
 
@@ -193,11 +193,11 @@ export class FilterDialog {
       .filter((item): item is FilterItem => item !== undefined);
   }
 
-  private fieldForName(name: string): ListField | undefined {
+  private fieldForName(name: string): FieldMetadata | undefined {
     return this.filterableFields.find((field) => field.name === name);
   }
 
-  private isComplete(field: ListField, operator: FilterOperator, value: unknown): boolean {
+  private isComplete(field: FieldMetadata, operator: FilterOperator, value: unknown): boolean {
     if (field.type === 'boolean') {
       return operator === 'equals' && typeof value === 'boolean';
     }
@@ -229,7 +229,7 @@ export class FilterDialog {
     return this.isScalarForField(field, value);
   }
 
-  private isScalarForField(field: ListField, value: unknown): boolean {
+  private isScalarForField(field: FieldMetadata, value: unknown): boolean {
     if (field.type === 'string') {
       return typeof value === 'string' && value.trim().length > 0;
     }
@@ -246,7 +246,7 @@ export class FilterDialog {
     return typeof value === 'string' && value.trim().length > 0 && !Number.isNaN(Date.parse(value));
   }
 
-  private isOrderedDateRange(value: unknown, type: ListField['type']): boolean {
+  private isOrderedDateRange(value: unknown, type: FieldMetadata['type']): boolean {
     if (
       !Array.isArray(value) ||
       value.length !== 2 ||

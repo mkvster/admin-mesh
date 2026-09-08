@@ -18,7 +18,7 @@ export interface EntityMetadata {
   views: EntityViews;
 }
 
-export interface ListField {
+export interface FieldMetadata {
   name: string;
   label: string;
   type: string;
@@ -30,7 +30,7 @@ export interface ListField {
   };
 }
 
-export type ListColumnDisplay =
+export type FieldDisplay =
   | {
       type: 'boolean';
       style: 'icon' | 'checkbox' | 'text';
@@ -42,6 +42,19 @@ export type ListColumnDisplay =
   | {
       type: 'reference';
       valueField: string;
+    }
+  | {
+      type: 'numeric';
+      style: 'currency';
+      currency: string;
+    }
+  | {
+      type: 'date';
+      style: 'short' | 'medium' | 'long' | 'full';
+    }
+  | {
+      type: 'datetime';
+      style: 'short' | 'medium' | 'long' | 'full';
     };
 
 export interface ListColumn {
@@ -50,12 +63,41 @@ export interface ListColumn {
   size?: number;
   disableSorting?: boolean;
   disableFiltering?: boolean;
-  display?: ListColumnDisplay;
+  display?: FieldDisplay;
 }
 
 export interface ListMetadata {
-  fields: ListField[];
+  fields: FieldMetadata[];
   columns: ListColumn[];
+  rowActions?: ListRowAction[];
+}
+
+export type ListRowAction = {
+  type: 'view-form';
+  formId: string;
+  icon: string;
+  iconSet?: string;
+  label?: string;
+  iconColor?: string;
+};
+
+export interface FormLayoutItem {
+  field: string;
+  start?: number;
+  span?: number;
+  display?: FieldDisplay;
+  hideLabel?: boolean;
+  format?: string;
+}
+
+export interface FormMetadata {
+  fields: FieldMetadata[];
+  projection?: string;
+  layout?: {
+    title?: string;
+    columns: number;
+    items: FormLayoutItem[];
+  };
 }
 
 export interface ListSort {

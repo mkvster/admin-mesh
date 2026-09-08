@@ -22,11 +22,16 @@ import { MatDialog } from '@angular/material/dialog';
 import { EntityApi } from '../entity-api';
 import { EntityMetadataStore } from '../entity-metadata-store';
 import { ListMetadataStore } from '../list-metadata-store';
+import {
+  EntityPreviewDialog,
+  EntityPreviewDialogData,
+} from '../entity-preview-dialog/entity-preview-dialog';
 
 import {
   EntityMetadata,
   FilterItem,
   ListMetadata,
+  ListRowAction,
   ListQuery,
   ListQueryResult,
   ListSort,
@@ -181,7 +186,31 @@ export class EntityList {
     event: ListGridRowAction,
     state: Extract<EntityListState, { status: 'loaded' }>,
   ): void {
-    if (event.action === 'delete' && state.metadata.permissions.delete) {
+    if (event.action === 'view-form' && event.formId && event.id !== undefined) {
+      const rowAction = state.listMetadata.rowActions?.find(
+        (action): action is ListRowAction =>
+          action.type === 'view-form' && action.formId === event.formId,
+      );
+
+      if (!rowAction) {
+        return;
+      }
+
+      this.dialog.open(EntityPreviewDialog, {
+        width: 'fit-content',
+        maxWidth: '95vw',
+        maxHeight: 'calc(100vh - 24px)',
+        data: {
+          resource: state.resource,
+          formId: event.formId,
+          id: event.id,
+          singularTitle: state.metadata.singularTitle,
+          icon: rowAction.icon,
+          iconSet: rowAction.iconSet,
+          iconColor: rowAction.iconColor,
+        } satisfies EntityPreviewDialogData,
+      });
+    } else if (event.action === 'delete' && state.metadata.permissions.delete) {
       this.openDeleteConfirmation(state, event.row);
     }
   }
