@@ -32,6 +32,60 @@ dd {
   text-align: right;
 }
 
+.preview-skeleton {
+  background: var(--mat-sys-surface-container-highest);
+  border-radius: 4px;
+  display: block;
+  height: 1em;
+  min-width: 48px;
+  overflow: hidden;
+  position: relative;
+  width: 70%;
+}
+
+.preview-skeleton::after {
+  animation: preview-skeleton-shimmer 1.4s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--mat-sys-on-surface) 16%, transparent),
+    transparent
+  );
+  content: '';
+  inset: 0;
+  position: absolute;
+  transform: translateX(-100%);
+}
+
+@keyframes preview-skeleton-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-skeleton::after {
+    animation: none;
+  }
+}
+
+.preview-field-jumbo .preview-skeleton {
+  height: 26px;
+  width: 65%;
+}
+
+.preview-skeleton-wide {
+  width: 100%;
+}
+
+.preview-skeleton-boolean,
+.preview-skeleton-reference {
+  width: 42%;
+}
+
 .preview-field-jumbo {
   align-items: flex-start;
   flex-direction: column;

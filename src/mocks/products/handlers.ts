@@ -46,6 +46,7 @@ export const createProductHandlers = (apiBaseUrl: string) => [
       views: {
         list: 'main',
         form: 'edit',
+        deleteForm: 'delete',
       },
     });
   }),
@@ -68,6 +69,29 @@ export const createProductHandlers = (apiBaseUrl: string) => [
         { field: 'enabled', sizeType: 'width', size: 120 },
       ],
     });
+  }),
+  http.get(`${apiBaseUrl}/entities/products/forms/delete/metadata`, async () => {
+    await delay(randomMockDelay());
+
+    return HttpResponse.json({
+      projection: 'delete',
+      layout: {
+        columns: 2,
+        items: [
+          { field: 'name', format: 'jumbo' },
+          { field: 'enabled', hideLabel: true },
+          { field: 'sku' },
+          { field: 'categoryId' },
+          { field: 'price' },
+          { field: 'stock' },
+        ],
+      },
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/products/:id`, async ({ params }) => {
+    await delay(randomMockDelay());
+    const product = products.find((item) => String(item.productId) === String(params['id']));
+    return product ? HttpResponse.json(product) : new HttpResponse(null, { status: 404 });
   }),
   http.post(`${apiBaseUrl}/entities/products/lists/main/query`, async ({ request }) => {
     await delay(randomMockDelay());

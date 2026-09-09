@@ -55,7 +55,7 @@ export const createPaymentHandlers = (apiBaseUrl: string) => [
         { name: 'reference', label: 'Reference', type: 'string' },
       ],
       permissions: { create: true, edit: true, delete: true },
-      views: { list: 'main', form: 'edit' },
+      views: { list: 'main', form: 'edit', deleteForm: 'delete' },
     });
   }),
   http.get(`${apiBaseUrl}/entities/payments/lists/main/metadata`, async () => {
@@ -101,6 +101,22 @@ export const createPaymentHandlers = (apiBaseUrl: string) => [
           { field: 'invoiceId', span: 2 },
           { field: 'paymentDate', span: 2 },
           { field: 'method', span: 2 },
+        ],
+      },
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/payments/forms/delete/metadata`, async () => {
+    await delay(randomMockDelay());
+
+    return HttpResponse.json({
+      projection: 'delete',
+      layout: {
+        columns: 2,
+        items: [
+          { field: 'amount', format: 'jumbo' },
+          { field: 'status', hideLabel: true },
+          { field: 'reference', span: 2 },
+          { field: 'paymentDate', span: 2 },
         ],
       },
     });

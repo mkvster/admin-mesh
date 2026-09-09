@@ -7,6 +7,7 @@ export interface EntityPermissions {
 export interface EntityViews {
   list: string;
   form: string;
+  deleteForm?: string;
   createForm?: string;
 }
 

@@ -5,13 +5,13 @@ import { catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EntityApi } from '../entity-api';
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
-import { FormLayoutItem, FormMetadata } from '../entity-types';
+import { FieldMetadata, FormLayoutItem, FormMetadata } from '../entity-types';
 import { FormMetadataStore } from '../form-metadata-store';
 import { EntityMetadataStore } from '../entity-metadata-store';
 import { FieldMetadataResolver } from '../field-metadata-resolver';
 
 export type EntityPreviewState =
-  | { status: 'loading' }
+  | { status: 'loading'; metadata?: FormMetadata }
   | { status: 'loaded'; metadata: FormMetadata; entity: Record<string, unknown> }
   | { status: 'missing' }
   | { status: 'error'; cause: unknown };
@@ -53,11 +53,10 @@ export class EntityPreview {
               ),
             };
 
-            return this.api
-              .getEntity(resource, id, metadata.projection)
-              .pipe(
-                map((entity) => ({ status: 'loaded', metadata, entity }) as EntityPreviewState),
-              );
+            return this.api.getEntity(resource, id, metadata.projection).pipe(
+              map((entity) => ({ status: 'loaded', metadata, entity }) as EntityPreviewState),
+              startWith({ status: 'loading', metadata } as EntityPreviewState),
+            );
           }),
           catchError((cause: unknown) =>
             of<EntityPreviewState>(
@@ -73,7 +72,8 @@ export class EntityPreview {
 
   protected readonly fields = computed(() => {
     const state = this.state();
-    if (state.status !== 'loaded') return [];
+    if (state.status !== 'loaded' && state.status !== 'loading') return [];
+    if (!state.metadata) return [];
     const layout = state.metadata.layout;
     const items = layout?.items ?? state.metadata.fields.map((field) => ({ field: field.name }));
     const fieldMap = new Map(state.metadata.fields.map((field) => [field.name, field]));
@@ -85,12 +85,20 @@ export class EntityPreview {
       );
   });
 
-  protected columns(state: Extract<EntityPreviewState, { status: 'loaded' }>): number {
-    return state.metadata.layout?.columns ?? 1;
+  protected columns(state: Extract<EntityPreviewState, { status: 'loaded' | 'loading' }>): number {
+    return state.metadata?.layout?.columns ?? 1;
   }
 
   protected fieldClass(item: FormLayoutItem): string {
     return item.format ? `preview-field preview-field-${item.format}` : 'preview-field';
+  }
+
+  protected skeletonClass(item: FormLayoutItem, field: FieldMetadata): string {
+    const displayType = (item.display ?? field.display)?.type;
+    const displayClass = displayType ? `preview-skeleton-${displayType}` : '';
+    const spanClass = item.span && item.span > 1 ? 'preview-skeleton-wide' : '';
+
+    return ['preview-skeleton', displayClass, spanClass].filter(Boolean).join(' ');
   }
 
   private isMissingError(error: unknown): boolean {

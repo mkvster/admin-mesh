@@ -1,10 +1,32 @@
 @if (state(); as previewState) {
   @switch (previewState.status) {
     @case ('loading') {
-      <div class="preview-state" role="status" aria-live="polite">
-        <mat-progress-spinner mode="indeterminate" diameter="36" aria-label="Loading preview" />
-        <span>Loading…</span>
-      </div>
+      @if (previewState.metadata) {
+        <dl class="preview-fields" [style.--preview-columns]="columns(previewState)">
+          @for (item of fields(); track item.field.name) {
+            <div
+              [class]="fieldClass(item.item)"
+              [style.gridColumn]="
+                item.item.start
+                  ? item.item.start + ' / span ' + (item.item.span ?? 1)
+                  : 'span ' + (item.item.span ?? 1)
+              "
+            >
+              @if (!item.item.hideLabel) {
+                <dt>{{ item.field.label }}</dt>
+              }
+              <dd>
+                <span [class]="skeletonClass(item.item, item.field)" aria-hidden="true"></span>
+              </dd>
+            </div>
+          }
+        </dl>
+      } @else {
+        <div class="preview-state" role="status" aria-live="polite">
+          <mat-progress-spinner mode="indeterminate" diameter="36" aria-label="Loading preview" />
+          <span>Loading...</span>
+        </div>
+      }
     }
     @case ('missing') {
       <div class="preview-state" role="status">Entity not found.</div>

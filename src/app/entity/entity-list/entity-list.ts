@@ -242,13 +242,11 @@ export class EntityList {
     }
 
     this.deletionError.set(null);
-    const idLabel =
-      state.listMetadata.fields.find((field) => field.name === state.metadata.idField)?.label ??
-      state.metadata.idField;
     const dialogData: DeleteConfirmationDialogData = {
+      resource: state.resource,
+      formId: state.metadata.views.deleteForm,
+      id: idValue as string | number,
       entityTitle: state.metadata.singularTitle,
-      idLabel,
-      id: String(idValue),
     };
     const dialogRef = this.dialog.open(DeleteConfirmationDialog, { data: dialogData });
 
