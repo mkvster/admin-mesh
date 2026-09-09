@@ -1,14 +1,15 @@
 ---
 id: TASK-13
 title: Add hover preview for reference fields
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-04 14:21'
-updated_date: '2026-09-06 23:43'
+updated_date: '2026-09-09 16:33'
 labels: []
 milestone: s-002
 dependencies:
   - TASK-9
+ordinal: 1000
 ---
 
 ## Description
@@ -119,6 +120,18 @@ If preview loading fails:
 * do not navigate away or affect the underlying list;
 * allow the overlay to close normally when the pointer leaves.
 
+### Reference link styling (color and icon)
+
+Today every `reference` field value is always rendered with link styling (primary color) and a leading `open_in_new` icon, unconditionally, even when there is nothing to open and no preview available (for example inside the delete confirmation dialog). This task also fixes that: styling must reflect actual interactivity instead of being applied unconditionally.
+
+The displayed text value itself (`referenceValue`) is unchanged by this - only visual styling and interactivity gating change.
+
+Rules for the shared field-value renderer (`EntityFieldValue`):
+
+* Introduce a DI-based context signal (an injection token, default `false`) meaning "this field is being rendered inside a modal dialog or a popup/overlay". Provide it as `true` from the delete confirmation dialog, the entity preview dialog, and this task's new hover-preview overlay component itself. When this signal is `true`, the reference value is always plain text: no link color, no icon, no interactive affordance, regardless of any display metadata.
+* Outside that context, the value is shown in link color when `previewForm` is present (a hover preview is available for it). A future `redirect` capability (tracked separately, see TASK-18) will be the other, independent condition that also triggers link color; build the gating so it composes cleanly with that later addition rather than being hardcoded to `previewForm` alone.
+* The leading `open_in_new` icon is reserved for the case where clicking would navigate to another page (the TASK-18 `redirect` capability). It must not be shown based on `previewForm` alone - a hover preview is not a navigation, so today, before TASK-18 lands, the icon should not appear at all.
+
 ### Out of scope
 
 * editing from the preview;
@@ -127,9 +140,6 @@ If preview loading fails:
 * nested reference previews inside the preview;
 * custom preview sizes defined by metadata;
 * preloading preview data before hover;
-* previews when `previewForm` is not configured.
+* previews when `previewForm` is not configured;
+* the `redirect`/navigation capability itself and its click behavior (tracked in TASK-18).
 <!-- SECTION:DESCRIPTION:END -->
-
-## Acceptance Criteria
-<!-- AC:BEGIN -->
-<!-- AC:END -->
