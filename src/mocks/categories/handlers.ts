@@ -33,6 +33,7 @@ export const createCategoryHandlers = (apiBaseUrl: string) => [
       views: {
         list: 'main',
         form: 'edit',
+        deleteForm: 'delete',
       },
     });
   }),
@@ -48,6 +49,27 @@ export const createCategoryHandlers = (apiBaseUrl: string) => [
         { field: 'enabled', sizeType: 'width', size: 120 },
       ],
     });
+  }),
+  http.get(`${apiBaseUrl}/entities/categories/forms/delete/metadata`, async () => {
+    await delay(randomMockDelay());
+
+    return HttpResponse.json({
+      projection: 'delete',
+      layout: {
+        columns: 2,
+        items: [
+          { field: 'name', format: 'jumbo' },
+          { field: 'enabled', hideLabel: true },
+          { field: 'slug', span: 2 },
+          { field: 'description', span: 2 },
+        ],
+      },
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/categories/:id`, async ({ params }) => {
+    await delay(randomMockDelay());
+    const category = categories.find((item) => String(item.categoryId) === String(params['id']));
+    return category ? HttpResponse.json(category) : new HttpResponse(null, { status: 404 });
   }),
   http.post(`${apiBaseUrl}/entities/categories/lists/main/query`, async ({ request }) => {
     await delay(randomMockDelay());

@@ -3,9 +3,10 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { EntityPreview } from '../entity-preview/entity-preview';
 import { FormMetadataStore } from '../form-metadata-store';
+import { EntityDialogHeader } from '../entity-dialog-header/entity-dialog-header';
+import { formatEntityTitle } from '../entity-title';
 
 export interface EntityPreviewDialogData {
   resource: string;
@@ -19,7 +20,7 @@ export interface EntityPreviewDialogData {
 
 @Component({
   selector: 'app-entity-preview-dialog',
-  imports: [MatDialogModule, MatButtonModule, MatIconModule, EntityPreview],
+  imports: [MatDialogModule, MatButtonModule, EntityDialogHeader, EntityPreview],
   templateUrl: './entity-preview-dialog.html',
   styleUrl: './entity-preview-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,18 +37,12 @@ export class EntityPreviewDialog {
   );
 
   protected readonly title = computed(
-    () => this.formMetadata()?.layout?.title ?? this.fallbackTitle(),
+    () =>
+      this.formMetadata()?.layout?.title ??
+      formatEntityTitle(this.data.singularTitle, this.data.id),
   );
 
   protected close(): void {
     this.dialogRef.close();
-  }
-
-  private fallbackTitle(): string {
-    return `${this.data.singularTitle} ${this.idMarker(this.data.id)}`;
-  }
-
-  private idMarker(id: string | number): string {
-    return Number.isInteger(id) ? String(id) : `'${id}'`;
   }
 }

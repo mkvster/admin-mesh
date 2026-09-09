@@ -3,8 +3,43 @@
   min-width: min(360px, 80vw);
 }
 
-mat-dialog-content p {
-  margin: 0 0 12px;
+mat-dialog-content {
+  padding-top: 4px;
+}
+
+.confirmation-text,
+.warning {
+  margin: 0;
+}
+
+.confirmation-text span {
+  display: block;
+  margin-top: 4px;
+}
+
+.confirmation-text + .warning {
+  margin-top: 24px;
+}
+
+.delete-preview {
+  margin: 12px 0 24px;
+}
+
+.warning {
+  align-items: center;
+  background: var(--mat-sys-error-container);
+  border-radius: 8px;
+  color: var(--mat-sys-on-error-container);
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.warning mat-icon {
+  flex: 0 0 auto;
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
 }
 
 .warning {

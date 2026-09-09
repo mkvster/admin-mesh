@@ -33,6 +33,7 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
       views: {
         list: 'main',
         form: 'edit',
+        deleteForm: 'viewName',
       },
     });
   }),
@@ -96,6 +97,19 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
       },
     });
   }),
+  http.get(`${apiBaseUrl}/entities/customers/forms/viewName/metadata`, async () => {
+    await delay(randomMockDelay());
+
+    return HttpResponse.json({
+      projection: 'viewName',
+      fields: [{ name: 'name', label: 'Name', type: 'string' }],
+      layout: {
+        title: 'Customer Name',
+        columns: 1,
+        items: [{ field: 'name', format: 'jumbo' }, { field: 'email' }],
+      },
+    });
+  }),
   http.get(`${apiBaseUrl}/entities/customers/:id`, async ({ params, request }) => {
     await delay(randomMockDelay());
     const customer = customers.find((item) => String(item.customerId) === String(params['id']));
@@ -103,7 +117,8 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
       return new HttpResponse(null, { status: 404 });
     }
 
-    if (new URL(request.url).searchParams.get('projection') === 'nameView') {
+    const projection = new URL(request.url).searchParams.get('projection');
+    if (projection === 'viewName' || projection === 'nameView') {
       return HttpResponse.json({
         customerId: customer.customerId,
         name: `${customer.firstName} ${customer.lastName}`,

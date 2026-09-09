@@ -1,0 +1,15 @@
+<h2 mat-dialog-title class="dialog-title">
+  <span class="dialog-avatar" [style.--dialog-avatar-color]="iconColor()">
+    <mat-icon [fontSet]="iconSet()" aria-hidden="true">{{ icon() }}</mat-icon>
+  </span>
+  <span class="dialog-heading preview-heading">{{ title() }}</span>
+  <button
+    mat-icon-button
+    type="button"
+    class="dialog-close"
+    aria-label="Close"
+    (click)="closed.emit()"
+  >
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+</h2>

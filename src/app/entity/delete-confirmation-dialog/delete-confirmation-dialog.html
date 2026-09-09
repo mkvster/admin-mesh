@@ -1,14 +1,35 @@
-<h2 mat-dialog-title>Delete {{ data.entityTitle }}?</h2>
+<app-entity-dialog-header
+  [title]="title()"
+  icon="delete_outline"
+  iconColor="var(--mat-sys-error)"
+  (closed)="cancel()"
+/>
 
 <mat-dialog-content>
-  <p>Are you sure you want to delete this {{ data.entityTitle.toLocaleLowerCase() }}?</p>
-  <p>
-    <strong>{{ data.idLabel }}:</strong> {{ data.id }}
+  <p class="confirmation-text">
+    Are you sure you want to delete this {{ data.entityTitle.toLocaleLowerCase() }}?
+    <span>This will permanently remove their record.</span>
   </p>
-  <p class="warning">This action cannot be undone.</p>
+  @if (data.formId) {
+    <div class="delete-preview">
+      <app-entity-preview [resource]="data.resource" [formId]="data.formId" [id]="data.id" />
+    </div>
+  }
+  <p class="warning" role="note">
+    <mat-icon fontSet="material-icons-outlined" aria-hidden="true">warning_amber</mat-icon>
+    <span>This action cannot be undone.</span>
+  </p>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
   <button mat-button type="button" (click)="cancel()">Cancel</button>
-  <button mat-flat-button type="button" class="delete-button" (click)="confirm()">Delete</button>
+  <button
+    mat-flat-button
+    type="button"
+    class="delete-button"
+    [disabled]="!canConfirm()"
+    (click)="confirm()"
+  >
+    Delete
+  </button>
 </mat-dialog-actions>

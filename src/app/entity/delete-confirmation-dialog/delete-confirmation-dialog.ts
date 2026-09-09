@@ -1,16 +1,21 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { EntityPreview } from '../entity-preview/entity-preview';
+import { EntityDialogHeader } from '../entity-dialog-header/entity-dialog-header';
+import { formatEntityTitle } from '../entity-title';
 
 export interface DeleteConfirmationDialogData {
+  resource: string;
+  formId?: string;
+  id: string | number;
   entityTitle: string;
-  idLabel: string;
-  id: string;
 }
 
 @Component({
   selector: 'app-delete-confirmation-dialog',
-  imports: [MatDialogModule, MatButtonModule],
+  imports: [MatDialogModule, MatButtonModule, MatIconModule, EntityDialogHeader, EntityPreview],
   templateUrl: './delete-confirmation-dialog.html',
   styleUrl: './delete-confirmation-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -18,12 +23,22 @@ export interface DeleteConfirmationDialogData {
 export class DeleteConfirmationDialog {
   readonly data = inject<DeleteConfirmationDialogData>(MAT_DIALOG_DATA);
   private readonly dialogRef = inject(MatDialogRef<DeleteConfirmationDialog, boolean>);
+  private readonly preview = viewChild(EntityPreview);
+
+  protected readonly canConfirm = computed(
+    () => !this.data.formId || this.preview()?.state().status === 'loaded',
+  );
+  protected readonly title = computed(
+    () => `Delete ${formatEntityTitle(this.data.entityTitle, this.data.id)}?`,
+  );
 
   protected cancel(): void {
     this.dialogRef.close(false);
   }
 
   protected confirm(): void {
-    this.dialogRef.close(true);
+    if (this.canConfirm()) {
+      this.dialogRef.close(true);
+    }
   }
 }

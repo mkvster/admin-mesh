@@ -7,38 +7,6 @@ mat-dialog-content {
   padding-top: 4px;
 }
 
-.preview-title {
-  align-items: center;
-  display: flex;
-  gap: 12px;
-  padding-bottom: 4px;
-}
-.preview-title::before {
-  content: none;
-}
-
-.preview-close {
-  margin: -8px -8px -8px auto;
-}
-
-.preview-avatar {
-  --preview-avatar-color: var(--mat-sys-primary);
-  align-items: center;
-  background: color-mix(in srgb, var(--preview-avatar-color) 16%, var(--mat-sys-surface));
-  border-radius: 10px;
-  color: var(--preview-avatar-color);
-  display: flex;
-  flex: 0 0 auto;
-  height: 40px;
-  justify-content: center;
-  width: 40px;
-}
-
-.preview-heading {
-  font-size: 18px;
-  font-weight: 600;
-}
-
 mat-dialog-actions {
   padding-top: 12px;
 }

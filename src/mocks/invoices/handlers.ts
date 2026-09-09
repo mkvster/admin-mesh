@@ -37,11 +37,21 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
             { value: 'cancelled', label: 'Cancelled' },
           ],
         },
-        { name: 'total', label: 'Total', type: 'decimal' },
-        { name: 'paidAmount', label: 'Paid Amount', type: 'decimal' },
+        {
+          name: 'total',
+          label: 'Total',
+          type: 'decimal',
+          display: { type: 'numeric', style: 'currency', currency: 'USD' },
+        },
+        {
+          name: 'paidAmount',
+          label: 'Paid Amount',
+          type: 'decimal',
+          display: { type: 'numeric', style: 'currency', currency: 'USD' },
+        },
       ],
       permissions: { create: true, edit: true, delete: true },
-      views: { list: 'main', form: 'edit' },
+      views: { list: 'main', form: 'edit', deleteForm: 'delete' },
     });
   }),
   http.get(`${apiBaseUrl}/entities/invoices/lists/main/metadata`, async () => {
@@ -63,6 +73,42 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
         { field: 'total', sizeType: 'width', size: 120 },
         { field: 'paidAmount', sizeType: 'width', size: 120 },
       ],
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/invoices/forms/delete/metadata`, async () => {
+    await delay(randomMockDelay());
+
+    return HttpResponse.json({
+      projection: 'delete',
+      layout: {
+        columns: 2,
+        items: [
+          { field: 'invoiceNumber', format: 'jumbo' },
+          { field: 'status', hideLabel: true },
+          {
+            field: 'customerId',
+            span: 2,
+            display: { type: 'reference', valueField: 'customerDisplayName' },
+          },
+          { field: 'issueDate' },
+          { field: 'dueDate' },
+          { field: 'total' },
+          { field: 'paidAmount' },
+        ],
+      },
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/invoices/:id`, async ({ params }) => {
+    await delay(randomMockDelay());
+    const invoice = invoices.find((item) => String(item.invoiceId) === String(params['id']));
+    if (!invoice) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    const customer = customers.find((item) => item.customerId === invoice.customerId);
+    return HttpResponse.json({
+      ...invoice,
+      customerDisplayName: formatCustomerDisplayName(customer),
     });
   }),
   http.post(`${apiBaseUrl}/entities/invoices/lists/main/query`, async ({ request }) => {
