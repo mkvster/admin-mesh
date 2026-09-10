@@ -4,8 +4,9 @@ title: Add navigation to referenced entity via reference field click (redirect)
 status: To Do
 assignee: []
 created_date: '2026-09-09 16:31'
-updated_date: '2026-09-09 16:52'
+updated_date: '2026-09-10 23:16'
 labels: []
+milestone: s-010
 dependencies:
   - TASK-13
 ordinal: 6750

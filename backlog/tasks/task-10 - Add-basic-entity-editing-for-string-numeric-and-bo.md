@@ -1,12 +1,12 @@
 ---
 id: TASK-10
-title: 'Add basic entity editing for string, numeric, and boolean fields'
+title: Add basic entity create and edit forms
 status: To Do
 assignee: []
 created_date: '2026-09-04 13:54'
-updated_date: '2026-09-06 23:41'
+updated_date: '2026-09-10 23:40'
 labels: []
-milestone: s-002
+milestone: s-003
 dependencies:
   - TASK-9
 ---
@@ -168,4 +168,9 @@ Future phases should be able to add new field editors without changing the overa
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
+- [ ] #1 Supported field types render appropriate editable controls; other field types remain visible and read-only.
+- [ ] #2 Edit mode is hosted by NodeHost at the entity URL and replaces the List Grid area rather than opening over it in a modal.
+- [ ] #3 Create mode temporarily replaces the List Grid area with the form and supports reference selection without nesting the main form in a modal.
+- [ ] #4 Shared metadata and layout support view, edit, and create modes.
+- [ ] #5 Save, Cancel, validation, payload projection, mock persistence, and post-save refresh behave as specified.
 <!-- AC:END -->

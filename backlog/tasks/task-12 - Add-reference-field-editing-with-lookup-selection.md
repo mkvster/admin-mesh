@@ -4,9 +4,9 @@ title: Add reference field editing with lookup selection
 status: To Do
 assignee: []
 created_date: '2026-09-04 14:06'
-updated_date: '2026-09-06 23:42'
+updated_date: '2026-09-10 23:22'
 labels: []
-milestone: s-002
+milestone: s-003
 dependencies:
   - TASK-10
   - TASK-11
