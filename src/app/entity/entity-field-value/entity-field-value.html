@@ -36,10 +36,16 @@
 
     @case ('reference') {
       @if (display()?.type === 'reference') {
-        <span class="reference-link">
-          <mat-icon aria-hidden="true">open_in_new</mat-icon>
-          <span>{{ referenceValue() }}</span>
-        </span>
+        @if (referenceIsInteractive()) {
+          <span class="reference-link">
+            @if (referenceNavigates()) {
+              <mat-icon aria-hidden="true">open_in_new</mat-icon>
+            }
+            <span>{{ referenceValue() }}</span>
+          </span>
+        } @else {
+          <span class="reference-value">{{ referenceValue() }}</span>
+        }
       } @else {
         {{ textValue() }}
       }

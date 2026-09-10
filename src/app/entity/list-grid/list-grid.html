@@ -47,12 +47,50 @@
 
           <td mat-cell *matCellDef="let row">
             @if (item.field) {
-              <app-entity-field-value
-                [field]="item.field"
-                [display]="item.column.display ?? item.field.display"
-                [row]="row"
-                [value]="row[item.column.field]"
-              />
+              @if (
+                referencePreview(item.field, item.column.display ?? item.field.display, row);
+                as preview
+              ) {
+                <span
+                  class="reference-preview-trigger"
+                  cdkOverlayOrigin
+                  #referenceOrigin="cdkOverlayOrigin"
+                  tabindex="0"
+                  [attr.aria-label]="'Preview ' + fieldLabel(item.column.field)"
+                  (mouseenter)="
+                    onReferenceEnter(
+                      referenceOrigin,
+                      item.field,
+                      item.column.display ?? item.field.display,
+                      row
+                    )
+                  "
+                  (mouseleave)="onReferenceLeave()"
+                  (focusin)="
+                    onReferenceEnter(
+                      referenceOrigin,
+                      item.field,
+                      item.column.display ?? item.field.display,
+                      row
+                    )
+                  "
+                  (focusout)="onReferenceLeave()"
+                >
+                  <app-entity-field-value
+                    [field]="item.field"
+                    [display]="item.column.display ?? item.field.display"
+                    [row]="row"
+                    [value]="row[item.column.field]"
+                  />
+                </span>
+              } @else {
+                <app-entity-field-value
+                  [field]="item.field"
+                  [display]="item.column.display ?? item.field.display"
+                  [row]="row"
+                  [value]="row[item.column.field]"
+                />
+              }
             }
           </td>
         </ng-container>
@@ -106,6 +144,33 @@
     </table>
   }
 </div>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="activeReference()?.origin ?? fallbackOrigin"
+  [cdkConnectedOverlayOpen]="activeReference() !== null"
+  [cdkConnectedOverlayPositions]="overlayPositions"
+  [cdkConnectedOverlayPush]="true"
+  [cdkConnectedOverlayFlexibleDimensions]="true"
+>
+  @if (activeReference(); as preview) {
+    <div (mouseenter)="onPreviewEnter()" (mouseleave)="onPreviewLeave()">
+      <app-reference-preview-overlay
+        [resource]="preview.resource"
+        [formId]="preview.formId"
+        [id]="preview.id"
+        (closed)="closePreview()"
+      />
+    </div>
+  }
+</ng-template>
+
+<span
+  cdkOverlayOrigin
+  #fallbackOrigin="cdkOverlayOrigin"
+  class="overlay-origin-fallback"
+  aria-hidden="true"
+></span>
 
 <div class="grid-footer">
   <div class="grid-actions">

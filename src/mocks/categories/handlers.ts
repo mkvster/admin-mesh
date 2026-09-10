@@ -33,7 +33,7 @@ export const createCategoryHandlers = (apiBaseUrl: string) => [
       views: {
         list: 'main',
         form: 'edit',
-        deleteForm: 'delete',
+        deleteForm: 'briefCategoryView',
       },
     });
   }),
@@ -50,11 +50,11 @@ export const createCategoryHandlers = (apiBaseUrl: string) => [
       ],
     });
   }),
-  http.get(`${apiBaseUrl}/entities/categories/forms/delete/metadata`, async () => {
+  http.get(`${apiBaseUrl}/entities/categories/forms/briefCategoryView/metadata`, async () => {
     await delay(randomMockDelay());
 
     return HttpResponse.json({
-      projection: 'delete',
+      projection: 'briefCategoryView',
       layout: {
         columns: 2,
         items: [

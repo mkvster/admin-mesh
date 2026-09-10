@@ -7,6 +7,7 @@ import { EntityPreview } from '../entity-preview/entity-preview';
 import { FormMetadataStore } from '../form-metadata-store';
 import { EntityDialogHeader } from '../entity-dialog-header/entity-dialog-header';
 import { formatEntityTitle } from '../entity-title';
+import { ENTITY_FIELD_VALUE_IN_POPUP } from '../entity-field-value/entity-field-value-context';
 
 export interface EntityPreviewDialogData {
   resource: string;
@@ -24,6 +25,7 @@ export interface EntityPreviewDialogData {
   templateUrl: './entity-preview-dialog.html',
   styleUrl: './entity-preview-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: ENTITY_FIELD_VALUE_IN_POPUP, useValue: true }],
 })
 export class EntityPreviewDialog {
   readonly data = inject<EntityPreviewDialogData>(MAT_DIALOG_DATA);

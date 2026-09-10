@@ -7,6 +7,22 @@
   min-width: 0;
 }
 
+.reference-preview-trigger {
+  border-radius: 3px;
+  display: inline-block;
+  outline-offset: 2px;
+}
+
+.reference-preview-trigger:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+}
+
+.overlay-origin-fallback {
+  height: 0;
+  position: absolute;
+  width: 0;
+}
+
 .filter-indicator {
   color: var(--mat-sys-primary);
   font-size: 18px;

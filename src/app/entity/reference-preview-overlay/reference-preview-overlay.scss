@@ -1,0 +1,21 @@
+:host {
+  display: block;
+  max-width: min(440px, calc(100vw - 32px));
+}
+
+.reference-preview {
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  box-shadow: var(--mat-sys-level3);
+  max-height: min(420px, calc(100vh - 32px));
+  overflow: auto;
+  padding: 12px 20px;
+}
+
+.reference-preview-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  padding-top: 8px;
+}
