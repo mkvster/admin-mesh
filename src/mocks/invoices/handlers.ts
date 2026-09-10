@@ -51,7 +51,7 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
         },
       ],
       permissions: { create: true, edit: true, delete: true },
-      views: { list: 'main', form: 'edit', deleteForm: 'delete' },
+      views: { list: 'main', form: 'edit', deleteForm: 'invoiceBriefView' },
     });
   }),
   http.get(`${apiBaseUrl}/entities/invoices/lists/main/metadata`, async () => {
@@ -65,7 +65,11 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
           field: 'customerId',
           sizeType: 'width',
           size: 250,
-          display: { type: 'reference', valueField: 'customerDisplayName' },
+          display: {
+            type: 'reference',
+            valueField: 'customerDisplayName',
+            previewForm: 'compactCustomerView',
+          },
         },
         { field: 'issueDate', sizeType: 'width', size: 120 },
         { field: 'dueDate', sizeType: 'width', size: 120 },
@@ -75,7 +79,7 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
       ],
     });
   }),
-  http.get(`${apiBaseUrl}/entities/invoices/forms/delete/metadata`, async () => {
+  http.get(`${apiBaseUrl}/entities/invoices/forms/invoiceBriefView/metadata`, async () => {
     await delay(randomMockDelay());
 
     return HttpResponse.json({

@@ -102,3 +102,8 @@ dd {
   margin-left: 0;
   text-align: left;
 }
+
+:host.preview-compact .preview-field-jumbo dd {
+  font-size: 25px;
+  white-space: nowrap;
+}

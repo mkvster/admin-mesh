@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 
 import { FieldDisplay, FieldMetadata } from '../entity-types';
+import { ENTITY_FIELD_VALUE_IN_POPUP } from './entity-field-value-context';
 
 @Component({
   selector: 'app-entity-field-value',
@@ -17,6 +18,8 @@ export class EntityFieldValue {
   readonly display = input<FieldDisplay>();
   readonly value = input<unknown>();
   readonly row = input<Record<string, unknown>>({});
+
+  private readonly inPopup = inject(ENTITY_FIELD_VALUE_IN_POPUP);
 
   protected readonly textValue = computed(() => {
     const value = this.value();
@@ -47,6 +50,17 @@ export class EntityFieldValue {
 
     return displayValue != null && displayValue !== '';
   });
+
+  protected readonly referenceHasPreview = computed(() => {
+    const display = this.display();
+    return display?.type === 'reference' && Boolean(display.previewForm);
+  });
+
+  protected readonly referenceNavigates = computed(() => false);
+
+  protected readonly referenceIsInteractive = computed(
+    () => !this.inPopup && (this.referenceHasPreview() || this.referenceNavigates()),
+  );
 
   protected readonly currencyValue = computed(() => {
     const display = this.display();

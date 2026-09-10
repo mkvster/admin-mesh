@@ -3,12 +3,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { EntityApi } from '../entity-api';
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 import { FieldMetadata, FormLayoutItem, FormMetadata } from '../entity-types';
 import { FormMetadataStore } from '../form-metadata-store';
 import { EntityMetadataStore } from '../entity-metadata-store';
 import { FieldMetadataResolver } from '../field-metadata-resolver';
+import { EntityPreviewDataStore } from '../entity-preview-data-store';
 
 export type EntityPreviewState =
   | { status: 'loading'; metadata?: FormMetadata }
@@ -22,13 +22,17 @@ export type EntityPreviewState =
   templateUrl: './entity-preview.html',
   styleUrl: './entity-preview.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.preview-compact]': 'compact()',
+  },
 })
 export class EntityPreview {
   readonly resource = input.required<string>();
   readonly formId = input.required<string>();
   readonly id = input.required<string | number>();
+  readonly compact = input(false);
 
-  private readonly api = inject(EntityApi);
+  private readonly previewDataStore = inject(EntityPreviewDataStore);
   private readonly formMetadataStore = inject(FormMetadataStore);
   private readonly entityMetadataStore = inject(EntityMetadataStore);
   private readonly fieldMetadataResolver = inject(FieldMetadataResolver);
@@ -53,7 +57,7 @@ export class EntityPreview {
               ),
             };
 
-            return this.api.getEntity(resource, id, metadata.projection).pipe(
+            return this.previewDataStore.get(resource, id, formId, metadata.projection).pipe(
               map((entity) => ({ status: 'loaded', metadata, entity }) as EntityPreviewState),
               startWith({ status: 'loading', metadata } as EntityPreviewState),
             );

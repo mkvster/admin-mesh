@@ -33,7 +33,7 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
       views: {
         list: 'main',
         form: 'edit',
-        deleteForm: 'viewName',
+        deleteForm: 'nameView',
       },
     });
   }),
@@ -59,7 +59,7 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
         },
         {
           type: 'view-form',
-          formId: 'view',
+          formId: 'compactCustomerView',
           label: 'Details',
           icon: 'person',
           iconSet: 'material-icons-outlined',
@@ -68,11 +68,11 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
       ],
     });
   }),
-  http.get(`${apiBaseUrl}/entities/customers/forms/view/metadata`, async () => {
+  http.get(`${apiBaseUrl}/entities/customers/forms/compactCustomerView/metadata`, async () => {
     await delay(randomMockDelay());
 
     return HttpResponse.json({
-      projection: 'view',
+      projection: 'compactCustomerView',
       layout: {
         columns: 3,
         items: [
@@ -97,19 +97,6 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
       },
     });
   }),
-  http.get(`${apiBaseUrl}/entities/customers/forms/viewName/metadata`, async () => {
-    await delay(randomMockDelay());
-
-    return HttpResponse.json({
-      projection: 'viewName',
-      fields: [{ name: 'name', label: 'Name', type: 'string' }],
-      layout: {
-        title: 'Customer Name',
-        columns: 1,
-        items: [{ field: 'name', format: 'jumbo' }, { field: 'email' }],
-      },
-    });
-  }),
   http.get(`${apiBaseUrl}/entities/customers/:id`, async ({ params, request }) => {
     await delay(randomMockDelay());
     const customer = customers.find((item) => String(item.customerId) === String(params['id']));
@@ -118,7 +105,7 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
     }
 
     const projection = new URL(request.url).searchParams.get('projection');
-    if (projection === 'viewName' || projection === 'nameView') {
+    if (projection === 'nameView') {
       return HttpResponse.json({
         customerId: customer.customerId,
         name: `${customer.firstName} ${customer.lastName}`,

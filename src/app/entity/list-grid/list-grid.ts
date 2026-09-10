@@ -1,11 +1,29 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { ConnectedPosition, CdkOverlayOrigin, OverlayModule } from '@angular/cdk/overlay';
 import { MatButtonModule } from '@angular/material/button';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { FilterItem, ListMetadata, ListRowAction, ListSort } from '../entity-types';
+import {
+  FieldDisplay,
+  FieldMetadata,
+  FilterItem,
+  ListMetadata,
+  ListRowAction,
+  ListSort,
+} from '../entity-types';
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
+import { ReferencePreviewOverlay } from '../reference-preview-overlay/reference-preview-overlay';
 
 const ROW_ACTIONS_COLUMN = '__rowActions';
 const ROW_ACTION_WIDTH = 56;
@@ -26,6 +44,13 @@ export interface ListGridRowAction {
   formId?: string;
 }
 
+interface ReferencePreviewTarget {
+  origin: CdkOverlayOrigin;
+  resource: string;
+  formId: string;
+  id: string | number;
+}
+
 @Component({
   selector: 'app-list-grid',
   imports: [
@@ -35,6 +60,8 @@ export interface ListGridRowAction {
     MatIconModule,
     MatTooltipModule,
     EntityFieldValue,
+    OverlayModule,
+    ReferencePreviewOverlay,
   ],
   templateUrl: './list-grid.html',
   styleUrl: './list-grid.scss',
@@ -53,6 +80,21 @@ export class ListGrid {
   readonly sortChange = output<ListSortChange>();
   readonly showDeleteAction = input(false);
   readonly rowAction = output<ListGridRowAction>();
+
+  protected readonly overlayPositions: ConnectedPosition[] = [
+    { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 8 },
+    { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 8 },
+    { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -8 },
+  ];
+  protected readonly activeReference = signal<ReferencePreviewTarget | null>(null);
+
+  private readonly destroyRef = inject(DestroyRef);
+  private hoverTimer: ReturnType<typeof setTimeout> | undefined;
+  private closeTimer: ReturnType<typeof setTimeout> | undefined;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => this.clearTimers());
+  }
 
   protected readonly displayedColumns = computed(() =>
     this.hasRowActions()
@@ -286,5 +328,84 @@ export class ListGrid {
 
   protected rowActionColor(action: ListRowAction): string | undefined {
     return action.iconColor;
+  }
+
+  protected referencePreview(
+    field: FieldMetadata,
+    display: FieldDisplay | undefined,
+    row: Record<string, unknown>,
+  ): Omit<ReferencePreviewTarget, 'origin'> | undefined {
+    if (display?.type !== 'reference' || !display.previewForm || !field.reference) {
+      return undefined;
+    }
+
+    const id = row[field.name];
+    if (typeof id !== 'string' && typeof id !== 'number') {
+      return undefined;
+    }
+
+    return { resource: field.reference.resource, formId: display.previewForm, id };
+  }
+
+  protected onReferenceEnter(
+    origin: CdkOverlayOrigin,
+    field: FieldMetadata,
+    display: FieldDisplay | undefined,
+    row: Record<string, unknown>,
+  ): void {
+    const preview = this.referencePreview(field, display, row);
+    if (!preview) return;
+
+    this.clearHoverTimer();
+    this.clearCloseTimer();
+    this.hoverTimer = setTimeout(() => {
+      this.activeReference.set({ origin, ...preview });
+      this.hoverTimer = undefined;
+    }, 250);
+  }
+
+  protected onReferenceLeave(): void {
+    this.clearHoverTimer();
+    this.scheduleClose();
+  }
+
+  protected onPreviewEnter(): void {
+    this.clearCloseTimer();
+  }
+
+  protected onPreviewLeave(): void {
+    this.scheduleClose();
+  }
+
+  protected closePreview(): void {
+    this.clearTimers();
+    this.activeReference.set(null);
+  }
+
+  private scheduleClose(): void {
+    this.clearCloseTimer();
+    this.closeTimer = setTimeout(() => {
+      this.activeReference.set(null);
+      this.closeTimer = undefined;
+    }, 120);
+  }
+
+  private clearHoverTimer(): void {
+    if (this.hoverTimer !== undefined) {
+      clearTimeout(this.hoverTimer);
+      this.hoverTimer = undefined;
+    }
+  }
+
+  private clearCloseTimer(): void {
+    if (this.closeTimer !== undefined) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = undefined;
+    }
+  }
+
+  private clearTimers(): void {
+    this.clearHoverTimer();
+    this.clearCloseTimer();
   }
 }

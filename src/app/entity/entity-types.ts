@@ -46,6 +46,7 @@ export type FieldDisplay =
   | {
       type: 'reference';
       valueField: string;
+      previewForm?: string;
     }
   | {
       type: 'numeric';

@@ -20,7 +20,11 @@ export const createPaymentHandlers = (apiBaseUrl: string) => [
           name: 'invoiceId',
           label: 'Invoice',
           type: 'reference',
-          display: { type: 'reference', valueField: 'invoiceNumber' },
+          display: {
+            type: 'reference',
+            valueField: 'invoiceNumber',
+            previewForm: 'invoiceBriefView',
+          },
           reference: { resource: 'invoices', listId: 'main', displayField: 'invoiceNumber' },
         },
         { name: 'paymentDate', label: 'Payment Date', type: 'datetime' },

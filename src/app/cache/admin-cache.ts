@@ -10,9 +10,12 @@ export class AdminCache {
 
   readonly formMetadata = new ObservableCache<string, FormMetadata>();
 
+  readonly entityPreview = new ObservableCache<string, Record<string, unknown>>();
+
   clear(): void {
     this.entityMetadata.clear();
     this.listMetadata.clear();
     this.formMetadata.clear();
+    this.entityPreview.clear();
   }
 }

@@ -1,15 +1,15 @@
 ---
 id: TASK-13
 title: Add hover preview for reference fields
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-04 14:21'
-updated_date: '2026-09-09 16:33'
+updated_date: '2026-09-10 00:05'
 labels: []
 milestone: s-002
 dependencies:
   - TASK-9
-ordinal: 1000
+ordinal: 2000
 ---
 
 ## Description

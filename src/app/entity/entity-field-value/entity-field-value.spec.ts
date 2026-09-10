@@ -74,7 +74,8 @@ describe('EntityFieldValue', () => {
     fixture.componentRef.setInput('row', { categoryId: 3, categoryName: 'Electronics' });
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.reference-link')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.reference-link')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('.reference-value')).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('Electronics');
     expect(fixture.nativeElement.textContent).not.toContain('3');
 

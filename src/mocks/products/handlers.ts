@@ -62,7 +62,11 @@ export const createProductHandlers = (apiBaseUrl: string) => [
           field: 'categoryId',
           sizeType: 'width',
           size: 140,
-          display: { type: 'reference', valueField: 'categoryName' },
+          display: {
+            type: 'reference',
+            valueField: 'categoryName',
+            previewForm: 'briefCategoryView',
+          },
         },
         { field: 'price', sizeType: 'width', size: 120 },
         { field: 'stock', sizeType: 'width', size: 100 },
@@ -81,7 +85,10 @@ export const createProductHandlers = (apiBaseUrl: string) => [
           { field: 'name', format: 'jumbo' },
           { field: 'enabled', hideLabel: true },
           { field: 'sku' },
-          { field: 'categoryId' },
+          {
+            field: 'categoryId',
+            display: { type: 'reference', valueField: 'categoryName' },
+          },
           { field: 'price' },
           { field: 'stock' },
         ],
@@ -91,7 +98,14 @@ export const createProductHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/products/:id`, async ({ params }) => {
     await delay(randomMockDelay());
     const product = products.find((item) => String(item.productId) === String(params['id']));
-    return product ? HttpResponse.json(product) : new HttpResponse(null, { status: 404 });
+    if (!product) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    return HttpResponse.json({
+      ...product,
+      categoryName: categories.find((category) => category.categoryId === product.categoryId)?.name,
+    });
   }),
   http.post(`${apiBaseUrl}/entities/products/lists/main/query`, async ({ request }) => {
     await delay(randomMockDelay());

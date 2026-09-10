@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { EntityPreview } from '../entity-preview/entity-preview';
 import { EntityDialogHeader } from '../entity-dialog-header/entity-dialog-header';
 import { formatEntityTitle } from '../entity-title';
+import { ENTITY_FIELD_VALUE_IN_POPUP } from '../entity-field-value/entity-field-value-context';
 
 export interface DeleteConfirmationDialogData {
   resource: string;
@@ -19,6 +20,7 @@ export interface DeleteConfirmationDialogData {
   templateUrl: './delete-confirmation-dialog.html',
   styleUrl: './delete-confirmation-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: ENTITY_FIELD_VALUE_IN_POPUP, useValue: true }],
 })
 export class DeleteConfirmationDialog {
   readonly data = inject<DeleteConfirmationDialogData>(MAT_DIALOG_DATA);
