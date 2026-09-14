@@ -1,6 +1,9 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, Injector } from '@angular/core';
+import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { of, switchMap } from 'rxjs';
 import { NavigationState } from '../navigation/navigation-state';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +11,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EntityList } from '../entity/entity-list/entity-list';
 import { ErrorState } from '../shared/error-state/error-state';
 import { NotFoundState } from '../shared/not-found-state/not-found-state';
+import { EntityForm } from '../entity/entity-form/entity-form';
+import { EntityMetadataStore } from '../entity/entity-metadata-store';
+import { EntityListContextStore } from '../entity/entity-list-context';
 
 @Component({
   selector: 'app-node-host',
@@ -18,12 +24,17 @@ import { NotFoundState } from '../shared/not-found-state/not-found-state';
     EntityList,
     ErrorState,
     NotFoundState,
+    EntityForm,
   ],
   templateUrl: './node-host.html',
   styleUrl: './node-host.scss',
 })
 export class NodeHost {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
+  private readonly listContext = inject(EntityListContextStore);
+  private readonly location = inject(Location);
   protected readonly state = inject(NavigationState);
 
   protected toString(value: unknown): string {
@@ -45,11 +56,68 @@ export class NodeHost {
     return section && node ? { section, node } : null;
   });
 
+  protected readonly entityId = computed(() => this.params()?.get('entityId'));
+  protected readonly isEditRoute = computed(() => Boolean(this.entityId()));
+  protected readonly editMetadata = toSignal(
+    toObservable(this.selection).pipe(
+      switchMap((selected) =>
+        selected?.node.type === 'rest-entity'
+          ? this.injector.get(EntityMetadataStore, null, { optional: true })
+            ? this.injector
+                .get(EntityMetadataStore, null, { optional: true })!
+                .get(selected.node.config.resource)
+            : of(null)
+          : of(null),
+      ),
+    ),
+    { initialValue: null },
+  );
+  protected readonly editTitle = computed(() => {
+    const metadata = this.editMetadata();
+    const id = this.entityId();
+    return metadata && id ? `Edit ${metadata.singularTitle} ${id}` : 'Edit entity';
+  });
+
   constructor() {
     effect(() => {
       const selected = this.selection();
 
       if (selected) this.state.select(selected.section, selected.node);
     });
+  }
+
+  protected onEditSaved(entity: Record<string, unknown>): void {
+    this.returnToList(entity);
+  }
+
+  protected onEditCancelled(): void {
+    this.returnToList();
+  }
+
+  private returnToList(savedEntity?: Record<string, unknown>): void {
+    const params = this.params();
+    if (!params) return;
+
+    const sectionId = params.get('sectionId');
+    const nodeId = params.get('nodeId');
+    if (!sectionId || !nodeId) return;
+
+    const token = this.contextToken();
+    const context = token ? this.listContext.peek(token) : undefined;
+    this.router.navigateByUrl(context?.returnUrl ?? `/node/${sectionId}/${nodeId}`, {
+      state: {
+        ...(token ? { entityListContextToken: token } : {}),
+        ...(savedEntity && this.editMetadata()
+          ? { savedEntityId: savedEntity[this.editMetadata()!.idField] }
+          : {}),
+      },
+    });
+  }
+
+  private contextToken(): string | undefined {
+    const state = (this.location.getState() ?? {}) as { entityListContextToken?: unknown };
+    return typeof state.entityListContextToken === 'string'
+      ? state.entityListContextToken
+      : undefined;
   }
 }

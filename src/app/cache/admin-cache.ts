@@ -18,4 +18,8 @@ export class AdminCache {
     this.formMetadata.clear();
     this.entityPreview.clear();
   }
+
+  clearEntityPreviews(): void {
+    this.entityPreview.clear();
+  }
 }

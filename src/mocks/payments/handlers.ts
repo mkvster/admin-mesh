@@ -59,7 +59,7 @@ export const createPaymentHandlers = (apiBaseUrl: string) => [
         { name: 'reference', label: 'Reference', type: 'string' },
       ],
       permissions: { create: true, edit: true, delete: true },
-      views: { list: 'main', form: 'edit', deleteForm: 'delete' },
+      views: { list: 'main', form: 'view', deleteForm: 'delete' },
     });
   }),
   http.get(`${apiBaseUrl}/entities/payments/lists/main/metadata`, async () => {

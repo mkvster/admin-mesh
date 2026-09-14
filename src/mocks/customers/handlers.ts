@@ -1,9 +1,10 @@
 import { delay, HttpResponse, http } from 'msw';
-import { ListQuery } from '../../app/entity/entity-types';
+import { EntityLocateRequest, ListQuery } from '../../app/entity/entity-types';
 import { customers } from './data';
 import { applyListQuery } from '../shared/apply-list-query';
 import { removeMockEntity } from '../shared/remove-mock-entity';
 import { randomMockDelay } from '../shared/random-mock-delay';
+import { locateMockEntity } from '../shared/locate-mock-entity';
 
 export const createCustomerHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/customers/metadata`, async () => {
@@ -84,6 +85,20 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
       },
     });
   }),
+  http.get(`${apiBaseUrl}/entities/customers/forms/edit/metadata`, async () =>
+    HttpResponse.json({
+      projection: 'edit',
+      layout: {
+        columns: 2,
+        items: [
+          { field: 'firstName' },
+          { field: 'lastName' },
+          { field: 'email', span: 2 },
+          { field: 'enabled' },
+        ],
+      },
+    }),
+  ),
   http.get(`${apiBaseUrl}/entities/customers/forms/nameView/metadata`, async () => {
     await delay(randomMockDelay());
 
@@ -120,6 +135,24 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
 
     const query = (await request.json()) as ListQuery;
     return HttpResponse.json(applyListQuery(customers, query));
+  }),
+  http.post(`${apiBaseUrl}/entities/customers/lists/main/locate`, async ({ request }) => {
+    const locateRequest = (await request.json()) as EntityLocateRequest;
+    return HttpResponse.json(locateMockEntity(customers, 'customerId', locateRequest));
+  }),
+  http.patch(`${apiBaseUrl}/entities/customers/:id`, async ({ params, request }) => {
+    const customer = customers.find((item) => String(item.customerId) === String(params['id']));
+    if (!customer) return new HttpResponse(null, { status: 404 });
+    Object.assign(customer, (await request.json()) as Record<string, unknown>);
+    return HttpResponse.json(customer);
+  }),
+  http.post(`${apiBaseUrl}/entities/customers`, async ({ request }) => {
+    const value = (await request.json()) as Record<string, unknown>;
+    const customerId = Math.max(...customers.map((item) => item.customerId)) + 1;
+    const { customerId: _clientProvidedId, ...attributes } = value;
+    const customer = { ...attributes, customerId } as (typeof customers)[number];
+    customers.push(customer);
+    return HttpResponse.json(customer, { status: 201 });
   }),
   http.delete(`${apiBaseUrl}/entities/customers/:id`, async ({ params }) => {
     const removed = removeMockEntity(customers, 'customerId', String(params['id']));

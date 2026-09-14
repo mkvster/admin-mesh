@@ -6,6 +6,10 @@ export const routes: Routes = [
     loadComponent: () => import('./home/home').then(({ Home }) => Home),
   },
   {
+    path: 'node/:sectionId/:nodeId/:entityId/edit',
+    loadComponent: () => import('./node-host/node-host').then(({ NodeHost }) => NodeHost),
+  },
+  {
     path: 'node/:sectionId/:nodeId',
     loadComponent: () => import('./node-host/node-host').then(({ NodeHost }) => NodeHost),
   },

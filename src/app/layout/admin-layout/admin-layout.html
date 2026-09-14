@@ -3,7 +3,7 @@
     <button
       mat-icon-button
       class="mobile-menu-button"
-      aria-label="Открыть меню"
+      aria-label="Open menu"
       (click)="sidenav.toggle()"
     >
       <mat-icon>menu</mat-icon>
@@ -29,7 +29,15 @@
     <mat-icon class="separator">chevron_right</mat-icon>
     <span>{{ selected.section.title }}</span>
     <mat-icon class="separator">chevron_right</mat-icon>
-    <strong>{{ selected.node.title }}</strong>
+    @if (editEntityId(); as entityId) {
+      <button type="button" class="breadcrumb-link" (click)="returnToList()">
+        {{ selected.node.title }}
+      </button>
+      <mat-icon class="separator">chevron_right</mat-icon>
+      <strong>{{ entityId }}</strong>
+    } @else {
+      <strong>{{ selected.node.title }}</strong>
+    }
   }
 </div>
 

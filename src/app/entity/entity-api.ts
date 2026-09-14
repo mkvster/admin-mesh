@@ -7,6 +7,8 @@ import {
   ListMetadata,
   ListQuery,
   ListQueryResult,
+  EntityLocateRequest,
+  EntityLocateResult,
 } from './entity-types';
 
 @Injectable({ providedIn: 'root' })
@@ -44,9 +46,37 @@ export class EntityApi {
     );
   }
 
+  locateEntity(resource: string, listId: string, request: EntityLocateRequest) {
+    return this.http.post<EntityLocateResult>(
+      this.api.url(`entities/${resource}/lists/${listId}/locate`),
+      request,
+    );
+  }
+
   deleteEntity(resource: string, id: string | number) {
     return this.http.delete<void>(
       this.api.url(`entities/${resource}/${encodeURIComponent(String(id))}`),
+    );
+  }
+
+  updateEntity(
+    resource: string,
+    id: string | number,
+    value: Record<string, unknown>,
+    projection?: string,
+  ) {
+    return this.http.patch<Record<string, unknown>>(
+      this.api.url(`entities/${resource}/${encodeURIComponent(String(id))}`),
+      value,
+      projection ? { params: { projection } } : undefined,
+    );
+  }
+
+  createEntity(resource: string, value: Record<string, unknown>, projection?: string) {
+    return this.http.post<Record<string, unknown>>(
+      this.api.url(`entities/${resource}`),
+      value,
+      projection ? { params: { projection } } : undefined,
     );
   }
 }

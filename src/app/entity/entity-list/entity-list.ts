@@ -1,5 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { Location } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import {
@@ -52,6 +63,10 @@ import { MAX_SERIALIZED_FILTER_LENGTH } from '../filtering/filter-constraints';
 import { parseListFilter, serializeListFilter } from '../filtering/filter-serialization';
 import { ErrorState } from '../../shared/error-state/error-state';
 import { AsyncErrorHandler } from '../../shared/async-error-handler';
+import { EntityForm } from '../entity-form/entity-form';
+import { EntityFormMode } from '../entity-types';
+import { EntityListContextStore } from '../entity-list-context';
+import { EntityLocateResult } from '../entity-types';
 
 type EntityListState =
   | { status: 'loading' }
@@ -70,7 +85,14 @@ type EntityListState =
 
 @Component({
   selector: 'app-entity-list',
-  imports: [MatIconModule, MatProgressSpinnerModule, MatButtonModule, ListGrid, ErrorState],
+  imports: [
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatButtonModule,
+    ListGrid,
+    ErrorState,
+    EntityForm,
+  ],
   templateUrl: './entity-list.html',
   styleUrl: './entity-list.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -86,11 +108,15 @@ export class EntityList {
   private readonly entityMetadataStore = inject(EntityMetadataStore);
   private readonly listMetadataStore = inject(ListMetadataStore);
   private readonly fieldMetadataResolver = inject(FieldMetadataResolver);
+  private readonly listContext = inject(EntityListContextStore, { optional: true });
+  private readonly location = inject(Location);
   private readonly listRefresh = new Subject<void>();
   private listRequestVersion = 0;
 
   readonly isListLoading = signal(true);
   readonly deletionError = signal<string | null>(null);
+  readonly locateMessage = signal<string | null>(null);
+  readonly highlightedEntityId = signal<string | number | null>(null);
   private readonly deletionInProgress = signal(false);
 
   readonly state = toSignal<EntityListState, EntityListState>(
@@ -103,6 +129,120 @@ export class EntityList {
       initialValue: { status: 'loading' } as EntityListState,
     },
   );
+
+  private readonly queryParams = toSignal(this.route.queryParamMap, {
+    initialValue: this.route.snapshot.queryParamMap,
+  });
+  protected readonly formMode = computed<EntityFormMode | null>(() => {
+    const mode = this.queryParams().get('entityMode');
+    return mode === 'create' ? mode : null;
+  });
+  protected readonly formId = computed(() => {
+    const current = this.state();
+    return current.status === 'loaded'
+      ? this.formMode() === 'create'
+        ? (current.metadata.views.createForm ?? current.metadata.views.form)
+        : current.metadata.views.form
+      : null;
+  });
+  protected readonly formEntityId = computed(() => this.queryParams().get('entityId') ?? undefined);
+  private readonly listGrid = viewChild(ListGrid, { read: ElementRef });
+  private readonly contextToken = this.readContextToken();
+  private readonly savedEntityId = signal<string | number | null>(this.readSavedEntityId());
+  private locateAttempted = false;
+
+  constructor() {
+    effect(() => {
+      const current = this.state();
+      const grid = this.listGrid();
+      if (current.status !== 'loaded' || !grid) return;
+      this.locateSavedEntity(current);
+
+      const token = this.contextToken;
+      const context = token ? this.listContext?.peek(token) : undefined;
+      if (context && token) {
+        queueMicrotask(() => {
+          (grid.nativeElement.querySelector('.grid-layout') as HTMLElement | null)?.scrollTo({
+            top: context.scrollTop,
+          });
+          this.listContext?.take(token);
+        });
+      }
+
+      const highlightedId = this.highlightedEntityId();
+      if (highlightedId !== null) {
+        queueMicrotask(() => {
+          const row = Array.from(
+            grid.nativeElement.querySelectorAll('[data-entity-id]') as NodeListOf<HTMLElement>,
+          ).find((element) => element.dataset['entityId'] === String(highlightedId));
+          row?.scrollIntoView({ block: 'center' });
+        });
+      }
+    });
+  }
+
+  private locateSavedEntity(current: Extract<EntityListState, { status: 'loaded' }>): void {
+    const id = this.savedEntityId();
+    if (id === null || this.locateAttempted) return;
+    this.locateAttempted = true;
+    this.api
+      .locateEntity(current.resource, current.metadata.views.list, {
+        id,
+        pageSize: current.pageSize,
+        sort: current.sort,
+        ...(current.filters.length ? { filter: { operator: 'and', items: current.filters } } : {}),
+      })
+      .subscribe({
+        next: (located: EntityLocateResult) => {
+          if (!located.found || located.page === null || located.result === null) {
+            this.locateMessage.set(
+              `${current.metadata.singularTitle} ${id} was saved, but it does not match the current filters.`,
+            );
+            return;
+          }
+          this.highlightedEntityId.set(id);
+          if (located.page !== current.page) {
+            this.asyncErrorHandler.run(
+              this.router.navigate([], {
+                relativeTo: this.route,
+                queryParams: { page: located.page },
+                queryParamsHandling: 'merge',
+              }),
+              'Saved entity page navigation failed',
+            );
+          }
+        },
+        error: (cause: unknown) => {
+          console.error('Saved entity locate failed', cause);
+          this.locateMessage.set(
+            `${current.metadata.singularTitle} ${id} was saved. Use Find saved record to locate it.`,
+          );
+        },
+      });
+  }
+
+  protected findSavedRecord(): void {
+    const current = this.state();
+    const id = this.savedEntityId();
+    if (current.status !== 'loaded' || id === null) return;
+    const filter = serializeListFilter(
+      [{ field: current.metadata.idField, operator: 'equals', value: id }],
+      { resource: current.resource, listId: current.metadata.views.list },
+    );
+    this.asyncErrorHandler.run(
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { page: 1, filter },
+        queryParamsHandling: 'merge',
+      }),
+      'Saved entity search navigation failed',
+    );
+    this.locateMessage.set(null);
+  }
+
+  protected dismissLocateMessage(): void {
+    this.locateMessage.set(null);
+  }
 
   private loadEntityList(resource: string) {
     // Load entity metadata first, then load list metadata and initial data
@@ -196,7 +336,9 @@ export class EntityList {
     event: ListGridRowAction,
     state: Extract<EntityListState, { status: 'loaded' }>,
   ): void {
-    if (event.action === 'view-form' && event.formId && event.id !== undefined) {
+    if (event.action === 'edit' && event.id !== undefined) {
+      this.openEdit(event.id);
+    } else if (event.action === 'view-form' && event.formId && event.id !== undefined) {
       const rowAction = state.listMetadata.rowActions?.find(
         (action): action is ListRowAction =>
           action.type === 'view-form' && action.formId === event.formId,
@@ -223,6 +365,83 @@ export class EntityList {
     } else if (event.action === 'delete' && state.metadata.permissions.delete) {
       this.openDeleteConfirmation(state, event.row);
     }
+  }
+
+  protected openCreate(state: Extract<EntityListState, { status: 'loaded' }>): void {
+    if (!state.metadata.permissions.create || !this.formId()) return;
+    this.openForm('create');
+  }
+
+  private openEdit(id: string | number): void {
+    const grid = this.listGrid()?.nativeElement.querySelector('.grid-layout') as HTMLElement | null;
+    const contextToken = this.createContextToken();
+    this.listContext?.remember(contextToken, {
+      returnUrl: this.router.url,
+      scrollTop: grid?.scrollTop ?? 0,
+    });
+    this.asyncErrorHandler.run(
+      this.router.navigate(['.', id, 'edit'], {
+        relativeTo: this.route,
+        queryParams: {},
+        state: { entityListContextToken: contextToken },
+      }),
+      'Entity edit navigation failed',
+    );
+  }
+
+  private openForm(mode: 'edit' | 'create', id?: string | number): void {
+    this.asyncErrorHandler.run(
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { entityMode: mode, entityId: id ?? null },
+        queryParamsHandling: 'merge',
+      }),
+      'Entity form navigation failed',
+    );
+  }
+
+  private readContextToken(): string | undefined {
+    const state = (this.location.getState() ?? {}) as { entityListContextToken?: unknown };
+    return typeof state.entityListContextToken === 'string'
+      ? state.entityListContextToken
+      : undefined;
+  }
+
+  private readSavedEntityId(): string | number | null {
+    const state = (this.location.getState() ?? {}) as { savedEntityId?: unknown };
+    return typeof state.savedEntityId === 'string' || typeof state.savedEntityId === 'number'
+      ? state.savedEntityId
+      : null;
+  }
+
+  private createContextToken(): string {
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  protected closeForm(): void {
+    this.asyncErrorHandler.run(
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { entityMode: null, entityId: null },
+        queryParamsHandling: 'merge',
+      }),
+      'Entity form closing failed',
+    );
+  }
+
+  protected onFormSaved(entity: Record<string, unknown>): void {
+    const current = this.state();
+    if (current.status === 'loaded') {
+      const id = entity[current.metadata.idField];
+      if (typeof id === 'string' || typeof id === 'number') {
+        this.locateAttempted = false;
+        this.locateMessage.set(null);
+        this.highlightedEntityId.set(null);
+        this.savedEntityId.set(id);
+      }
+    }
+    this.closeForm();
+    this.listRefresh.next();
   }
 
   private openDeleteConfirmation(

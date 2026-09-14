@@ -42,3 +42,8 @@
 .node-card:has(app-list-grid) {
   overflow: hidden;
 }
+
+.node-card:has(app-entity-form) .node-card-content {
+  min-height: 0;
+  overflow: auto;
+}

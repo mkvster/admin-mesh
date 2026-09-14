@@ -120,6 +120,17 @@
                 </mat-icon>
               </button>
             }
+            @if (showEditAction()) {
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Edit row"
+                matTooltip="Edit"
+                (click)="onEdit(row)"
+              >
+                <mat-icon fontSet="material-icons-outlined" aria-hidden="true">edit</mat-icon>
+              </button>
+            }
             @if (showDeleteAction()) {
               <button
                 mat-icon-button
@@ -140,7 +151,12 @@
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns(); sticky: true"></tr>
 
-      <tr mat-row *matRowDef="let row; columns: displayedColumns()"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns()"
+        [class.row-highlighted]="isHighlighted(row)"
+        [attr.data-entity-id]="row[idField()]"
+      ></tr>
     </table>
   }
 </div>

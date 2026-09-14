@@ -154,3 +154,7 @@ th.mat-mdc-header-cell {
 .edit-button {
   color: var(--mat-sys-primary);
 }
+
+.row-highlighted {
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+}

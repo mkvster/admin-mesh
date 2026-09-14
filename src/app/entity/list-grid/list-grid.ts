@@ -38,7 +38,7 @@ export interface ListSortChange {
 }
 
 export interface ListGridRowAction {
-  action: 'delete' | 'view-form';
+  action: 'delete' | 'view-form' | 'edit';
   row: Record<string, unknown>;
   id?: string | number;
   formId?: string;
@@ -79,6 +79,8 @@ export class ListGrid {
   readonly idField = input('id');
   readonly sortChange = output<ListSortChange>();
   readonly showDeleteAction = input(false);
+  readonly showEditAction = input(false);
+  readonly highlightedId = input<string | number | null>(null);
   readonly rowAction = output<ListGridRowAction>();
 
   protected readonly overlayPositions: ConnectedPosition[] = [
@@ -105,11 +107,15 @@ export class ListGrid {
   protected readonly rowActions = computed(() => this.metadata().rowActions ?? []);
 
   protected readonly hasRowActions = computed(
-    () => this.showDeleteAction() || this.rowActions().length > 0,
+    () => this.showDeleteAction() || this.showEditAction() || this.rowActions().length > 0,
   );
 
   protected readonly rowActionsColumnWidth = computed(
-    () => (this.rowActions().length + (this.showDeleteAction() ? 1 : 0)) * ROW_ACTION_WIDTH,
+    () =>
+      (this.rowActions().length +
+        (this.showDeleteAction() ? 1 : 0) +
+        (this.showEditAction() ? 1 : 0)) *
+      ROW_ACTION_WIDTH,
   );
 
   protected readonly columns = computed(() => {
@@ -303,6 +309,18 @@ export class ListGrid {
 
   protected onDelete(row: Record<string, unknown>): void {
     this.rowAction.emit({ action: 'delete', row });
+  }
+
+  protected onEdit(row: Record<string, unknown>): void {
+    const id = row[this.idField()];
+    if (typeof id === 'string' || typeof id === 'number')
+      this.rowAction.emit({ action: 'edit', row, id });
+  }
+
+  protected isHighlighted(row: Record<string, unknown>): boolean {
+    return (
+      this.highlightedId() !== null && String(row[this.idField()]) === String(this.highlightedId())
+    );
   }
 
   protected onRowAction(action: ListRowAction, row: Record<string, unknown>): void {

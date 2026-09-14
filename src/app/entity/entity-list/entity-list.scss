@@ -37,6 +37,17 @@
   z-index: 3;
 }
 
+.locate-notice {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.locate-notice span {
+  flex: 1 1 240px;
+}
+
 .initial-loading-state {
   flex: 1 1 auto;
   min-height: 0;
