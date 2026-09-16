@@ -23,7 +23,9 @@
                 : 'span ' + (entry.item.span ?? 1)
             "
           >
-            @if (!entry.item.hideLabel) {
+            @if (
+              !entry.item.hideLabel && !(isEditable(entry.field) && entry.field.type === 'string')
+            ) {
               <label [for]="entry.field.name">{{ entry.field.label }}</label>
             }
             @if (isEditable(entry.field); as editable) {
@@ -43,6 +45,23 @@
                 <mat-checkbox [id]="entry.field.name" [formControlName]="entry.field.name">{{
                   entry.field.label
                 }}</mat-checkbox>
+              } @else if (entry.field.type === 'string') {
+                <app-string-value-input
+                  [label]="entry.field.label"
+                  [value]="stringValue(entry.field)"
+                  [control]="control(entry.field)"
+                  [pattern]="entry.field.pattern ?? null"
+                  [requiredError]="
+                    !!control(entry.field)?.hasError('required') &&
+                    (!!control(entry.field)?.touched || !!control(entry.field)?.dirty)
+                  "
+                  [patternError]="
+                    !!control(entry.field)?.hasError('pattern') &&
+                    (!!control(entry.field)?.touched || !!control(entry.field)?.dirty)
+                  "
+                  (valueChange)="updateStringValue(entry.field, $event)"
+                  (blur)="onStringBlur(entry.field)"
+                />
               } @else {
                 <mat-form-field appearance="outline">
                   <input
@@ -52,10 +71,16 @@
                     [formControlName]="entry.field.name"
                     [attr.pattern]="entry.field.pattern"
                   />
-                  @if (control(entry.field)?.hasError('required')) {
+                  @if (
+                    control(entry.field)?.hasError('required') &&
+                    (control(entry.field)?.touched || control(entry.field)?.dirty)
+                  ) {
                     <mat-error>This field is required.</mat-error>
                   }
-                  @if (control(entry.field)?.hasError('pattern')) {
+                  @if (
+                    control(entry.field)?.hasError('pattern') &&
+                    (control(entry.field)?.touched || control(entry.field)?.dirty)
+                  ) {
                     <mat-error>Use the required format.</mat-error>
                   }
                 </mat-form-field>
@@ -88,7 +113,7 @@
           <button mat-button type="button" (click)="cancelled.emit()" [disabled]="saving()">
             Cancel
           </button>
-          <button mat-flat-button type="submit" [disabled]="saving()">
+          <button mat-flat-button type="submit" [disabled]="saving() || form.invalid">
             {{ saving() ? 'Saving...' : 'Save' }}
           </button>
         </div>

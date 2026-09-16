@@ -18,7 +18,13 @@ export const createCustomerHandlers = (apiBaseUrl: string) => [
         { name: 'customerId', label: 'ID', type: 'integer' },
         { name: 'firstName', label: 'First Name', type: 'string' },
         { name: 'lastName', label: 'Last Name', type: 'string' },
-        { name: 'email', label: 'Email', type: 'string' },
+        {
+          name: 'email',
+          label: 'Email',
+          type: 'string',
+          required: true,
+          pattern: String.raw`^[^\s@]+@[^\s@]+\.[^\s@]+$`,
+        },
         {
           name: 'enabled',
           label: 'Enabled',

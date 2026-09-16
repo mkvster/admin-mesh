@@ -1,12 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { FilterOperator } from '../../entity-types';
 import { MAX_STRING_FILTER_VALUE_LENGTH } from '../filter-constraints';
+import { StringValueInput } from '../../field-editors/string-value-input/string-value-input';
 
 @Component({
   selector: 'app-string-filter-editor',
-  imports: [MatFormFieldModule, MatInputModule],
+  imports: [StringValueInput],
   templateUrl: './string-filter-editor.html',
   styleUrl: './string-filter-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,7 +33,7 @@ export class StringFilterEditor {
     }
   });
 
-  protected onInput(event: Event): void {
-    this.value.set((event.target as HTMLInputElement).value);
+  protected onValueChange(value: string): void {
+    this.value.set(value);
   }
 }

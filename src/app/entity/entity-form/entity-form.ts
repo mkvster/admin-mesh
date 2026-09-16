@@ -24,6 +24,7 @@ import { EntityPreviewDataStore } from '../entity-preview-data-store';
 import { FieldMetadataResolver } from '../field-metadata-resolver';
 import { FormMetadataStore } from '../form-metadata-store';
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
+import { StringValueInput } from '../field-editors/string-value-input/string-value-input';
 import { ErrorState } from '../../shared/error-state/error-state';
 import { EntityFormMode, FieldMetadata, FormLayoutItem, FormMetadata } from '../entity-types';
 
@@ -42,6 +43,7 @@ type FormState =
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    StringValueInput,
     EntityFieldValue,
     ErrorState,
   ],
@@ -158,6 +160,15 @@ export class EntityForm {
     return this.form.controls[field.name];
   }
 
+  protected stringValue(field: FieldMetadata): string {
+    const value = this.control(field)?.value;
+    return typeof value === 'string' ? value : '';
+  }
+
+  protected onStringBlur(field: FieldMetadata): void {
+    this.control(field)?.markAsTouched();
+  }
+
   protected isEditable(field: FieldMetadata): boolean {
     return (
       this.mode() !== 'view' &&
@@ -169,6 +180,14 @@ export class EntityForm {
 
   protected inputType(field: FieldMetadata): 'text' | 'number' {
     return field.type === 'string' ? 'text' : 'number';
+  }
+
+  protected updateStringValue(field: FieldMetadata, value: string): void {
+    const control = this.control(field);
+    if (!control) return;
+    control.setValue(value);
+    control.markAsDirty();
+    control.updateValueAndValidity();
   }
 
   protected submit(): void {
