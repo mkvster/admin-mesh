@@ -191,13 +191,26 @@
 <div class="grid-footer">
   @if (totalCount() > 0) {
     <nav class="pagination" aria-label="List pagination">
+      <label class="page-size-label" for="page-size">Rows</label>
+      <select
+        id="page-size"
+        class="page-size-select"
+        aria-label="Rows per page"
+        (change)="onPageSizeChange($event)"
+      >
+        @for (option of pageSizeOptions(); track option) {
+          <option [value]="option" [selected]="option === normalizedPageSize()">
+            {{ option }}
+          </option>
+        }
+      </select>
       <span class="page-range" aria-live="polite">{{ pageRange() }}</span>
       <button
         mat-icon-button
         type="button"
         aria-label="Previous page"
         [disabled]="!canGoToPreviousPage()"
-        (click)="onPageChange(page() - 1)"
+        (click)="onPageChange(normalizedPage() - 1)"
       >
         <mat-icon aria-hidden="true">chevron_left</mat-icon>
       </button>
@@ -206,22 +219,10 @@
         type="button"
         aria-label="Next page"
         [disabled]="!canGoToNextPage()"
-        (click)="onPageChange(page() + 1)"
+        (click)="onPageChange(normalizedPage() + 1)"
       >
         <mat-icon aria-hidden="true">chevron_right</mat-icon>
       </button>
-      <label class="page-size-label" for="page-size">Rows</label>
-      <select
-        id="page-size"
-        class="page-size-select"
-        aria-label="Rows per page"
-        [value]="pageSize()"
-        (change)="onPageSizeChange($event)"
-      >
-        @for (option of pageSizeOptions; track option) {
-          <option [value]="option">{{ option }}</option>
-        }
-      </select>
     </nav>
   }
 </div>

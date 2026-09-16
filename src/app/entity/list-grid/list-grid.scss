@@ -75,19 +75,19 @@
 
 .page-size-label {
   font-size: 12px;
-  margin-inline: 4px;
+  // margin-inline: 8px;
 }
 
 .page-size-select {
-  appearance: none;
   background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 4px;
-  color: var(--mat-sys-on-surface);
-  font: inherit;
+  // font: inherit;
   height: 36px;
   min-width: 52px;
   padding: 0 8px;
+  margin-inline: 12px;
 }
 
 .page-size-select:focus-visible {

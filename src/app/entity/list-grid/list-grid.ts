@@ -23,6 +23,7 @@ import {
 } from '../entity-types';
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 import { ReferencePreviewOverlay } from '../reference-preview-overlay/reference-preview-overlay';
+import { normalizePageNumber, normalizePageSize } from '../pagination';
 
 const ROW_ACTIONS_COLUMN = '__rowActions';
 const ROW_ACTION_WIDTH = 56;
@@ -66,13 +67,19 @@ interface ReferencePreviewTarget {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListGrid {
-  protected readonly pageSizeOptions = [10, 25, 50, 100];
-
   readonly metadata = input.required<ListMetadata>();
   readonly rows = input.required<Record<string, unknown>[]>();
   readonly totalCount = input.required<number>();
   readonly page = input(1);
   readonly pageSize = input(25);
+  protected readonly normalizedPageSize = computed(() => normalizePageSize(this.pageSize()));
+  protected readonly normalizedPage = computed(() => {
+    const lastPage = Math.max(1, Math.ceil(this.totalCount() / this.normalizedPageSize()));
+    return Math.min(normalizePageNumber(this.page()), lastPage);
+  });
+  protected readonly pageSizeOptions = computed(() =>
+    [...new Set([10, 25, 50, 100, this.normalizedPageSize()])].sort((left, right) => left - right),
+  );
   readonly pageChange = output<ListPageChange>();
   readonly sort = input<ListSort[]>([]);
   readonly filters = input<FilterItem[]>([]);
@@ -94,14 +101,14 @@ export class ListGrid {
     const total = this.totalCount();
     if (total === 0) return '';
 
-    const start = (this.page() - 1) * this.pageSize() + 1;
-    const end = Math.min(this.page() * this.pageSize(), total);
+    const start = (this.normalizedPage() - 1) * this.normalizedPageSize() + 1;
+    const end = Math.min(this.normalizedPage() * this.normalizedPageSize(), total);
     return `${start}–${end} of ${total}`;
   });
 
-  protected readonly canGoToPreviousPage = computed(() => this.page() > 1);
+  protected readonly canGoToPreviousPage = computed(() => this.normalizedPage() > 1);
   protected readonly canGoToNextPage = computed(
-    () => this.page() * this.pageSize() < this.totalCount(),
+    () => this.normalizedPage() * this.normalizedPageSize() < this.totalCount(),
   );
 
   private readonly destroyRef = inject(DestroyRef);
@@ -317,15 +324,16 @@ export class ListGrid {
   protected onPageChange(page: number): void {
     this.pageChange.emit({
       page,
-      pageSize: this.pageSize(),
+      pageSize: this.normalizedPageSize(),
     });
   }
 
   protected onPageSizeChange(event: Event): void {
-    const pageSize = Number((event.target as HTMLSelectElement).value);
-    if (!this.pageSizeOptions.includes(pageSize)) return;
+    const requestedPageSize = Number((event.target as HTMLSelectElement).value);
+    const pageSize = normalizePageSize(requestedPageSize);
+    if (pageSize !== requestedPageSize || !this.pageSizeOptions().includes(pageSize)) return;
 
-    const firstItemIndex = (this.page() - 1) * this.pageSize();
+    const firstItemIndex = (this.normalizedPage() - 1) * this.normalizedPageSize();
     this.pageChange.emit({
       page: Math.floor(firstItemIndex / pageSize) + 1,
       pageSize,

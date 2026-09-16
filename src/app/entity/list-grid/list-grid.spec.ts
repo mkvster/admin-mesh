@@ -58,6 +58,40 @@ describe('ListGrid', () => {
     expect(changes).toEqual([{ page: 1, pageSize: 25 }]);
   });
 
+  it('shows a page size from the URL even when it is not a preset option', () => {
+    fixture.componentRef.setInput('rows', [{ id: 4 }]);
+    fixture.componentRef.setInput('totalCount', 25);
+    fixture.componentRef.setInput('page', 4);
+    fixture.componentRef.setInput('pageSize', 1);
+    fixture.detectChanges();
+
+    const select: HTMLSelectElement = fixture.nativeElement.querySelector('.page-size-select');
+    expect(select.value).toBe('1');
+  });
+
+  it('caps an oversized page size before rendering the selector', () => {
+    fixture.componentRef.setInput('rows', [{ id: 1 }]);
+    fixture.componentRef.setInput('totalCount', 25);
+    fixture.componentRef.setInput('pageSize', 79879879887987);
+    fixture.detectChanges();
+
+    const select: HTMLSelectElement = fixture.nativeElement.querySelector('.page-size-select');
+    expect(Array.from(select.options, (option) => option.value)).toContain('500');
+    expect(select.value).toBe('500');
+  });
+
+  it('keeps an unsafe page number from producing a huge range', () => {
+    fixture.componentRef.setInput('rows', []);
+    fixture.componentRef.setInput('totalCount', 25);
+    fixture.componentRef.setInput('page', 1.3495095095802959e31);
+    fixture.componentRef.setInput('pageSize', 500);
+    fixture.detectChanges();
+
+    const range = fixture.nativeElement.querySelector('.page-range').textContent.trim();
+    expect(range).not.toContain('e+');
+    expect(range).toContain('25 of 25');
+  });
+
   it('emits a delete row action when delete actions are enabled', () => {
     const row = { customerId: 7, name: 'Ada' };
     const actions: unknown[] = [];

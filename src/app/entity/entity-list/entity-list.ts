@@ -67,6 +67,7 @@ import { EntityForm } from '../entity-form/entity-form';
 import { EntityFormMode } from '../entity-types';
 import { EntityListContextStore } from '../entity-list-context';
 import { EntityLocateResult } from '../entity-types';
+import { DEFAULT_PAGE_SIZE, normalizePageNumber, normalizePageSize } from '../pagination';
 import {
   AdminToolbarActions,
   AdminToolbarState,
@@ -598,8 +599,10 @@ export class EntityList {
   }
 
   private readListQuery(params: ParamMap, resource: string, listId: string): ListQuery {
-    const page = this.readPositiveInt(params.get('page'), 1);
-    const pageSize = this.readPositiveInt(params.get('pageSize'), 25);
+    const page = normalizePageNumber(this.readPositiveInt(params.get('page'), 1));
+    const pageSize = normalizePageSize(
+      this.readPositiveInt(params.get('pageSize'), DEFAULT_PAGE_SIZE),
+    );
     const sort = this.parseSort(params.get('sort'), params.get('dir'));
     const filters = parseListFilter(params.get('filter'), { resource, listId })?.items ?? [];
 
@@ -673,15 +676,17 @@ export class EntityList {
   }
 
   private ensureValidPage(query: ListQuery, data: ListQueryResult): void {
-    if (query.page <= 1 || data.items.length > 0 || data.totalCount === 0) {
+    const lastPage = Math.max(1, Math.ceil(data.totalCount / query.pageSize));
+    if (query.page <= lastPage) {
       return;
     }
 
     this.asyncErrorHandler.run(
       this.router.navigate([], {
         relativeTo: this.route,
-        queryParams: { page: query.page - 1 },
+        queryParams: { page: lastPage },
         queryParamsHandling: 'merge',
+        replaceUrl: true,
       }),
       'Entity list page correction failed',
     );
