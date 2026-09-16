@@ -7,24 +7,8 @@
   @if (navigation.status === 'error') {
     <app-error-state [message]="navigation.message" />
   } @else if (selection(); as selected) {
-    <mat-card appearance="raised" class="node-card">
-      <mat-card-header>
-        <mat-card-title class="node-title">
-          @if (selected.node.icon) {
-            <mat-icon [style.color]="selected.node.icon.color">
-              {{ selected.node.icon.name }}
-            </mat-icon>
-          }
-
-          @if (isEditRoute()) {
-            <span>{{ editTitle() }}</span>
-          } @else {
-            <span>{{ selected.node.title }}</span>
-          }
-        </mat-card-title>
-      </mat-card-header>
-
-      <mat-card-content class="node-card-content">
+    <app-layout-card class="node-panel" contentPadding="0">
+      <div class="node-panel-content">
         @if (isEditRoute() && selected.node.type === 'rest-entity' && editMetadata(); as metadata) {
           <app-entity-form
             [resource]="selected.node.config.resource"
@@ -44,8 +28,8 @@
             }
           }
         }
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </app-layout-card>
   } @else {
     <app-not-found-state title="Node not found" message="The requested node does not exist." />
   }

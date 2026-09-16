@@ -92,34 +92,3 @@
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
-
-.filters-group {
-  align-items: center;
-  border-radius: 999px;
-  display: inline-flex;
-  gap: 2px;
-  padding: 0 2px;
-}
-
-.filters-group.filters-active {
-  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
-}
-
-.filters-action {
-  flex: 0 0 116px;
-  justify-content: flex-start;
-  width: 116px;
-}
-
-@media (max-width: 768px) {
-  .filters-action {
-    flex-basis: 40px;
-    min-width: 40px;
-    padding: 0 8px;
-    width: 40px;
-  }
-
-  .filters-action .list-action-label {
-    display: none;
-  }
-}

@@ -24,6 +24,40 @@ describe('ListGrid', () => {
     expect(component).toBeTruthy();
   });
 
+  it('renders a right-aligned compact page range and emits navigation changes', () => {
+    const changes: unknown[] = [];
+    component.pageChange.subscribe((change) => changes.push(change));
+    fixture.componentRef.setInput('rows', [{ id: 1 }]);
+    fixture.componentRef.setInput('totalCount', 25);
+    fixture.componentRef.setInput('pageSize', 10);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.page-range').textContent.trim()).toBe(
+      '1–10 of 25',
+    );
+    expect(fixture.nativeElement.querySelector('mat-paginator')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.page-size-label').textContent.trim()).toBe('Rows');
+    fixture.nativeElement.querySelector('[aria-label="Next page"]').click();
+
+    expect(changes).toEqual([{ page: 2, pageSize: 10 }]);
+  });
+
+  it('emits a page-size change from the Rows selector', () => {
+    const changes: unknown[] = [];
+    component.pageChange.subscribe((change) => changes.push(change));
+    fixture.componentRef.setInput('rows', [{ id: 21 }]);
+    fixture.componentRef.setInput('totalCount', 25);
+    fixture.componentRef.setInput('page', 3);
+    fixture.componentRef.setInput('pageSize', 10);
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('.page-size-select');
+    select.value = '25';
+    select.dispatchEvent(new Event('change'));
+
+    expect(changes).toEqual([{ page: 1, pageSize: 25 }]);
+  });
+
   it('emits a delete row action when delete actions are enabled', () => {
     const row = { customerId: 7, name: 'Ada' };
     const actions: unknown[] = [];

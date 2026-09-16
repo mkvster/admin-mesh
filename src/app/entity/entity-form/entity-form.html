@@ -7,7 +7,12 @@
     <app-error-state message="Unable to load this entity form." />
   } @else {
     {{ initializeForm(current) }}
-    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <form
+      [formGroup]="form"
+      [class.editable-form]="mode() !== 'view'"
+      (ngSubmit)="submit()"
+      novalidate
+    >
       <div class="form-fields" [style.--form-columns]="columns()">
         @for (entry of fields(); track entry.field.name) {
           <div

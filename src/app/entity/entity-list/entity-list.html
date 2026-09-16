@@ -38,46 +38,6 @@
             (sortChange)="onSortChange($event)"
             (rowAction)="onRowAction($event, state)"
           >
-            <div list-grid-actions>
-              @if (state.data.items.length > 0) {
-                <div class="filters-group" [class.filters-active]="state.filters.length > 0">
-                  <button
-                    mat-button
-                    type="button"
-                    class="filters-action"
-                    aria-label="Open filters"
-                    (click)="openFilters(state)"
-                  >
-                    <mat-icon aria-hidden="true">filter_alt</mat-icon>
-                    <span class="list-action-label">
-                      Filter
-                      @if (state.filters.length > 0) {
-                        <span aria-hidden="true">
-                          · {{ filterCountLabel(state.filters.length) }}</span
-                        >
-                      }
-                    </span>
-                  </button>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    class="clear-filters-action"
-                    aria-label="Clear all filters"
-                    [disabled]="state.filters.length === 0"
-                    (click)="clearFilters()"
-                  >
-                    <mat-icon aria-hidden="true">close</mat-icon>
-                  </button>
-                </div>
-              }
-              @if (state.metadata.permissions.create) {
-                <button mat-flat-button type="button" (click)="openCreate(state)">
-                  Add {{ state.metadata.singularTitle }}
-                </button>
-              }
-              <!-- Future list actions, such as Add, belong beside the filter group. -->
-            </div>
-
             <div list-grid-empty class="empty-state" role="status" aria-live="polite">
               <mat-icon aria-hidden="true">search_off</mat-icon>
               @if (state.filters.length > 0) {

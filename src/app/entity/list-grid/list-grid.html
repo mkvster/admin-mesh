@@ -189,18 +189,39 @@
 ></span>
 
 <div class="grid-footer">
-  <div class="grid-actions">
-    <ng-content select="[list-grid-actions]" />
-  </div>
-
   @if (totalCount() > 0) {
-    <mat-paginator
-      [length]="totalCount()"
-      [pageIndex]="page() - 1"
-      [pageSize]="pageSize()"
-      [pageSizeOptions]="[10, 25, 50, 100]"
-      (page)="onPageChange($event)"
-      aria-label="Select list page"
-    />
+    <nav class="pagination" aria-label="List pagination">
+      <span class="page-range" aria-live="polite">{{ pageRange() }}</span>
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Previous page"
+        [disabled]="!canGoToPreviousPage()"
+        (click)="onPageChange(page() - 1)"
+      >
+        <mat-icon aria-hidden="true">chevron_left</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Next page"
+        [disabled]="!canGoToNextPage()"
+        (click)="onPageChange(page() + 1)"
+      >
+        <mat-icon aria-hidden="true">chevron_right</mat-icon>
+      </button>
+      <label class="page-size-label" for="page-size">Rows</label>
+      <select
+        id="page-size"
+        class="page-size-select"
+        aria-label="Rows per page"
+        [value]="pageSize()"
+        (change)="onPageSizeChange($event)"
+      >
+        @for (option of pageSizeOptions; track option) {
+          <option [value]="option">{{ option }}</option>
+        }
+      </select>
+    </nav>
   }
 </div>

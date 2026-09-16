@@ -67,6 +67,10 @@ import { EntityForm } from '../entity-form/entity-form';
 import { EntityFormMode } from '../entity-types';
 import { EntityListContextStore } from '../entity-list-context';
 import { EntityLocateResult } from '../entity-types';
+import {
+  AdminToolbarActions,
+  AdminToolbarState,
+} from '../../layout/admin-layout/admin-toolbar-state';
 
 type EntityListState =
   | { status: 'loading' }
@@ -105,6 +109,7 @@ export class EntityList {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly asyncErrorHandler = inject(AsyncErrorHandler);
+  private readonly toolbarState = inject(AdminToolbarState);
   private readonly entityMetadataStore = inject(EntityMetadataStore);
   private readonly listMetadataStore = inject(ListMetadataStore);
   private readonly fieldMetadataResolver = inject(FieldMetadataResolver);
@@ -152,6 +157,26 @@ export class EntityList {
   private locateAttempted = false;
 
   constructor() {
+    effect((onCleanup) => {
+      const current = this.state();
+      if (current.status !== 'loaded' || this.formMode()) {
+        this.toolbarState.clearActions();
+        return;
+      }
+
+      const actions: AdminToolbarActions = {
+        addLabel: `Add ${current.metadata.singularTitle}`,
+        canAdd: current.metadata.permissions.create,
+        filterCount: current.filters.length,
+        add: () => this.openCreateFromToolbar(),
+        editFilters: () => this.openFiltersFromToolbar(),
+        clearFilters: () => this.clearFilters(),
+      };
+
+      this.toolbarState.setActions(actions);
+      onCleanup(() => this.toolbarState.clearActions(actions));
+    });
+
     effect(() => {
       const current = this.state();
       const grid = this.listGrid();
@@ -179,6 +204,20 @@ export class EntityList {
         });
       }
     });
+  }
+
+  private openCreateFromToolbar(): void {
+    const current = this.state();
+    if (current.status === 'loaded' && !this.formMode()) {
+      this.openCreate(current);
+    }
+  }
+
+  private openFiltersFromToolbar(): void {
+    const current = this.state();
+    if (current.status === 'loaded' && !this.formMode()) {
+      this.openFilters(current);
+    }
   }
 
   private locateSavedEntity(current: Extract<EntityListState, { status: 'loaded' }>): void {
@@ -556,10 +595,6 @@ export class EntityList {
       }),
       'Entity list filter clearing navigation failed',
     );
-  }
-
-  protected filterCountLabel(count: number): string {
-    return count > 9 ? '9+' : String(count);
   }
 
   private readListQuery(params: ParamMap, resource: string, listId: string): ListQuery {

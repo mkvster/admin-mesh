@@ -9,6 +9,7 @@ import { AdminNode, NavigationSection } from '../navigation-types';
 import { RouterLink } from '@angular/router';
 import { ErrorState } from '../../shared/error-state/error-state';
 import { AsyncErrorHandler } from '../../shared/async-error-handler';
+import { LayoutCard } from '../../shared/layout-card/layout-card';
 
 @Component({
   selector: 'app-navigation',
@@ -19,6 +20,7 @@ import { AsyncErrorHandler } from '../../shared/async-error-handler';
     MatProgressSpinnerModule,
     RouterLink,
     ErrorState,
+    LayoutCard,
   ],
   templateUrl: './navigation.html',
   styleUrl: './navigation.scss',

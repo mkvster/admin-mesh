@@ -1,0 +1,69 @@
+<mat-menu #mobileFilterMenu="matMenu">
+  <button mat-menu-item type="button" (click)="actions()?.editFilters()">
+    <mat-icon>tune</mat-icon>
+    <span>Edit filters</span>
+  </button>
+  <button
+    mat-menu-item
+    type="button"
+    [disabled]="(actions()?.filterCount ?? 0) === 0"
+    (click)="actions()?.clearFilters()"
+  >
+    <mat-icon>filter_alt_off</mat-icon>
+    <span>Clear filters</span>
+  </button>
+</mat-menu>
+
+<mat-toolbar>
+  <button
+    mat-icon-button
+    class="mobile-menu-button"
+    aria-label="Open menu"
+    (click)="toggleSidenav.emit()"
+  >
+    <mat-icon>menu</mat-icon>
+  </button>
+  <app-breadcrumbs class="mobile-breadcrumbs" [items]="breadcrumbs()"></app-breadcrumbs>
+  <button
+    mat-icon-button
+    type="button"
+    class="overflow-menu-button"
+    aria-label="More options"
+    [matMenuTriggerFor]="mobileMenu"
+  >
+    <mat-icon>more_vert</mat-icon>
+  </button>
+</mat-toolbar>
+
+<mat-menu #mobileMenu="matMenu">
+  <div class="menu-brand">AdminMesh</div>
+  <button mat-menu-item type="button" [routerLink]="['/']" (click)="navigateHome.emit()">
+    <mat-icon>home</mat-icon>
+    <span>Home</span>
+  </button>
+  <mat-divider></mat-divider>
+  @if (actions(); as actions) {
+    @if (actions.canAdd) {
+      <button mat-menu-item type="button" (click)="actions.add()">
+        <mat-icon>add</mat-icon>
+        <span>{{ actions.addLabel }}</span>
+      </button>
+    }
+    <button mat-menu-item type="button" [matMenuTriggerFor]="mobileFilterMenu">
+      <mat-icon [fontSet]="actions.filterCount > 0 ? 'material-icons' : 'material-icons-outlined'">
+        filter_alt
+      </mat-icon>
+      <span>Filter</span>
+    </button>
+  }
+  <button
+    mat-menu-item
+    type="button"
+    class="theme-toggle"
+    (click)="themeState.toggle()"
+    [attr.aria-label]="themeState.isDark() ? 'Light theme' : 'Dark theme'"
+  >
+    <mat-icon>{{ themeState.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    <span>{{ themeState.isDark() ? 'Light theme' : 'Dark theme' }}</span>
+  </button>
+</mat-menu>

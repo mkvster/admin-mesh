@@ -5,8 +5,6 @@ import { Router } from '@angular/router';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { of, switchMap } from 'rxjs';
 import { NavigationState } from '../navigation/navigation-state';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EntityList } from '../entity/entity-list/entity-list';
 import { ErrorState } from '../shared/error-state/error-state';
@@ -14,17 +12,17 @@ import { NotFoundState } from '../shared/not-found-state/not-found-state';
 import { EntityForm } from '../entity/entity-form/entity-form';
 import { EntityMetadataStore } from '../entity/entity-metadata-store';
 import { EntityListContextStore } from '../entity/entity-list-context';
+import { LayoutCard } from '../shared/layout-card/layout-card';
 
 @Component({
   selector: 'app-node-host',
   imports: [
-    MatCardModule,
-    MatIconModule,
     MatProgressSpinnerModule,
     EntityList,
     ErrorState,
     NotFoundState,
     EntityForm,
+    LayoutCard,
   ],
   templateUrl: './node-host.html',
   styleUrl: './node-host.scss',
@@ -72,12 +70,6 @@ export class NodeHost {
     ),
     { initialValue: null },
   );
-  protected readonly editTitle = computed(() => {
-    const metadata = this.editMetadata();
-    const id = this.entityId();
-    return metadata && id ? `Edit ${metadata.singularTitle} ${id}` : 'Edit entity';
-  });
-
   constructor() {
     effect(() => {
       const selected = this.selection();

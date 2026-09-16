@@ -1,0 +1,48 @@
+:host {
+  display: block;
+  flex: 0 0 auto;
+}
+
+mat-toolbar {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.brand {
+  color: inherit;
+  font-size: 20px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.toolbar-divider {
+  height: 32px;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.toolbar-action,
+.desktop-theme-toggle {
+  align-items: center;
+  box-sizing: border-box;
+  display: inline-flex;
+  flex: 0 0 48px;
+  height: 48px;
+  justify-content: center;
+  padding: 10px;
+  width: 48px;
+}
+
+.toolbar-action mat-icon,
+.desktop-theme-toggle mat-icon {
+  display: block;
+  flex: 0 0 28px;
+  font-size: 28px;
+  height: 28px;
+  line-height: 28px;
+  width: 28px;
+}

@@ -1,10 +1,13 @@
 :host {
   display: block;
-  padding: 16px 12px;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 8px 6px;
 }
 
 mat-accordion {
   display: block;
+  height: 100%;
 }
 
 .loading-state {
@@ -17,11 +20,18 @@ mat-accordion {
 }
 
 mat-expansion-panel {
-  margin-bottom: 8px;
+  --mat-expansion-container-background-color: transparent;
+  --mat-expansion-container-elevation-shadow: none;
+  --mat-expansion-container-shape: 0;
+  --mat-expansion-header-collapsed-state-height: 52px;
+  --mat-expansion-header-expanded-state-height: 52px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant, #d9dce3);
+  margin: 0;
 }
 
 mat-expansion-panel-header.has-selected-node {
-  background-color: color-mix(in srgb, var(--mat-sys-primary, #1976d2) 7%, transparent);
+  background-color: transparent;
+  font-weight: 600;
 }
 
 mat-nav-list {
@@ -49,6 +59,7 @@ button.mat-mdc-list-item .mat-mdc-list-item-unscoped-content {
 
 button.mat-mdc-list-item.is-active {
   background-color: color-mix(in srgb, var(--mat-sys-primary, #1976d2) 14%, transparent);
+  color: var(--mat-sys-primary, #1976d2);
 }
 
 button.mat-mdc-list-item.is-active .mat-mdc-list-item-unscoped-content {

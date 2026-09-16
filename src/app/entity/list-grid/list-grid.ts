@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import { ConnectedPosition, CdkOverlayOrigin, OverlayModule } from '@angular/cdk/overlay';
 import { MatButtonModule } from '@angular/material/button';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -55,7 +54,6 @@ interface ReferencePreviewTarget {
   selector: 'app-list-grid',
   imports: [
     MatButtonModule,
-    MatPaginatorModule,
     MatTableModule,
     MatIconModule,
     MatTooltipModule,
@@ -68,6 +66,8 @@ interface ReferencePreviewTarget {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListGrid {
+  protected readonly pageSizeOptions = [10, 25, 50, 100];
+
   readonly metadata = input.required<ListMetadata>();
   readonly rows = input.required<Record<string, unknown>[]>();
   readonly totalCount = input.required<number>();
@@ -89,6 +89,20 @@ export class ListGrid {
     { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -8 },
   ];
   protected readonly activeReference = signal<ReferencePreviewTarget | null>(null);
+
+  protected readonly pageRange = computed(() => {
+    const total = this.totalCount();
+    if (total === 0) return '';
+
+    const start = (this.page() - 1) * this.pageSize() + 1;
+    const end = Math.min(this.page() * this.pageSize(), total);
+    return `${start}–${end} of ${total}`;
+  });
+
+  protected readonly canGoToPreviousPage = computed(() => this.page() > 1);
+  protected readonly canGoToNextPage = computed(
+    () => this.page() * this.pageSize() < this.totalCount(),
+  );
 
   private readonly destroyRef = inject(DestroyRef);
   private hoverTimer: ReturnType<typeof setTimeout> | undefined;
@@ -300,10 +314,21 @@ export class ListGrid {
     this.sortChange.emit({ sort: nextSort });
   }
 
-  protected onPageChange(event: PageEvent): void {
+  protected onPageChange(page: number): void {
     this.pageChange.emit({
-      page: event.pageIndex + 1,
-      pageSize: event.pageSize,
+      page,
+      pageSize: this.pageSize(),
+    });
+  }
+
+  protected onPageSizeChange(event: Event): void {
+    const pageSize = Number((event.target as HTMLSelectElement).value);
+    if (!this.pageSizeOptions.includes(pageSize)) return;
+
+    const firstItemIndex = (this.page() - 1) * this.pageSize();
+    this.pageChange.emit({
+      page: Math.floor(firstItemIndex / pageSize) + 1,
+      pageSize,
     });
   }
 

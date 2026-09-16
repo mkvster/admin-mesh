@@ -1,0 +1,30 @@
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  @for (item of items(); track $index; let last = $last) {
+    @if (item.route) {
+      <a
+        mat-button
+        class="breadcrumb-item"
+        [class.active]="item.active"
+        [attr.href]="item.route"
+        [attr.aria-current]="item.active ? 'page' : null"
+        (click)="navigate($event, item)"
+      >
+        @if (item.icon; as icon) {
+          <mat-icon [style.color]="icon.color ?? null">{{ icon.name }}</mat-icon>
+        }
+        <span>{{ item.text }}</span>
+      </a>
+    } @else {
+      <span class="breadcrumb-item" [class.active]="item.active">
+        @if (item.icon; as icon) {
+          <mat-icon [style.color]="icon.color ?? null">{{ icon.name }}</mat-icon>
+        }
+        <span>{{ item.text }}</span>
+      </span>
+    }
+
+    @if (!last) {
+      <mat-icon class="separator" aria-hidden="true">chevron_right</mat-icon>
+    }
+  }
+</nav>
