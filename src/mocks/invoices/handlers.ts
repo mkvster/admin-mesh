@@ -51,7 +51,7 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
         },
       ],
       permissions: { create: true, edit: true, delete: true },
-      views: { list: 'main', form: 'edit', deleteForm: 'invoiceBriefView' },
+      views: { list: 'main', form: 'invoiceBriefView', deleteForm: 'invoiceBriefView' },
     });
   }),
   http.get(`${apiBaseUrl}/entities/invoices/lists/main/metadata`, async () => {
@@ -125,6 +125,12 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
     }));
 
     return HttpResponse.json(applyListQuery(rows, query));
+  }),
+  http.patch(`${apiBaseUrl}/entities/invoices/:id`, async ({ params, request }) => {
+    const invoice = invoices.find((item) => String(item.invoiceId) === String(params['id']));
+    if (!invoice) return new HttpResponse(null, { status: 404 });
+    Object.assign(invoice, (await request.json()) as Record<string, unknown>);
+    return HttpResponse.json(invoice);
   }),
   http.delete(`${apiBaseUrl}/entities/invoices/:id`, async ({ params }) => {
     const removed = removeMockEntity(invoices, 'invoiceId', String(params['id']));

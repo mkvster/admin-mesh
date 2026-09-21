@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, model } from '@ang
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { FilterOperator, RelativePastPeriod } from '../../entity-types';
-import { DateValueInput } from '../date-value-input/date-value-input';
+import { DateValueInput } from '../../field-editors/date-value-input/date-value-input';
 
 @Component({
   selector: 'app-date-filter-editor',

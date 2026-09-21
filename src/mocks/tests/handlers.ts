@@ -15,7 +15,7 @@ export const createTestHandlers = (apiBaseUrl: string) => [
       idField: 'testId',
       fields: [
         { name: 'testId', label: 'ID', type: 'integer' },
-        { name: 'name', label: 'Name', type: 'string' },
+        { name: 'name', label: 'Name', type: 'string', required: true },
         {
           name: 'status',
           label: 'Status',
@@ -39,6 +39,22 @@ export const createTestHandlers = (apiBaseUrl: string) => [
       },
     });
   }),
+  http.get(`${apiBaseUrl}/entities/tests/forms/edit/metadata`, async () => {
+    await delay(randomMockDelay());
+
+    return HttpResponse.json({
+      projection: 'edit',
+      layout: {
+        columns: 2,
+        items: [{ field: 'name' }, { field: 'status' }],
+      },
+    });
+  }),
+  http.get(`${apiBaseUrl}/entities/tests/:id`, async ({ params }) => {
+    await delay(randomMockDelay());
+    const test = tests.find((item) => String(item.testId) === String(params['id']));
+    return test ? HttpResponse.json(test) : new HttpResponse(null, { status: 404 });
+  }),
   http.get(`${apiBaseUrl}/entities/tests/lists/main/metadata`, async () => {
     await delay(randomMockDelay());
 
@@ -55,6 +71,20 @@ export const createTestHandlers = (apiBaseUrl: string) => [
 
     const query = (await request.json()) as ListQuery;
     return HttpResponse.json(applyListQuery(tests, query));
+  }),
+  http.post(`${apiBaseUrl}/entities/tests`, async ({ request }) => {
+    const value = (await request.json()) as Record<string, unknown>;
+    const testId = Math.max(...tests.map((item) => item.testId)) + 1;
+    const { testId: _clientProvidedId, ...attributes } = value;
+    const test = { testId, ...attributes } as (typeof tests)[number];
+    tests.push(test);
+    return HttpResponse.json(test, { status: 201 });
+  }),
+  http.patch(`${apiBaseUrl}/entities/tests/:id`, async ({ params, request }) => {
+    const test = tests.find((item) => String(item.testId) === String(params['id']));
+    if (!test) return new HttpResponse(null, { status: 404 });
+    Object.assign(test, (await request.json()) as Record<string, unknown>);
+    return HttpResponse.json(test);
   }),
   http.delete(`${apiBaseUrl}/entities/tests/:id`, async ({ params }) => {
     const removed = removeMockEntity(tests, 'testId', String(params['id']));

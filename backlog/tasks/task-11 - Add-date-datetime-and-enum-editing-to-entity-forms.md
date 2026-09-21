@@ -1,15 +1,15 @@
 ---
 id: TASK-11
 title: 'Add date, datetime, and enum editing to entity forms'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-04 13:59'
-updated_date: '2026-09-16 02:32'
+updated_date: '2026-09-21 15:54'
 labels: []
 milestone: s-003
 dependencies:
   - TASK-10
-ordinal: 1000
+ordinal: 1333.3333333333333
 ---
 
 ## Description

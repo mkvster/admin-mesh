@@ -23,24 +23,25 @@
                 : 'span ' + (entry.item.span ?? 1)
             "
           >
-            @if (
-              !entry.item.hideLabel && !(isEditable(entry.field) && entry.field.type === 'string')
-            ) {
+            @if (!entry.item.hideLabel && !isEditable(entry.field)) {
               <label [for]="entry.field.name">{{ entry.field.label }}</label>
             }
             @if (isEditable(entry.field); as editable) {
-              @if (entry.field.type === 'reference') {
-                <mat-form-field appearance="outline">
-                  <mat-select
-                    [id]="entry.field.name"
-                    [formControlName]="entry.field.name"
-                    [placeholder]="'Select ' + entry.field.label"
-                  >
-                    @for (option of referenceOptions()[entry.field.name]; track option.value) {
-                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
+              @if (entry.field.type === 'date' || entry.field.type === 'datetime') {
+                <app-date-value-input
+                  [label]="entry.field.label"
+                  [value]="dateValue(entry.field)"
+                  [datetime]="entry.field.type === 'datetime'"
+                  (dateChange)="updateDateValue(entry.field, $event)"
+                />
+              } @else if (entry.field.type === 'enum') {
+                <app-enum-value-input
+                  [label]="entry.field.label"
+                  [options]="entry.field.values ?? []"
+                  [value]="control(entry.field)?.value"
+                  [requiredError]="!!control(entry.field)?.hasError('required')"
+                  (valueChange)="updateEnumValue(entry.field, $event)"
+                />
               } @else if (entry.field.type === 'boolean') {
                 <mat-checkbox [id]="entry.field.name" [formControlName]="entry.field.name">{{
                   entry.field.label
@@ -64,6 +65,7 @@
                 />
               } @else {
                 <mat-form-field appearance="outline">
+                  <mat-label>{{ entry.field.label }}</mat-label>
                   <input
                     matInput
                     [id]="entry.field.name"

@@ -4,11 +4,12 @@ title: Add basic entity create and edit forms
 status: Done
 assignee: []
 created_date: '2026-09-04 13:54'
-updated_date: '2026-09-10 23:53'
+updated_date: '2026-09-21 15:54'
 labels: []
 milestone: s-003
 dependencies:
   - TASK-9
+ordinal: 666.6666666666666
 ---
 
 ## Description

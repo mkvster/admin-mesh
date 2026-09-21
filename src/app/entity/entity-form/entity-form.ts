@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   input,
   output,
@@ -17,7 +16,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { EntityApi } from '../entity-api';
 import { EntityMetadataStore } from '../entity-metadata-store';
 import { EntityPreviewDataStore } from '../entity-preview-data-store';
@@ -25,6 +23,8 @@ import { FieldMetadataResolver } from '../field-metadata-resolver';
 import { FormMetadataStore } from '../form-metadata-store';
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 import { StringValueInput } from '../field-editors/string-value-input/string-value-input';
+import { DateValueInput } from '../field-editors/date-value-input/date-value-input';
+import { EnumValueInput } from '../field-editors/enum-value-input/enum-value-input';
 import { ErrorState } from '../../shared/error-state/error-state';
 import { EntityFormMode, FieldMetadata, FormLayoutItem, FormMetadata } from '../entity-types';
 
@@ -42,8 +42,9 @@ type FormState =
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     StringValueInput,
+    DateValueInput,
+    EnumValueInput,
     EntityFieldValue,
     ErrorState,
   ],
@@ -65,9 +66,6 @@ export class EntityForm {
   private readonly previewDataStore = inject(EntityPreviewDataStore);
   private readonly fieldMetadataResolver = inject(FieldMetadataResolver);
   private readonly cache = inject(AdminCache);
-  readonly referenceOptions = signal<Record<string, { value: string | number; label: string }[]>>(
-    {},
-  );
   readonly saving = computed(() => this.saveState() === 'saving');
   readonly errorMessage = computed(() =>
     this.saveState() === 'error' ? 'Unable to save this entity.' : null,
@@ -114,32 +112,6 @@ export class EntityForm {
   readonly form = new FormGroup<Record<string, FormControl<unknown>>>({});
   private initializedFor: FormState['status'] = 'loading';
 
-  constructor() {
-    effect(() => {
-      const state = this.state();
-      if (state.status !== 'ready' || this.mode() !== 'create') return;
-      for (const field of state.metadata.fields) {
-        if (field.type !== 'reference' || !field.reference || this.referenceOptions()[field.name])
-          continue;
-        this.api
-          .queryList(field.reference.resource, field.reference.listId, { page: 1, pageSize: 100 })
-          .subscribe({
-            next: (result) => {
-              const options = result.items.flatMap((item) => {
-                const value = item[field.reference!.displayField];
-                const id = item[field.name] ?? item['id'];
-                return (typeof id === 'string' || typeof id === 'number') && value != null
-                  ? [{ value: id, label: String(value) }]
-                  : [];
-              });
-              this.referenceOptions.update((current) => ({ ...current, [field.name]: options }));
-            },
-            error: (cause: unknown) => console.error('Reference options loading failed', cause),
-          });
-      }
-    });
-  }
-
   protected readonly fields = computed(() => {
     const state = this.state();
     if (state.status !== 'ready') return [];
@@ -165,6 +137,11 @@ export class EntityForm {
     return typeof value === 'string' ? value : '';
   }
 
+  protected dateValue(field: FieldMetadata): Date | null {
+    const value = this.control(field)?.value;
+    return value instanceof Date ? value : null;
+  }
+
   protected onStringBlur(field: FieldMetadata): void {
     this.control(field)?.markAsTouched();
   }
@@ -172,8 +149,9 @@ export class EntityForm {
   protected isEditable(field: FieldMetadata): boolean {
     return (
       this.mode() !== 'view' &&
-      (['string', 'integer', 'decimal', 'boolean'].includes(field.type) ||
-        (this.mode() === 'create' && field.type === 'reference')) &&
+      ['string', 'integer', 'decimal', 'boolean', 'date', 'datetime', 'enum'].includes(
+        field.type,
+      ) &&
       !(this.mode() === 'edit' && field.readOnlyOnUpdate)
     );
   }
@@ -190,13 +168,28 @@ export class EntityForm {
     control.updateValueAndValidity();
   }
 
+  protected updateDateValue(field: FieldMetadata, value: Date): void {
+    this.control(field)?.setValue(value);
+    this.control(field)?.markAsDirty();
+  }
+
+  protected updateEnumValue(field: FieldMetadata, value: unknown): void {
+    this.control(field)?.setValue(value);
+    this.control(field)?.markAsDirty();
+  }
+
   protected submit(): void {
     if (this.state().status !== 'ready') return;
     this.form.markAllAsTouched();
     if (this.form.invalid || this.saving()) return;
     const state = this.state();
     if (state.status !== 'ready') return;
-    const payload = { ...state.entity, ...this.form.getRawValue() };
+    const payload = { ...state.entity };
+    for (const field of state.metadata.fields) {
+      const value = this.form.controls[field.name]?.value;
+      if (value === undefined) continue;
+      payload[field.name] = this.serializeValue(field, value);
+    }
     this.saveState.set('saving');
     const request =
       this.mode() === 'create'
@@ -232,6 +225,16 @@ export class EntityForm {
       const value = this.coerceValue(field, state.entity[field.name]);
       this.form.addControl(field.name, new FormControl(value, { validators, nonNullable: false }));
     }
+    for (const field of state.metadata.fields) {
+      if (!field.required) continue;
+      const control = this.form.controls[field.name];
+      if (
+        control &&
+        (control.value === null || control.value === undefined || control.value === '')
+      ) {
+        control.markAsTouched();
+      }
+    }
   }
 
   private coerceValue(field: FieldMetadata, value: unknown): unknown {
@@ -239,6 +242,23 @@ export class EntityForm {
     if (field.type === 'integer') return Number.isFinite(Number(value)) ? Number(value) : null;
     if (field.type === 'decimal') return Number.isFinite(Number(value)) ? Number(value) : null;
     if (field.type === 'boolean') return value === true;
+    if (field.type === 'date' || field.type === 'datetime') {
+      if (field.type === 'date' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [year, month, day] = value.split('-').map(Number);
+        return new Date(year, month - 1, day);
+      }
+      const date = new Date(String(value));
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+    if (field.type === 'enum') return value;
     return String(value);
+  }
+
+  private serializeValue(field: FieldMetadata, value: unknown): unknown {
+    if (field.type === 'date' && value instanceof Date) {
+      return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+    }
+    if (field.type === 'datetime' && value instanceof Date) return value.toISOString();
+    return value;
   }
 }

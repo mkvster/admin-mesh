@@ -1,0 +1,38 @@
+@if (datetime()) {
+  <div class="datetime-fields">
+    <mat-form-field appearance="outline"
+      ><mat-label>{{ label() }} date</mat-label
+      ><input
+        matInput
+        [matDatepicker]="datepicker"
+        [(ngModel)]="editableValue"
+        (ngModelChange)="onValueChange($event)"
+        [attr.aria-label]="label() + ' date'" /><mat-datepicker #datepicker /><mat-datepicker-toggle
+        [for]="datepicker"
+        matSuffix /></mat-form-field
+    ><mat-form-field appearance="outline"
+      ><mat-label>{{ label() }} time</mat-label
+      ><input
+        matInput
+        [matTimepicker]="timepicker"
+        [(ngModel)]="editableValue"
+        [ngModelOptions]="{ updateOn: 'blur' }"
+        (ngModelChange)="onValueChange($event)"
+        [attr.aria-label]="label() + ' time'" /><mat-timepicker #timepicker /><mat-timepicker-toggle
+        [for]="timepicker"
+        matSuffix
+    /></mat-form-field>
+  </div>
+} @else {
+  <mat-form-field appearance="outline"
+    ><mat-label>{{ label() }}</mat-label
+    ><input
+      matInput
+      [matDatepicker]="datepicker"
+      [(ngModel)]="editableValue"
+      (ngModelChange)="onValueChange($event)"
+      [attr.aria-label]="label()" /><mat-datepicker #datepicker /><mat-datepicker-toggle
+      [for]="datepicker"
+      matSuffix
+  /></mat-form-field>
+}
