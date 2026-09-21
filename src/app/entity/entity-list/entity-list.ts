@@ -95,6 +95,7 @@ type EntityListState =
     MatProgressSpinnerModule,
     MatButtonModule,
     ListGrid,
+    FilterDialog,
     ErrorState,
     EntityForm,
   ],
@@ -143,6 +144,17 @@ export class EntityList {
     const mode = this.queryParams().get('entityMode');
     return mode === 'create' ? mode : null;
   });
+  protected readonly filterMode = computed(() => this.queryParams().get('filterMode') === 'true');
+  protected readonly filterEditorData = computed(() => {
+    const current = this.state();
+    return current.status === 'loaded'
+      ? {
+          fields: current.listMetadata.fields,
+          filters: current.filters,
+          scope: { resource: current.resource, listId: current.metadata.views.list },
+        }
+      : null;
+  });
   protected readonly formId = computed(() => {
     const current = this.state();
     return current.status === 'loaded'
@@ -153,6 +165,7 @@ export class EntityList {
   });
   protected readonly formEntityId = computed(() => this.queryParams().get('entityId') ?? undefined);
   private readonly listGrid = viewChild(ListGrid, { read: ElementRef });
+  private readonly filterEditor = viewChild(FilterDialog);
   private readonly contextToken = this.readContextToken();
   private readonly savedEntityId = signal<string | number | null>(this.readSavedEntityId());
   private locateAttempted = false;
@@ -162,6 +175,22 @@ export class EntityList {
       const current = this.state();
       if (current.status !== 'loaded' || this.formMode()) {
         this.toolbarState.clearActions();
+        return;
+      }
+
+      if (this.filterMode()) {
+        const actions: AdminToolbarActions = {
+          filterEditing: true,
+          addLabel: `Add ${current.metadata.singularTitle}`,
+          canAdd: false,
+          filterCount: current.filters.length,
+          add: () => undefined,
+          editFilters: () => undefined,
+          clearFilters: () => this.clearFilters(),
+          addFilter: () => this.filterEditor()?.addFilter(),
+        };
+        this.toolbarState.setActions(actions);
+        onCleanup(() => this.toolbarState.clearActions(actions));
         return;
       }
 
@@ -538,49 +567,46 @@ export class EntityList {
   }
 
   protected openFilters(state: Extract<EntityListState, { status: 'loaded' }>): void {
-    const dialogRef = this.dialog.open(FilterDialog, {
-      width: 'min(900px, 90vw)',
-      maxWidth: '95vw',
-      maxHeight: 'calc(100vh - 24px)',
-      data: {
-        fields: state.listMetadata.fields,
-        filters: state.filters,
-        scope: {
-          resource: state.resource,
-          listId: state.metadata.views.list,
-        },
-      },
-    });
+    if (state.status !== 'loaded') return;
+    this.asyncErrorHandler.run(
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { filterMode: 'true' },
+        queryParamsHandling: 'merge',
+      }),
+      'Entity list filter editor navigation failed',
+    );
+  }
 
-    dialogRef.afterClosed().subscribe((filters) => {
-      if (filters === undefined) {
-        return;
-      }
+  protected applyFilters(filters: FilterItem[]): void {
+    const current = this.state();
+    if (current.status !== 'loaded') return;
+    const serializedFilter = filters.length
+      ? serializeListFilter(filters, {
+          resource: current.resource,
+          listId: current.metadata.views.list,
+        })
+      : null;
+    if (serializedFilter && serializedFilter.length > MAX_SERIALIZED_FILTER_LENGTH) return;
+    this.asyncErrorHandler.run(
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { page: 1, filter: serializedFilter, filters: null, filterMode: null },
+        queryParamsHandling: 'merge',
+      }),
+      'Entity list filter navigation failed',
+    );
+  }
 
-      const serializedFilter = filters.length
-        ? serializeListFilter(filters, {
-            resource: state.resource,
-            listId: state.metadata.views.list,
-          })
-        : null;
-
-      if (serializedFilter && serializedFilter.length > MAX_SERIALIZED_FILTER_LENGTH) {
-        return;
-      }
-
-      this.asyncErrorHandler.run(
-        this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: {
-            page: 1,
-            filter: serializedFilter,
-            filters: null,
-          },
-          queryParamsHandling: 'merge',
-        }),
-        'Entity list filter navigation failed',
-      );
-    });
+  protected cancelFilterEdit(): void {
+    this.asyncErrorHandler.run(
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { filterMode: null },
+        queryParamsHandling: 'merge',
+      }),
+      'Entity list filter editor closing failed',
+    );
   }
 
   protected clearFilters(): void {
@@ -591,6 +617,7 @@ export class EntityList {
           page: 1,
           filter: null,
           filters: null,
+          filterMode: null,
         },
         queryParamsHandling: 'merge',
       }),

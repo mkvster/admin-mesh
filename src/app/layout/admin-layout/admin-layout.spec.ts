@@ -178,13 +178,14 @@ describe('AdminLayout', () => {
     expect(filterButton.classList.contains('filters-active')).toBe(false);
   });
 
-  it('moves list actions into the mobile overflow menu', async () => {
+  it('moves list actions into the mobile overflow menu and opens filter editing directly', async () => {
+    const editFilters = vi.fn();
     TestBed.inject(AdminToolbarState).setActions({
       addLabel: 'Add Customer',
       canAdd: true,
       filterCount: 1,
       add: () => undefined,
-      editFilters: () => undefined,
+      editFilters,
       clearFilters: () => undefined,
     });
     breakpointState.next({ matches: true, breakpoints: { '(max-width: 768px)': true } });
@@ -208,6 +209,7 @@ describe('AdminLayout', () => {
     expect(menuText).toContain('Add Customer');
     expect(menuText).toContain('Filter');
     expect(menuText).toContain('Dark theme');
+    expect(menuText).not.toContain('Edit filters');
 
     const filterItem = Array.from(menu?.querySelectorAll('button') ?? []).find((button) =>
       button.textContent?.includes('Filter'),
@@ -218,9 +220,59 @@ describe('AdminLayout', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(document.querySelector('.cdk-overlay-container')?.textContent).toContain('Edit filters');
-    expect(document.querySelector('.cdk-overlay-container')?.textContent).toContain(
-      'Clear filters',
+    expect(editFilters).toHaveBeenCalledOnce();
+
+    const themeButton = menu?.querySelector('.theme-toggle');
+    expect(themeButton?.previousElementSibling?.tagName.toLowerCase()).toBe('mat-divider');
+  });
+
+  it('puts filter editor actions in the mobile overflow menu', async () => {
+    const addFilter = vi.fn();
+    const clearFilters = vi.fn();
+    TestBed.inject(AdminToolbarState).setActions({
+      filterEditing: true,
+      addLabel: 'Add Customer',
+      canAdd: false,
+      filterCount: 1,
+      add: () => undefined,
+      editFilters: () => undefined,
+      clearFilters,
+      addFilter,
+    });
+    breakpointState.next({ matches: true, breakpoints: { '(max-width: 768px)': true } });
+    fixture.detectChanges();
+
+    const overflowButton = fixture.nativeElement.querySelector(
+      '.overflow-menu-button',
+    ) as HTMLButtonElement;
+    overflowButton.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const menu = document.querySelector('.cdk-overlay-container .mat-mdc-menu-panel');
+    const menuText = menu?.textContent ?? '';
+    expect(menuText).toContain('Add filter');
+    expect(menuText).toContain('Clear filters');
+    expect(menuText).not.toContain('Add Customer');
+    expect(menuText).not.toContain('Filter');
+
+    const addItem = Array.from(menu?.querySelectorAll('button') ?? []).find((button) =>
+      button.textContent?.includes('Add filter'),
     );
+    const clearItem = Array.from(menu?.querySelectorAll('button') ?? []).find((button) =>
+      button.textContent?.includes('Clear filters'),
+    );
+    addItem?.click();
+    expect(addFilter).toHaveBeenCalledOnce();
+
+    overflowButton.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const reopenedMenu = document.querySelector('.cdk-overlay-container .mat-mdc-menu-panel');
+    const reopenedClearItem = Array.from(reopenedMenu?.querySelectorAll('button') ?? []).find(
+      (button) => button.textContent?.includes('Clear filters'),
+    );
+    reopenedClearItem?.click();
+    expect(clearFilters).toHaveBeenCalledOnce();
   });
 });

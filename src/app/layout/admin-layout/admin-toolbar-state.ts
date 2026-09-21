@@ -1,12 +1,14 @@
 import { Injectable, signal } from '@angular/core';
 
 export interface AdminToolbarActions {
+  filterEditing?: boolean;
   addLabel: string;
   canAdd: boolean;
   filterCount: number;
   add(): void;
   editFilters(): void;
   clearFilters(): void;
+  addFilter?(): void;
 }
 
 @Injectable({ providedIn: 'root' })

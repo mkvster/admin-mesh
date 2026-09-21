@@ -20,6 +20,12 @@
         } @else {
           <app-error-state message="No form is configured for this entity." />
         }
+      } @else if (filterMode()) {
+        <app-filter-editor
+          [data]="filterEditorData()"
+          (applied)="applyFilters($event)"
+          (cancelled)="cancelFilterEdit()"
+        />
       } @else {
         <div class="list-content">
           <app-list-grid

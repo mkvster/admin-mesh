@@ -44,11 +44,15 @@ export class AdminLayout {
   private readonly isCreateMode = computed(
     () => this.router.parseUrl(this.currentUrl()).queryParams['entityMode'] === 'create',
   );
+  private readonly isFilterMode = computed(
+    () => this.router.parseUrl(this.currentUrl()).queryParams['filterMode'] === 'true',
+  );
 
   protected breadcrumbs(mobile: boolean): BreadcrumbItem[] {
     const selected = this.navigationState.selected();
     const entityId = this.editEntityId();
     const isCreating = this.isCreateMode();
+    const isFiltering = this.isFilterMode();
     const home: BreadcrumbItem = {
       text: 'Home',
       icon: { name: 'home' },
@@ -62,7 +66,7 @@ export class AdminLayout {
     const node: BreadcrumbItem = {
       text: selected.node.title,
       icon: selected.node.icon,
-      active: entityId === null && !isCreating,
+      active: entityId === null && !isCreating && !isFiltering,
       route: this.currentNodeUrl(selected),
       onNavigate: () => this.navigateToNode(selected),
     };
@@ -70,7 +74,9 @@ export class AdminLayout {
       ? { text: entityId, active: true }
       : isCreating
         ? { text: 'Add', icon: { name: 'add' }, active: true }
-        : null;
+        : isFiltering
+          ? { text: 'Filter', icon: { name: 'filter_alt' }, active: true }
+          : null;
 
     if (mobile) {
       return modeCrumb ? [node, modeCrumb] : [node];
@@ -92,6 +98,13 @@ export class AdminLayout {
   }
 
   private navigateToNode(selected: NavigationSelection): void {
+    if (this.isFilterMode()) {
+      void this.router.navigate([], {
+        queryParams: { filterMode: null },
+        queryParamsHandling: 'merge',
+      });
+      return;
+    }
     if (this.editEntityId()) {
       this.returnToList();
       return;

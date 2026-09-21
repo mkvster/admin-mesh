@@ -5,49 +5,57 @@
   <span class="toolbar-spacer"></span>
 
   @if (actions(); as actions) {
-    @if (actions.canAdd) {
+    @if (actions.filterEditing) {
       <button
         mat-icon-button
         type="button"
-        class="toolbar-action add-action"
-        [attr.aria-label]="actions.addLabel"
-        [matTooltip]="actions.addLabel"
-        (click)="actions.add()"
+        class="toolbar-action add-filter-action"
+        aria-label="Add filter"
+        matTooltip="Add filter"
+        (click)="actions.addFilter?.()"
       >
         <mat-icon aria-hidden="true">add</mat-icon>
       </button>
-    }
-    <button
-      mat-icon-button
-      type="button"
-      class="toolbar-action filter-action"
-      [matMenuTriggerFor]="filterMenu"
-      [attr.aria-label]="
-        actions.filterCount ? 'Filter, ' + actions.filterCount + ' active' : 'Filter'
-      "
-      matTooltip="Filter"
-    >
-      <mat-icon
-        [fontSet]="actions.filterCount > 0 ? 'material-icons' : 'material-icons-outlined'"
-        aria-hidden="true"
-        >filter_alt</mat-icon
-      >
-    </button>
-    <mat-menu #filterMenu="matMenu">
-      <button mat-menu-item type="button" (click)="actions.editFilters()">
-        <mat-icon>tune</mat-icon>
-        <span>Edit filters</span>
-      </button>
       <button
-        mat-menu-item
+        mat-icon-button
         type="button"
-        [disabled]="actions.filterCount === 0"
+        class="toolbar-action clear-filter-action"
+        aria-label="Clear filters"
+        matTooltip="Clear filters"
         (click)="actions.clearFilters()"
       >
-        <mat-icon>filter_alt_off</mat-icon>
-        <span>Clear filters</span>
+        <mat-icon aria-hidden="true">filter_alt_off</mat-icon>
       </button>
-    </mat-menu>
+    } @else {
+      @if (actions.canAdd) {
+        <button
+          mat-icon-button
+          type="button"
+          class="toolbar-action add-action"
+          [attr.aria-label]="actions.addLabel"
+          [matTooltip]="actions.addLabel"
+          (click)="actions.add()"
+        >
+          <mat-icon aria-hidden="true">add</mat-icon>
+        </button>
+      }
+      <button
+        mat-icon-button
+        type="button"
+        class="toolbar-action filter-action"
+        [attr.aria-label]="
+          actions.filterCount ? 'Filter, ' + actions.filterCount + ' active' : 'Filter'
+        "
+        matTooltip="Filter"
+        (click)="actions.editFilters()"
+      >
+        <mat-icon
+          [fontSet]="actions.filterCount > 0 ? 'material-icons' : 'material-icons-outlined'"
+          aria-hidden="true"
+          >filter_alt</mat-icon
+        >
+      </button>
+    }
   }
 
   <button
