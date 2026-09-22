@@ -3,6 +3,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { FilterOperator, RelativePastPeriod } from '../../entity-types';
 import { DateValueInput } from '../../field-editors/date-value-input/date-value-input';
+import { parseDateValue, serializeDateValue } from '../date-serialization';
 
 @Component({
   selector: 'app-date-filter-editor',
@@ -37,7 +38,7 @@ export class DateFilterEditor {
     this.value.set(period);
   }
   protected onDateChange(date: Date, part: 'single' | 'from' | 'to'): void {
-    const serialized = this.datetime() ? date.toISOString() : this.formatDate(date);
+    const serialized = serializeDateValue(date, this.datetime() ? 'datetime' : 'date');
     if (part === 'single') {
       this.value.set(serialized);
       return;
@@ -53,15 +54,6 @@ export class DateFilterEditor {
     return Array.isArray(value) ? value[index] : undefined;
   }
   private toDateValue(value: unknown): Date | null {
-    if (typeof value !== 'string') return null;
-    if (!this.datetime() && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      const [year, month, day] = value.split('-').map(Number);
-      return new Date(year, month - 1, day);
-    }
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
-  private formatDate(date: Date): string {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return parseDateValue(value, this.datetime() ? 'datetime' : 'date');
   }
 }

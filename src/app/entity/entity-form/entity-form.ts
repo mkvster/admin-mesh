@@ -29,6 +29,7 @@ import { ReferenceValueInput } from '../field-editors/reference-value-input/refe
 import { ReferenceLookupSelection } from '../reference-lookup-view/reference-lookup-view';
 import { ErrorState } from '../../shared/error-state/error-state';
 import { EntityFormMode, FieldMetadata, FormLayoutItem, FormMetadata } from '../entity-types';
+import { parseDateValue, serializeDateValue } from '../filtering/date-serialization';
 
 type FormState =
   | { status: 'loading' }
@@ -286,12 +287,7 @@ export class EntityForm {
     if (field.type === 'decimal') return Number.isFinite(Number(value)) ? Number(value) : null;
     if (field.type === 'boolean') return value === true;
     if (field.type === 'date' || field.type === 'datetime') {
-      if (field.type === 'date' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        const [year, month, day] = value.split('-').map(Number);
-        return new Date(year, month - 1, day);
-      }
-      const date = new Date(String(value));
-      return Number.isNaN(date.getTime()) ? null : date;
+      return parseDateValue(String(value), field.type);
     }
     if (field.type === 'enum') return value;
     if (field.type === 'reference') return value;
@@ -299,10 +295,9 @@ export class EntityForm {
   }
 
   private serializeValue(field: FieldMetadata, value: unknown): unknown {
-    if (field.type === 'date' && value instanceof Date) {
-      return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+    if ((field.type === 'date' || field.type === 'datetime') && value instanceof Date) {
+      return serializeDateValue(value, field.type);
     }
-    if (field.type === 'datetime' && value instanceof Date) return value.toISOString();
     return value;
   }
 }

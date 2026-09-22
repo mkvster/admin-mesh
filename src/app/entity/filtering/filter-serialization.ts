@@ -7,6 +7,41 @@ export interface ListFilterScope {
   listId: string;
 }
 
+export function operatorLabel(operator: FilterOperator): string {
+  switch (operator) {
+    case 'contains':
+      return 'Contains';
+    case 'equals':
+      return 'Equals';
+    case 'startsWith':
+      return 'Starts with';
+    case 'endsWith':
+      return 'Ends with';
+    case 'notEquals':
+      return 'Not equals';
+    case 'in':
+      return 'In';
+    case 'notIn':
+      return 'Not in';
+    case 'greaterThan':
+      return 'Greater than';
+    case 'greaterThanOrEqual':
+      return 'Greater than or equal';
+    case 'lessThan':
+      return 'Less than';
+    case 'lessThanOrEqual':
+      return 'Less than or equal';
+    case 'between':
+      return 'Between';
+    case 'before':
+      return 'Before';
+    case 'after':
+      return 'After';
+    case 'inThePast':
+      return 'In the past';
+  }
+}
+
 export function serializeListFilter(items: FilterItem[], scope?: ListFilterScope): string {
   const normalizedItems = normalizeFilterItems(items);
   const json = JSON.stringify(

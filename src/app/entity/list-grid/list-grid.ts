@@ -25,6 +25,8 @@ import {
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 import { ReferencePreviewOverlay } from '../reference-preview-overlay/reference-preview-overlay';
 import { normalizePageNumber, normalizePageSize } from '../pagination';
+import { parseDateValue } from '../filtering/date-serialization';
+import { operatorLabel } from '../filtering/filter-serialization';
 
 const ROW_ACTIONS_COLUMN = '__rowActions';
 const SELECTION_COLUMN = '__selection';
@@ -226,7 +228,7 @@ export class ListGrid {
       const summary = labels.join(', ');
       return item.operator === 'notEquals'
         ? `Not ${summary}`
-        : `${this.operatorLabel(item.operator)} ${summary}`;
+        : `${operatorLabel(item.operator)} ${summary}`;
     }
 
     if (item.operator === 'inThePast') {
@@ -242,7 +244,7 @@ export class ListGrid {
         : this.formatFilterValue(item.value, fieldMetadata?.type);
     return item.operator === 'between'
       ? `Between ${value}`
-      : `${this.operatorLabel(item.operator)} ${value}`;
+      : `${operatorLabel(item.operator)} ${value}`;
   }
 
   private formatFilterValue(value: string | number, fieldType: string | undefined): string {
@@ -250,11 +252,8 @@ export class ListGrid {
       return String(value);
     }
 
-    const date =
-      fieldType === 'date' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
-        ? this.parseDate(value)
-        : new Date(value);
-    return Number.isNaN(date.getTime())
+    const date = parseDateValue(value, fieldType);
+    return date === null
       ? String(value)
       : new Intl.DateTimeFormat(
           undefined,
@@ -262,42 +261,6 @@ export class ListGrid {
             ? { dateStyle: 'medium', timeStyle: 'short' }
             : { dateStyle: 'medium' },
         ).format(date);
-  }
-
-  private parseDate(value: string): Date {
-    const [year, month, day] = value.split('-').map(Number);
-    return new Date(year, month - 1, day);
-  }
-
-  private operatorLabel(operator: FilterItem['operator']): string {
-    switch (operator) {
-      case 'equals':
-        return 'Equals';
-      case 'startsWith':
-        return 'Starts with';
-      case 'endsWith':
-        return 'Ends with';
-      case 'notEquals':
-        return 'Not equals';
-      case 'greaterThan':
-        return 'Greater than';
-      case 'greaterThanOrEqual':
-        return 'Greater than or equal';
-      case 'lessThan':
-        return 'Less than';
-      case 'lessThanOrEqual':
-        return 'Less than or equal';
-      case 'before':
-        return 'Before';
-      case 'after':
-        return 'After';
-      case 'inThePast':
-        return 'In the past';
-      case 'between':
-        return 'Between';
-      default:
-        return 'Contains';
-    }
   }
 
   private relativePeriodLabel(value: FilterItem['value']): string {

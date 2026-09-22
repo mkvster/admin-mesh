@@ -4,6 +4,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 
 import { FieldDisplay, FieldMetadata } from '../entity-types';
+import { parseDateValue } from '../filtering/date-serialization';
 import { ENTITY_FIELD_VALUE_IN_POPUP } from './entity-field-value-context';
 
 @Component({
@@ -88,11 +89,8 @@ export class EntityFieldValue {
       return this.textValue();
     }
 
-    const date =
-      display.type === 'date' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
-        ? this.parseLocalDate(value)
-        : new Date(value as string | number);
-    if (Number.isNaN(date.getTime())) {
+    const date = parseDateValue(value, display.type);
+    if (date === null) {
       return this.textValue();
     }
 
@@ -111,10 +109,5 @@ export class EntityFieldValue {
   protected enumStyle(): 'label' | 'value' | undefined {
     const display = this.display();
     return display?.type === 'enum' ? display.style : undefined;
-  }
-
-  private parseLocalDate(value: string): Date {
-    const [year, month, day] = value.split('-').map(Number);
-    return new Date(year, month - 1, day);
   }
 }
