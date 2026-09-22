@@ -1,11 +1,7 @@
-<mat-form-field appearance="outline">
-  <mat-label>{{ label() }}</mat-label>
-  <input
-    matInput
-    [value]="stringValue()"
-    [attr.maxlength]="maxLength"
-    (input)="onInput($event)"
-    [attr.aria-label]="label()"
-  />
-  <mat-hint align="end">{{ stringValue().length }} / {{ maxLength }}</mat-hint>
-</mat-form-field>
+<app-string-value-input
+  [label]="label()"
+  [value]="stringValue()"
+  [maxLength]="maxLength"
+  [showCounter]="true"
+  (valueChange)="onValueChange($event)"
+/>

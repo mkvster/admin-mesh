@@ -1,0 +1,140 @@
+@if (state(); as current) {
+  @if (current.status === 'loading') {
+    <div class="form-state" role="status">
+      <mat-progress-spinner mode="indeterminate" diameter="36" />Loading
+    </div>
+  } @else if (current.status === 'error') {
+    <app-error-state message="Unable to load this entity form." />
+  } @else {
+    {{ initializeForm(current) }}
+    <form
+      [formGroup]="form"
+      [class.editable-form]="mode() !== 'view'"
+      (ngSubmit)="submit()"
+      novalidate
+    >
+      <div class="form-fields" [style.--form-columns]="columns()">
+        @for (entry of fields(); track entry.field.name) {
+          <div
+            class="form-field"
+            [style.gridColumn]="
+              entry.item.start
+                ? entry.item.start + ' / span ' + (entry.item.span ?? 1)
+                : 'span ' + (entry.item.span ?? 1)
+            "
+          >
+            @if (!entry.item.hideLabel && !isEditable(entry.field)) {
+              <label [for]="entry.field.name">{{ entry.field.label }}</label>
+            }
+            @if (isEditable(entry.field); as editable) {
+              @if (entry.field.type === 'reference') {
+                <app-reference-value-input
+                  [field]="entry.field"
+                  [displayValue]="referenceDisplayValue(entry.field, current.entity)"
+                  [selectedId]="referenceId(entry.field)"
+                  [hasValue]="
+                    control(entry.field)?.value !== null &&
+                    control(entry.field)?.value !== undefined
+                  "
+                  [requiredError]="
+                    !!control(entry.field)?.hasError('required') &&
+                    (!!control(entry.field)?.touched || !!control(entry.field)?.dirty)
+                  "
+                  (selectionChange)="updateReferenceValue(entry.field, $event)"
+                />
+              } @else if (entry.field.type === 'date' || entry.field.type === 'datetime') {
+                <app-date-value-input
+                  [label]="entry.field.label"
+                  [value]="dateValue(entry.field)"
+                  [datetime]="entry.field.type === 'datetime'"
+                  (dateChange)="updateDateValue(entry.field, $event)"
+                />
+              } @else if (entry.field.type === 'enum') {
+                <app-enum-value-input
+                  [label]="entry.field.label"
+                  [options]="entry.field.values ?? []"
+                  [value]="control(entry.field)?.value"
+                  [requiredError]="!!control(entry.field)?.hasError('required')"
+                  (valueChange)="updateEnumValue(entry.field, $event)"
+                />
+              } @else if (entry.field.type === 'boolean') {
+                <mat-checkbox [id]="entry.field.name" [formControlName]="entry.field.name">{{
+                  entry.field.label
+                }}</mat-checkbox>
+              } @else if (entry.field.type === 'string') {
+                <app-string-value-input
+                  [label]="entry.field.label"
+                  [value]="stringValue(entry.field)"
+                  [control]="control(entry.field)"
+                  [pattern]="entry.field.pattern ?? null"
+                  [requiredError]="
+                    !!control(entry.field)?.hasError('required') &&
+                    (!!control(entry.field)?.touched || !!control(entry.field)?.dirty)
+                  "
+                  [patternError]="
+                    !!control(entry.field)?.hasError('pattern') &&
+                    (!!control(entry.field)?.touched || !!control(entry.field)?.dirty)
+                  "
+                  (valueChange)="updateStringValue(entry.field, $event)"
+                  (blur)="onStringBlur(entry.field)"
+                />
+              } @else {
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ entry.field.label }}</mat-label>
+                  <input
+                    matInput
+                    [id]="entry.field.name"
+                    [type]="inputType(entry.field)"
+                    [formControlName]="entry.field.name"
+                    [attr.pattern]="entry.field.pattern"
+                  />
+                  @if (
+                    control(entry.field)?.hasError('required') &&
+                    (control(entry.field)?.touched || control(entry.field)?.dirty)
+                  ) {
+                    <mat-error>This field is required.</mat-error>
+                  }
+                  @if (
+                    control(entry.field)?.hasError('pattern') &&
+                    (control(entry.field)?.touched || control(entry.field)?.dirty)
+                  ) {
+                    <mat-error>Use the required format.</mat-error>
+                  }
+                </mat-form-field>
+              }
+            } @else {
+              <app-entity-field-value
+                [field]="entry.field"
+                [display]="entry.item.display ?? entry.field.display"
+                [value]="current.entity[entry.field.name]"
+                [row]="current.entity"
+              />
+              @if (
+                mode() !== 'view' &&
+                entry.field.type !== 'string' &&
+                entry.field.type !== 'integer' &&
+                entry.field.type !== 'decimal' &&
+                entry.field.type !== 'boolean'
+              ) {
+                <span class="read-only-note">Read-only</span>
+              }
+            }
+          </div>
+        }
+      </div>
+      @if (errorMessage(); as message) {
+        <div class="save-error" role="alert">{{ message }}</div>
+      }
+      @if (mode() !== 'view') {
+        <div class="form-actions">
+          <button mat-button type="button" (click)="cancelled.emit()" [disabled]="saving()">
+            Cancel
+          </button>
+          <button mat-flat-button type="submit" [disabled]="saving() || form.invalid">
+            {{ saving() ? 'Saving...' : 'Save' }}
+          </button>
+        </div>
+      }
+    </form>
+  }
+}

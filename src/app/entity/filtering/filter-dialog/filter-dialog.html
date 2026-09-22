@@ -1,33 +1,4 @@
-<div class="dialog-title-row">
-  <h2 mat-dialog-title>Filters</h2>
-  <button mat-icon-button type="button" (click)="cancel()" aria-label="Close filters">
-    <mat-icon aria-hidden="true">close</mat-icon>
-  </button>
-</div>
-
-<mat-dialog-content class="filter-dialog-content">
-  <!-- <div class="test-fields">
-    <mat-form-field>
-      <mat-label>Meeting date</mat-label>
-      <input matInput [matDatepicker]="datepicker" [(ngModel)]="value" />
-      <mat-datepicker #datepicker />
-      <mat-datepicker-toggle [for]="datepicker" matSuffix />
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label>Meeting time</mat-label>
-      <input
-        matInput
-        [matTimepicker]="timepicker"
-        [(ngModel)]="value"
-        [ngModelOptions]="{ updateOn: 'blur' }" />
-      <mat-timepicker #timepicker />
-      <mat-timepicker-toggle [for]="timepicker" matSuffix />
-    </mat-form-field>
-  </div>
-
-  <p>Value: {{ value }}</p> -->
-
+<div class="filter-editor-content">
   <div #filterRows class="filter-rows">
     @if (draft().length === 0) {
       <p class="empty-state">No filters configured.</p>
@@ -104,36 +75,23 @@
     }
   </div>
 
-  @if (hasIncompleteFilter() && !hasRowError()) {
-    <p class="validation-message" role="alert">
-      Please correct the invalid or incomplete filters before applying.
-    </p>
-  }
-  @if (hasReachedFilterLimit()) {
-    <p class="limit-message" role="status">Maximum 50 filters reached.</p>
-  }
-  @if (hasOversizedFilter()) {
-    <p class="validation-message" role="alert">The filter is too large to save in the URL.</p>
-  }
-</mat-dialog-content>
-
-<mat-dialog-actions class="dialog-actions">
-  <button
-    mat-stroked-button
-    type="button"
-    class="add-filter-button"
-    (click)="addFilter()"
-    [disabled]="draft().length >= maxFilterItems"
-  >
-    <mat-icon aria-hidden="true">add</mat-icon>
-    Add filter
-  </button>
-
-  <div class="dialog-actions-end">
-    <button mat-button type="button" (click)="clearAll()">Clear all</button>
+  <div class="filter-editor-messages">
+    @if (hasIncompleteFilter() && !hasRowError()) {
+      <p class="validation-message" role="alert">
+        Please correct the invalid or incomplete filters before applying.
+      </p>
+    }
+    @if (hasReachedFilterLimit()) {
+      <p class="limit-message" role="status">Maximum 50 filters reached.</p>
+    }
+    @if (hasOversizedFilter()) {
+      <p class="validation-message" role="alert">The filter is too large to save in the URL.</p>
+    }
+  </div>
+  <div class="filter-editor-actions">
     <button mat-button type="button" (click)="cancel()">Cancel</button>
     <button mat-flat-button type="button" (click)="apply()" [disabled]="cannotApply()">
       Apply
     </button>
   </div>
-</mat-dialog-actions>
+</div>

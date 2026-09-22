@@ -10,10 +10,10 @@ import {
 } from '@angular/core';
 import { ConnectedPosition, CdkOverlayOrigin, OverlayModule } from '@angular/cdk/overlay';
 import { MatButtonModule } from '@angular/material/button';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import {
   FieldDisplay,
   FieldMetadata,
@@ -24,8 +24,10 @@ import {
 } from '../entity-types';
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 import { ReferencePreviewOverlay } from '../reference-preview-overlay/reference-preview-overlay';
+import { normalizePageNumber, normalizePageSize } from '../pagination';
 
 const ROW_ACTIONS_COLUMN = '__rowActions';
+const SELECTION_COLUMN = '__selection';
 const ROW_ACTION_WIDTH = 56;
 
 export interface ListPageChange {
@@ -38,7 +40,7 @@ export interface ListSortChange {
 }
 
 export interface ListGridRowAction {
-  action: 'delete' | 'view-form';
+  action: 'delete' | 'view-form' | 'edit';
   row: Record<string, unknown>;
   id?: string | number;
   formId?: string;
@@ -55,10 +57,10 @@ interface ReferencePreviewTarget {
   selector: 'app-list-grid',
   imports: [
     MatButtonModule,
-    MatPaginatorModule,
     MatTableModule,
     MatIconModule,
     MatTooltipModule,
+    MatCheckboxModule,
     EntityFieldValue,
     OverlayModule,
     ReferencePreviewOverlay,
@@ -73,13 +75,28 @@ export class ListGrid {
   readonly totalCount = input.required<number>();
   readonly page = input(1);
   readonly pageSize = input(25);
+  protected readonly normalizedPageSize = computed(() => normalizePageSize(this.pageSize()));
+  protected readonly normalizedPage = computed(() => {
+    const lastPage = Math.max(1, Math.ceil(this.totalCount() / this.normalizedPageSize()));
+    return Math.min(normalizePageNumber(this.page()), lastPage);
+  });
+  protected readonly pageSizeOptions = computed(() =>
+    [...new Set([10, 25, 50, 100, this.normalizedPageSize()])].sort((left, right) => left - right),
+  );
   readonly pageChange = output<ListPageChange>();
   readonly sort = input<ListSort[]>([]);
   readonly filters = input<FilterItem[]>([]);
   readonly idField = input('id');
   readonly sortChange = output<ListSortChange>();
   readonly showDeleteAction = input(false);
+  readonly showEditAction = input(false);
+  readonly highlightedId = input<string | number | null>(null);
   readonly rowAction = output<ListGridRowAction>();
+  readonly selectionMode = input<'none' | 'single' | 'multiple'>('none');
+  readonly selectionControl = input(true);
+  readonly selectedIds = input<(string | number)[]>([]);
+  readonly rowSelected = output<Record<string, unknown>>();
+  readonly enableRowActions = input(true);
 
   protected readonly overlayPositions: ConnectedPosition[] = [
     { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 8 },
@@ -87,6 +104,20 @@ export class ListGrid {
     { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -8 },
   ];
   protected readonly activeReference = signal<ReferencePreviewTarget | null>(null);
+
+  protected readonly pageRange = computed(() => {
+    const total = this.totalCount();
+    if (total === 0) return '';
+
+    const start = (this.normalizedPage() - 1) * this.normalizedPageSize() + 1;
+    const end = Math.min(this.normalizedPage() * this.normalizedPageSize(), total);
+    return `${start}–${end} of ${total}`;
+  });
+
+  protected readonly canGoToPreviousPage = computed(() => this.normalizedPage() > 1);
+  protected readonly canGoToNextPage = computed(
+    () => this.normalizedPage() * this.normalizedPageSize() < this.totalCount(),
+  );
 
   private readonly destroyRef = inject(DestroyRef);
   private hoverTimer: ReturnType<typeof setTimeout> | undefined;
@@ -96,20 +127,42 @@ export class ListGrid {
     this.destroyRef.onDestroy(() => this.clearTimers());
   }
 
-  protected readonly displayedColumns = computed(() =>
-    this.hasRowActions()
-      ? [...this.metadata().columns.map((column) => column.field), ROW_ACTIONS_COLUMN]
-      : this.metadata().columns.map((column) => column.field),
+  protected readonly displayedColumns = computed(() => [
+    ...(this.selectionMode() !== 'none' && this.selectionControl() ? [SELECTION_COLUMN] : []),
+    ...this.metadata().columns.map((column) => column.field),
+    ...(this.hasRowActions() ? [ROW_ACTIONS_COLUMN] : []),
+  ]);
+
+  protected isSelected(row: Record<string, unknown>): boolean {
+    const id = row[this.idField()];
+    return (typeof id === 'string' || typeof id === 'number') && this.selectedIds().includes(id);
+  }
+
+  protected selectRow(row: Record<string, unknown>): void {
+    this.rowSelected.emit(row);
+  }
+
+  protected selectionLabel(row: Record<string, unknown>): string {
+    return `Select ${String(row[this.idField()] ?? 'row')}`;
+  }
+
+  protected readonly rowActions = computed(() =>
+    this.enableRowActions() ? (this.metadata().rowActions ?? []) : [],
   );
 
-  protected readonly rowActions = computed(() => this.metadata().rowActions ?? []);
-
   protected readonly hasRowActions = computed(
-    () => this.showDeleteAction() || this.rowActions().length > 0,
+    () =>
+      this.showDeleteAction() ||
+      this.showEditAction() ||
+      (this.enableRowActions() && this.rowActions().length > 0),
   );
 
   protected readonly rowActionsColumnWidth = computed(
-    () => (this.rowActions().length + (this.showDeleteAction() ? 1 : 0)) * ROW_ACTION_WIDTH,
+    () =>
+      (this.rowActions().length +
+        (this.showDeleteAction() ? 1 : 0) +
+        (this.showEditAction() ? 1 : 0)) *
+      ROW_ACTION_WIDTH,
   );
 
   protected readonly columns = computed(() => {
@@ -294,15 +347,39 @@ export class ListGrid {
     this.sortChange.emit({ sort: nextSort });
   }
 
-  protected onPageChange(event: PageEvent): void {
+  protected onPageChange(page: number): void {
     this.pageChange.emit({
-      page: event.pageIndex + 1,
-      pageSize: event.pageSize,
+      page,
+      pageSize: this.normalizedPageSize(),
+    });
+  }
+
+  protected onPageSizeChange(event: Event): void {
+    const requestedPageSize = Number((event.target as HTMLSelectElement).value);
+    const pageSize = normalizePageSize(requestedPageSize);
+    if (pageSize !== requestedPageSize || !this.pageSizeOptions().includes(pageSize)) return;
+
+    const firstItemIndex = (this.normalizedPage() - 1) * this.normalizedPageSize();
+    this.pageChange.emit({
+      page: Math.floor(firstItemIndex / pageSize) + 1,
+      pageSize,
     });
   }
 
   protected onDelete(row: Record<string, unknown>): void {
     this.rowAction.emit({ action: 'delete', row });
+  }
+
+  protected onEdit(row: Record<string, unknown>): void {
+    const id = row[this.idField()];
+    if (typeof id === 'string' || typeof id === 'number')
+      this.rowAction.emit({ action: 'edit', row, id });
+  }
+
+  protected isHighlighted(row: Record<string, unknown>): boolean {
+    return (
+      this.highlightedId() !== null && String(row[this.idField()]) === String(this.highlightedId())
+    );
   }
 
   protected onRowAction(action: ListRowAction, row: Record<string, unknown>): void {

@@ -34,6 +34,9 @@
   @case ('enum') {
     <app-enum-filter-editor [field]="field()" [operator]="operator()" [(value)]="value" />
   }
+  @case ('reference') {
+    <app-reference-filter-editor [field]="field()" [operator]="operator()" [(value)]="value" />
+  }
   @default {
     <p role="status">Filtering this field type is not supported yet.</p>
   }

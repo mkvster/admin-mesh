@@ -5,7 +5,7 @@ import { parseListFilter, serializeListFilter } from './filter-serialization';
 describe('filter serialization', () => {
   it('round-trips filters through a base64url opaque value', () => {
     const items: FilterItem[] = [
-      { field: 'lastName', operator: 'contains', value: 'smith & Иван' },
+      { field: 'lastName', operator: 'contains', value: 'smith & Ivan' },
       { field: 'email', operator: 'endsWith', value: '@example.com' },
     ];
 

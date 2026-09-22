@@ -1,9 +1,10 @@
 import { delay, HttpResponse, http } from 'msw';
-import { ListQuery } from '../../app/entity/entity-types';
+import { EntityLocateRequest, ListQuery } from '../../app/entity/entity-types';
 import { categories } from './data';
 import { applyListQuery } from '../shared/apply-list-query';
 import { removeMockEntity } from '../shared/remove-mock-entity';
 import { randomMockDelay } from '../shared/random-mock-delay';
+import { locateMockEntity } from '../shared/locate-mock-entity';
 
 export const createCategoryHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/categories/metadata`, async () => {
@@ -32,7 +33,7 @@ export const createCategoryHandlers = (apiBaseUrl: string) => [
       },
       views: {
         list: 'main',
-        form: 'edit',
+        form: 'briefCategoryView',
         deleteForm: 'briefCategoryView',
       },
     });
@@ -76,6 +77,24 @@ export const createCategoryHandlers = (apiBaseUrl: string) => [
 
     const query = (await request.json()) as ListQuery;
     return HttpResponse.json(applyListQuery(categories, query));
+  }),
+  http.post(`${apiBaseUrl}/entities/categories/lists/main/locate`, async ({ request }) => {
+    const locateRequest = (await request.json()) as EntityLocateRequest;
+    return HttpResponse.json(locateMockEntity(categories, 'categoryId', locateRequest));
+  }),
+  http.post(`${apiBaseUrl}/entities/categories`, async ({ request }) => {
+    const value = (await request.json()) as Record<string, unknown>;
+    const categoryId = Math.max(...categories.map((item) => item.categoryId)) + 1;
+    const { categoryId: _clientProvidedId, ...attributes } = value;
+    const category = { categoryId, ...attributes } as (typeof categories)[number];
+    categories.push(category);
+    return HttpResponse.json(category, { status: 201 });
+  }),
+  http.patch(`${apiBaseUrl}/entities/categories/:id`, async ({ params, request }) => {
+    const category = categories.find((item) => String(item.categoryId) === String(params['id']));
+    if (!category) return new HttpResponse(null, { status: 404 });
+    Object.assign(category, (await request.json()) as Record<string, unknown>);
+    return HttpResponse.json(category);
   }),
   http.delete(`${apiBaseUrl}/entities/categories/:id`, async ({ params }) => {
     const removed = removeMockEntity(categories, 'categoryId', String(params['id']));

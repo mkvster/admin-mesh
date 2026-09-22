@@ -1,14 +1,15 @@
 ---
 id: TASK-10
 title: Add basic entity create and edit forms
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-04 13:54'
-updated_date: '2026-09-10 23:40'
+updated_date: '2026-09-21 15:54'
 labels: []
 milestone: s-003
 dependencies:
   - TASK-9
+ordinal: 666.6666666666666
 ---
 
 ## Description
@@ -168,9 +169,27 @@ Future phases should be able to add new field editors without changing the overa
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Supported field types render appropriate editable controls; other field types remain visible and read-only.
-- [ ] #2 Edit mode is hosted by NodeHost at the entity URL and replaces the List Grid area rather than opening over it in a modal.
-- [ ] #3 Create mode temporarily replaces the List Grid area with the form and supports reference selection without nesting the main form in a modal.
-- [ ] #4 Shared metadata and layout support view, edit, and create modes.
-- [ ] #5 Save, Cancel, validation, payload projection, mock persistence, and post-save refresh behave as specified.
+- [x] #1 Supported field types render appropriate editable controls; other field types remain visible and read-only.
+- [x] #2 Edit mode is hosted by NodeHost at the entity URL and replaces the List Grid area rather than opening over it in a modal.
+- [x] #3 Create mode temporarily replaces the List Grid area with the form and supports reference selection without nesting the main form in a modal.
+- [x] #4 Shared metadata and layout support view, edit, and create modes.
+- [x] #5 Save, Cancel, validation, payload projection, mock persistence, and post-save refresh behave as specified.
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Extend entity metadata and API with shared form metadata, PATCH persistence, and create support. 2. Add a reusable entity form/layout with supported editors, read-only fallback fields, validation, projection payloads, and save/cancel flows. 3. Integrate view, edit, and create states into NodeHost and EntityList so forms replace the list area and refresh after writes. 4. Add focused tests and run formatting, unit tests, and production build.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented and verified with prettier format check, npm run build, and npm test -- --watch=false (29 files, 69 tests passed). Added inline edit/create flow, shared metadata layout, supported field controls, reference select loading, PATCH/POST mock persistence, validation, cache invalidation, and list refresh.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Implemented TASK-10: added metadata-driven entity form support for view/edit/create flows, string/integer/decimal/boolean editors, create-mode reference selection, validation, projection-aware PATCH/POST requests, mock persistence, inline NodeHost list replacement, cancel/save flows, list refresh, and preview cache invalidation. Verified with format check, production build, and 69 passing Vitest tests.
+<!-- SECTION:FINAL_SUMMARY:END -->

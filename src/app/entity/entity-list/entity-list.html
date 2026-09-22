@@ -7,85 +7,89 @@
       </div>
     }
     @case ('loaded') {
-      <div class="list-content">
-        <app-list-grid
-          [metadata]="state.listMetadata"
-          [rows]="state.data.items"
-          [totalCount]="state.data.totalCount"
-          [page]="state.page"
-          [pageSize]="state.pageSize"
-          [sort]="state.sort"
-          [filters]="state.filters"
-          [idField]="state.metadata.idField"
-          [showDeleteAction]="state.metadata.permissions.delete"
-          (pageChange)="onPageChange($event)"
-          (sortChange)="onSortChange($event)"
-          (rowAction)="onRowAction($event, state)"
-        >
-          <div list-grid-actions>
-            @if (state.data.items.length > 0) {
-              <div class="filters-group" [class.filters-active]="state.filters.length > 0">
-                <button
-                  mat-button
-                  type="button"
-                  class="filters-action"
-                  aria-label="Open filters"
-                  (click)="openFilters(state)"
-                >
-                  <mat-icon aria-hidden="true">filter_alt</mat-icon>
-                  <span class="list-action-label">
-                    Filter
-                    @if (state.filters.length > 0) {
-                      <span aria-hidden="true">
-                        · {{ filterCountLabel(state.filters.length) }}</span
-                      >
-                    }
-                  </span>
+      @if (formMode(); as mode) {
+        @if (formId(); as selectedFormId) {
+          <app-entity-form
+            [resource]="state.resource"
+            [formId]="selectedFormId"
+            [mode]="mode"
+            [id]="formEntityId()"
+            (saved)="onFormSaved($event)"
+            (cancelled)="closeForm()"
+          />
+        } @else {
+          <app-error-state message="No form is configured for this entity." />
+        }
+      } @else if (filterMode()) {
+        <app-filter-editor
+          [data]="filterEditorData()"
+          (applied)="applyFilters($event)"
+          (cancelled)="cancelFilterEdit()"
+        />
+      } @else {
+        <div class="list-content">
+          <app-list-grid
+            [metadata]="state.listMetadata"
+            [rows]="state.data.items"
+            [totalCount]="state.data.totalCount"
+            [page]="state.page"
+            [pageSize]="state.pageSize"
+            [sort]="state.sort"
+            [filters]="state.filters"
+            [idField]="state.metadata.idField"
+            [showDeleteAction]="state.metadata.permissions.delete"
+            [showEditAction]="state.metadata.permissions.edit"
+            [highlightedId]="highlightedEntityId()"
+            (pageChange)="onPageChange($event)"
+            (sortChange)="onSortChange($event)"
+            (rowAction)="onRowAction($event, state)"
+          >
+            <div list-grid-empty class="empty-state" role="status" aria-live="polite">
+              <mat-icon aria-hidden="true">search_off</mat-icon>
+              @if (state.filters.length > 0) {
+                <p>
+                  No records match the selected
+                  <button type="button" class="inline-filter-action" (click)="openFilters(state)">
+                    filters
+                  </button>
+                  .
+                </p>
+                <button mat-stroked-button type="button" (click)="clearFilters()">
+                  Clear filters
                 </button>
-                <button
-                  mat-icon-button
-                  type="button"
-                  class="clear-filters-action"
-                  aria-label="Clear all filters"
-                  [disabled]="state.filters.length === 0"
-                  (click)="clearFilters()"
-                >
-                  <mat-icon aria-hidden="true">close</mat-icon>
-                </button>
-              </div>
-            }
-            <!-- Future list actions, such as Add, belong beside the filter group. -->
-          </div>
+              } @else {
+                <p>No records found.</p>
+              }
+            </div>
+          </app-list-grid>
 
-          <div list-grid-empty class="empty-state" role="status" aria-live="polite">
-            <mat-icon aria-hidden="true">search_off</mat-icon>
-            @if (state.filters.length > 0) {
-              <p>
-                No records match the selected
-                <button type="button" class="inline-filter-action" (click)="openFilters(state)">
-                  filters
-                </button>
-                .
-              </p>
-              <button mat-stroked-button type="button" (click)="clearFilters()">
-                Clear filters
+          @if (isListLoading()) {
+            <div class="list-loading-overlay" role="status" aria-live="polite">
+              <mat-progress-spinner mode="indeterminate" diameter="40" aria-label="Loading" />
+              <span>Loading</span>
+            </div>
+          }
+          @if (deletionError(); as message) {
+            <div class="deletion-error" role="alert">{{ message }}</div>
+          }
+          @if (locateMessage(); as message) {
+            <div class="deletion-error locate-notice" role="status">
+              <span>{{ message }}</span>
+              <button mat-button type="button" (click)="findSavedRecord()">
+                Find saved record
               </button>
-            } @else {
-              <p>No records found.</p>
-            }
-          </div>
-        </app-list-grid>
-
-        @if (isListLoading()) {
-          <div class="list-loading-overlay" role="status" aria-live="polite">
-            <mat-progress-spinner mode="indeterminate" diameter="40" aria-label="Loading" />
-            <span>Loading</span>
-          </div>
-        }
-        @if (deletionError(); as message) {
-          <div class="deletion-error" role="alert">{{ message }}</div>
-        }
-      </div>
+              <button
+                mat-button
+                type="button"
+                aria-label="Dismiss notification"
+                (click)="dismissLocateMessage()"
+              >
+                Dismiss
+              </button>
+            </div>
+          }
+        </div>
+      }
     }
     @case ('error') {
       <app-error-state [message]="state.message" />

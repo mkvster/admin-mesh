@@ -6,6 +6,9 @@
   } @else {
     <table mat-table [dataSource]="rows()">
       <colgroup>
+        @if (selectionMode() !== 'none' && selectionControl()) {
+          <col class="selection-column" />
+        }
         @for (column of metadata().columns; track column.field) {
           <col [style.width.px]="column.sizeType === 'width' ? column.size : null" />
         }
@@ -13,6 +16,20 @@
           <col class="row-actions-column" [style.width.px]="rowActionsColumnWidth()" />
         }
       </colgroup>
+
+      @if (selectionMode() !== 'none' && selectionControl()) {
+        <ng-container matColumnDef="__selection">
+          <th mat-header-cell *matHeaderCellDef><span class="visually-hidden">Select</span></th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox
+              [checked]="isSelected(row)"
+              [attr.aria-label]="selectionLabel(row)"
+              (click)="$event.stopPropagation()"
+              (change)="selectRow(row)"
+            />
+          </td>
+        </ng-container>
+      }
 
       @for (item of columns(); track item.column.field) {
         <ng-container [matColumnDef]="item.column.field">
@@ -120,6 +137,17 @@
                 </mat-icon>
               </button>
             }
+            @if (showEditAction()) {
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Edit row"
+                matTooltip="Edit"
+                (click)="onEdit(row)"
+              >
+                <mat-icon fontSet="material-icons-outlined" aria-hidden="true">edit</mat-icon>
+              </button>
+            }
             @if (showDeleteAction()) {
               <button
                 mat-icon-button
@@ -140,7 +168,14 @@
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns(); sticky: true"></tr>
 
-      <tr mat-row *matRowDef="let row; columns: displayedColumns()"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns()"
+        [class.row-highlighted]="isHighlighted(row)"
+        [class.row-selected]="isSelected(row)"
+        [attr.data-entity-id]="row[idField()]"
+        (click)="selectionMode() !== 'none' ? selectRow(row) : null"
+      ></tr>
     </table>
   }
 </div>
@@ -173,18 +208,39 @@
 ></span>
 
 <div class="grid-footer">
-  <div class="grid-actions">
-    <ng-content select="[list-grid-actions]" />
-  </div>
-
   @if (totalCount() > 0) {
-    <mat-paginator
-      [length]="totalCount()"
-      [pageIndex]="page() - 1"
-      [pageSize]="pageSize()"
-      [pageSizeOptions]="[10, 25, 50, 100]"
-      (page)="onPageChange($event)"
-      aria-label="Select list page"
-    />
+    <nav class="pagination" aria-label="List pagination">
+      <span class="page-size-label" aria-hidden="true">Rows</span>
+      <select
+        class="page-size-select"
+        aria-label="Rows per page"
+        (change)="onPageSizeChange($event)"
+      >
+        @for (option of pageSizeOptions(); track option) {
+          <option [value]="option" [selected]="option === normalizedPageSize()">
+            {{ option }}
+          </option>
+        }
+      </select>
+      <span class="page-range" aria-live="polite">{{ pageRange() }}</span>
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Previous page"
+        [disabled]="!canGoToPreviousPage()"
+        (click)="onPageChange(normalizedPage() - 1)"
+      >
+        <mat-icon aria-hidden="true">chevron_left</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Next page"
+        [disabled]="!canGoToNextPage()"
+        (click)="onPageChange(normalizedPage() + 1)"
+      >
+        <mat-icon aria-hidden="true">chevron_right</mat-icon>
+      </button>
+    </nav>
   }
 </div>

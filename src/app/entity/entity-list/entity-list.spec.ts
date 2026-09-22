@@ -8,6 +8,7 @@ import { EntityList } from './entity-list';
 import { EntityApi } from '../entity-api';
 import { EntityMetadataStore } from '../entity-metadata-store';
 import { ListMetadataStore } from '../list-metadata-store';
+import { AdminToolbarState } from '../../layout/admin-layout/admin-toolbar-state';
 
 describe('EntityList', () => {
   let component: EntityList;
@@ -58,5 +59,20 @@ describe('EntityList', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('registers list actions in the shared toolbar and clears them when destroyed', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const toolbarState = TestBed.inject(AdminToolbarState);
+    expect(toolbarState.actions()).toMatchObject({
+      addLabel: 'Add Customer',
+      canAdd: false,
+      filterCount: 0,
+    });
+
+    fixture.destroy();
+    expect(toolbarState.actions()).toBeNull();
   });
 });

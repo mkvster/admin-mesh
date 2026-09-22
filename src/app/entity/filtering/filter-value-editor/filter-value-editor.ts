@@ -5,6 +5,7 @@ import { NumericFilterEditor } from '../numeric-filter-editor/numeric-filter-edi
 import { BooleanFilterEditor } from '../boolean-filter-editor/boolean-filter-editor';
 import { DateFilterEditor } from '../date-filter-editor/date-filter-editor';
 import { EnumFilterEditor } from '../enum-filter-editor/enum-filter-editor';
+import { ReferenceFilterEditor } from '../reference-filter-editor/reference-filter-editor';
 
 @Component({
   selector: 'app-filter-value-editor',
@@ -19,6 +20,7 @@ import { EnumFilterEditor } from '../enum-filter-editor/enum-filter-editor';
     BooleanFilterEditor,
     DateFilterEditor,
     EnumFilterEditor,
+    ReferenceFilterEditor,
   ],
   templateUrl: './filter-value-editor.html',
   styleUrl: './filter-value-editor.scss',

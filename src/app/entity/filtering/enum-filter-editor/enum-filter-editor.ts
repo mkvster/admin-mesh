@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
 import { FieldMetadata, FilterOperator } from '../../entity-types';
+import { EnumValueInput } from '../../field-editors/enum-value-input/enum-value-input';
 
 @Component({
   selector: 'app-enum-filter-editor',
-  imports: [MatFormFieldModule, MatSelectModule],
+  imports: [EnumValueInput],
   templateUrl: './enum-filter-editor.html',
   styleUrl: './enum-filter-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -17,13 +16,6 @@ export class EnumFilterEditor {
   protected readonly isMultiple = computed(
     () => this.operator() === 'in' || this.operator() === 'notIn',
   );
-  protected selectValue(): unknown {
-    return this.isMultiple()
-      ? Array.isArray(this.value())
-        ? this.value()
-        : []
-      : (this.value() ?? '');
-  }
   protected onChange(value: unknown): void {
     if (this.isMultiple()) {
       this.value.set(Array.isArray(value) ? value : []);

@@ -9,6 +9,7 @@
 
 .reference-preview-trigger {
   border-radius: 3px;
+  cursor: help;
   display: inline-block;
   outline-offset: 2px;
 }
@@ -52,30 +53,47 @@
 .grid-footer {
   align-items: center;
   background: var(--mat-sys-surface);
-  border-top: 16px solid var(--mat-sys-surface-container-low);
+  border-top: 1px solid var(--mat-sys-outline-variant);
   display: flex;
   flex: 0 0 auto;
-  justify-content: space-between;
+  justify-content: flex-end;
   min-height: 56px;
 }
 
-.grid-actions {
+.pagination {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding-left: 4px;
+  justify-content: flex-end;
+  min-width: 0;
+  padding: 0 8px;
 }
 
-@media (max-width: 768px) {
-  .grid-actions .list-action-label {
-    display: none;
-  }
+.page-range {
+  font-size: 12px;
+  margin-inline-end: 8px;
+  white-space: nowrap;
+}
 
-  .grid-actions button {
-    min-width: 40px;
-    padding: 0 8px;
-  }
+.page-size-label {
+  font-size: 12px;
+  // margin-inline: 8px;
+}
+
+.page-size-select {
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 4px;
+  // font: inherit;
+  height: 36px;
+  min-width: 52px;
+  padding: 0 8px;
+  margin-inline: 12px;
+}
+
+.page-size-select:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
 }
 
 table {
@@ -87,6 +105,10 @@ table {
 .row-actions-header,
 .row-actions-cell {
   width: auto;
+}
+
+.selection-column {
+  width: 56px;
 }
 
 .row-actions-cell {
@@ -153,4 +175,12 @@ th.mat-mdc-header-cell {
 
 .edit-button {
   color: var(--mat-sys-primary);
+}
+
+.row-highlighted {
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+}
+
+.row-selected {
+  background: color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-surface));
 }

@@ -3,18 +3,18 @@ import {
   Component,
   ElementRef,
   computed,
+  effect,
   inject,
+  input,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatTimepickerModule } from '@angular/material/timepicker';
 import { FieldMetadata, FilterItem, FilterOperator, FilterValue } from '../../entity-types';
 import { FilterValueEditor } from '../filter-value-editor/filter-value-editor';
 import { MAX_FILTER_ITEMS, MAX_SERIALIZED_FILTER_LENGTH } from '../filter-constraints';
@@ -33,34 +33,42 @@ interface DraftFilter extends Partial<FilterItem> {
 }
 
 @Component({
-  selector: 'app-filter-dialog',
-  imports: [
-    FormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDatepickerModule,
-    MatIconModule,
-    MatInputModule,
-    MatSelectModule,
-    MatTimepickerModule,
-    FilterValueEditor,
-  ],
+  selector: 'app-filter-editor',
+  imports: [MatButtonModule, MatIconModule, MatInputModule, MatSelectModule, FilterValueEditor],
   templateUrl: './filter-dialog.html',
   styleUrl: './filter-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FilterDialog {
-  protected readonly maxFilterItems = MAX_FILTER_ITEMS;
-  protected value = new Date(2026, 8, 3, 10, 30);
-  private readonly dialogRef = inject(MatDialogRef<FilterDialog, FilterItem[] | undefined>);
-  readonly data = inject<FilterDialogData>(MAT_DIALOG_DATA);
-  readonly filterableFields = this.data.fields.filter((field) =>
-    ['string', 'integer', 'decimal', 'boolean', 'date', 'datetime', 'enum'].includes(field.type),
+  private readonly dialogRef = inject(MatDialogRef<FilterDialog, FilterItem[] | undefined>, {
+    optional: true,
+  });
+  private readonly injectedData = inject<FilterDialogData>(MAT_DIALOG_DATA, { optional: true });
+  readonly data = input<FilterDialogData | null>(null);
+  readonly applied = output<FilterItem[]>();
+  readonly cancelled = output<void>();
+  private readonly resolvedData = computed(() => this.data() ?? this.injectedData!);
+  private readonly supportedFilterableFields = computed(() =>
+    this.resolvedData().fields.filter(
+      (field) =>
+        ['string', 'integer', 'decimal', 'boolean', 'date', 'datetime', 'enum'].includes(
+          field.type,
+        ) ||
+        (field.type === 'reference' && !!field.reference),
+    ),
   );
-  readonly draft = signal<DraftFilter[]>(
-    this.data.filters.length ? this.data.filters.map((filter) => ({ ...filter })) : [{}],
-  );
+  get filterableFields() {
+    return this.supportedFilterableFields();
+  }
+  readonly draft = signal<DraftFilter[]>([]);
   private readonly filterRows = viewChild<ElementRef<HTMLDivElement>>('filterRows');
+
+  constructor() {
+    effect(() => {
+      const filters = this.resolvedData().filters;
+      this.draft.set(filters.length ? filters.map((filter) => ({ ...filter })) : [{}]);
+    });
+  }
 
   protected readonly hasIncompleteFilter = computed(() =>
     this.draft().some((item) => {
@@ -82,7 +90,9 @@ export class FilterDialog {
 
     const items = this.completedItems();
 
-    return serializeListFilter(items, this.data.scope).length > MAX_SERIALIZED_FILTER_LENGTH;
+    return (
+      serializeListFilter(items, this.resolvedData().scope).length > MAX_SERIALIZED_FILTER_LENGTH
+    );
   });
   protected readonly cannotApply = computed(
     () => this.hasIncompleteFilter() || this.hasTooManyFilters() || this.hasOversizedFilter(),
@@ -111,7 +121,9 @@ export class FilterDialog {
             ? ['equals']
             : field.type === 'enum'
               ? ['equals', 'notEquals', 'in', 'notIn']
-              : ['equals', 'before', 'after', 'between', 'inThePast'];
+              : field.type === 'reference'
+                ? ['equals', 'notEquals', 'in', 'notIn']
+                : ['equals', 'before', 'after', 'between', 'inThePast'];
 
     return values.map((value) => ({ value, label: this.operatorLabel(value) }));
   }
@@ -149,9 +161,13 @@ export class FilterDialog {
             ? item.operator === 'in' || item.operator === 'notIn'
               ? 'Choose a value(s)'
               : 'Choose a value'
-            : field?.type === 'string'
-              ? 'Enter a value'
-              : 'Enter a valid value';
+            : field?.type === 'reference'
+              ? item.operator === 'in' || item.operator === 'notIn'
+                ? 'Choose one or more values'
+                : 'Choose a value'
+              : field?.type === 'string'
+                ? 'Enter a value'
+                : 'Enter a valid value';
   }
 
   protected updateField(index: number, field: string): void {
@@ -176,7 +192,9 @@ export class FilterDialog {
       return;
     }
 
-    this.dialogRef.close(this.completedItems());
+    const items = this.completedItems();
+    if (this.dialogRef) this.dialogRef.close(items);
+    else this.applied.emit(items);
   }
 
   private completedItems(): FilterItem[] {
@@ -218,7 +236,7 @@ export class FilterDialog {
       return ['hour', '24hours', 'week', 'month', 'year'].includes(String(value));
     }
 
-    if (field.type === 'enum') {
+    if (field.type === 'enum' || field.type === 'reference') {
       return operator === 'in' || operator === 'notIn'
         ? Array.isArray(value) &&
             value.length > 0 &&
@@ -242,6 +260,12 @@ export class FilterDialog {
     }
     if (field.type === 'enum') {
       return field.values?.some((item) => item.value === value) ?? false;
+    }
+    if (field.type === 'reference') {
+      return (
+        (typeof value === 'string' && value.trim().length > 0) ||
+        (typeof value === 'number' && Number.isFinite(value))
+      );
     }
     return typeof value === 'string' && value.trim().length > 0 && !Number.isNaN(Date.parse(value));
   }
@@ -341,7 +365,7 @@ export class FilterDialog {
     }
   }
 
-  protected addFilter(): void {
+  addFilter(): void {
     if (this.draft().length >= MAX_FILTER_ITEMS) {
       return;
     }
@@ -357,12 +381,13 @@ export class FilterDialog {
     this.draft.update((items) => items.filter((_, itemIndex) => itemIndex !== index));
   }
 
-  protected clearAll(): void {
+  clearAll(): void {
     this.draft.set([]);
   }
 
   protected cancel(): void {
-    this.dialogRef.close(undefined);
+    if (this.dialogRef) this.dialogRef.close(undefined);
+    else this.cancelled.emit();
   }
 
   private update(index: number, changes: DraftFilter): void {

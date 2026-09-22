@@ -1,0 +1,29 @@
+<mat-form-field appearance="outline">
+  <mat-label>{{ label() }}</mat-label>
+  @if (multiple()) {
+    <mat-select
+      multiple
+      [value]="selectedValue()"
+      (selectionChange)="onChange($event.value)"
+      [attr.aria-label]="label()"
+    >
+      @for (option of options(); track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+      }
+    </mat-select>
+  } @else {
+    <mat-select
+      [value]="selectedValue()"
+      (selectionChange)="onChange($event.value)"
+      [attr.aria-label]="label()"
+    >
+      <mat-option value="">Select a value</mat-option>
+      @for (option of options(); track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+      }
+    </mat-select>
+  }
+  @if (requiredError()) {
+    <mat-error>This field is required.</mat-error>
+  }
+</mat-form-field>

@@ -32,7 +32,12 @@ export interface FieldMetadata {
     listId: string;
     displayField: string;
   };
+  required?: boolean;
+  pattern?: string;
+  readOnlyOnUpdate?: boolean;
 }
+
+export type EntityFormMode = 'view' | 'edit' | 'create';
 
 export type FieldDisplay =
   | {
@@ -153,4 +158,17 @@ export interface ListQuery {
 export interface ListQueryResult {
   items: Record<string, unknown>[];
   totalCount: number;
+}
+
+export interface EntityLocateRequest {
+  id: string | number;
+  pageSize: number;
+  sort?: ListSort[];
+  filter?: ListFilter;
+}
+
+export interface EntityLocateResult {
+  found: boolean;
+  page: number | null;
+  result: ListQueryResult | null;
 }

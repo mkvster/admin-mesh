@@ -1,15 +1,16 @@
 ---
 id: TASK-12
 title: Add reference field editing with lookup selection
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-04 14:06'
-updated_date: '2026-09-10 23:22'
+updated_date: '2026-09-22 00:47'
 labels: []
 milestone: s-003
 dependencies:
   - TASK-10
   - TASK-11
+ordinal: 2333.333333333333
 ---
 
 ## Description

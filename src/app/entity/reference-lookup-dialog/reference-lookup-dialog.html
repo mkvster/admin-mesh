@@ -1,0 +1,46 @@
+<h2 mat-dialog-title>Select {{ title }}</h2>
+<mat-dialog-content>
+  @if (state(); as current) {
+    @if (current.status === 'loading') {
+      <div class="lookup-state" role="status">
+        <mat-progress-spinner mode="indeterminate" diameter="32" /> Loading
+      </div>
+    } @else if (current.status === 'error') {
+      <div class="lookup-state" role="alert">Unable to load available values.</div>
+    } @else {
+      <div class="lookup-toolbar">
+        <button mat-stroked-button type="button" (click)="openFilters()">Filter</button>
+        @if (selectedIds().length) {
+          <span aria-live="polite">{{ selectedIds().length }} selected</span>
+        }
+      </div>
+      @if (filterError()) {
+        <div role="alert">Unable to open list filters.</div>
+      }
+      <app-list-grid
+        [metadata]="current.metadata"
+        [rows]="current.result.items"
+        [totalCount]="current.result.totalCount"
+        [page]="queryPage()"
+        [pageSize]="queryPageSize()"
+        [sort]="querySort()"
+        [filters]="queryFilters()"
+        [idField]="current.idField"
+        [enableRowActions]="false"
+        [selectionMode]="mode"
+        [selectedIds]="selectedIds()"
+        (rowSelected)="onRowSelected($event)"
+        (pageChange)="onPageChange($event)"
+        (sortChange)="onSortChange($event)"
+      >
+        <div list-grid-empty class="lookup-empty" role="status">No matching records.</div>
+      </app-list-grid>
+    }
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close>Cancel</button>
+  <button mat-flat-button type="button" (click)="confirm()" [disabled]="!canConfirm()">
+    Select{{ mode === 'multiple' && selectedIds().length ? ' (' + selectedIds().length + ')' : '' }}
+  </button>
+</mat-dialog-actions>

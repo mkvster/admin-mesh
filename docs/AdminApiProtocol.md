@@ -478,6 +478,51 @@ If no sorting or filtering is required:
 The exact set and type-specific semantics of supported filter operators are
 defined in [FilterOperators.md](FilterOperators.md).
 
+### Optional Locate Capability
+
+An entity list may optionally support locating an entity within the current
+list view:
+
+```text
+POST /entities/{resource}/lists/{listId}/locate
+```
+
+The request uses the entity identifier and the same `pageSize`, `sort`, and
+`filter` values as the list query:
+
+```json
+{
+  "id": 123,
+  "pageSize": 25,
+  "sort": [{ "field": "lastName", "direction": "asc" }],
+  "filter": { "operator": "and", "items": [] }
+}
+```
+
+When the entity matches the filter, the response contains its page and the
+standard list result for that page. The result is returned together with the
+page so the client does not need a second request:
+
+```json
+{
+  "found": true,
+  "page": 4,
+  "result": {
+    "items": [],
+    "totalCount": 97
+  }
+}
+```
+
+When the entity does not exist or does not match the filter:
+
+```json
+{ "found": false, "page": null, "result": null }
+```
+
+Locate is optional. A backend that does not implement it may return `404`,
+`405`, or `501`; clients must fall back to their normal saved-entity UX.
+
 ---
 
 # 4. Get Entity

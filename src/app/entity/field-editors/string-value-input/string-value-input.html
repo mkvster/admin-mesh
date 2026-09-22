@@ -1,0 +1,21 @@
+<mat-form-field appearance="outline">
+  <mat-label>{{ label() }}</mat-label>
+  <input
+    matInput
+    [formControl]="activeControl()"
+    [attr.maxlength]="maxLength()"
+    [attr.pattern]="pattern()"
+    (input)="onInput($event)"
+    (blur)="blur.emit()"
+    [attr.aria-label]="label()"
+  />
+  @if (requiredError()) {
+    <mat-error>This field is required.</mat-error>
+  }
+  @if (patternError() || patternMismatch() || inputPatternMismatch()) {
+    <mat-error>Use the required format.</mat-error>
+  }
+  @if (showCounter() && maxLength() !== null) {
+    <mat-hint align="end">{{ editableValue().length }} / {{ maxLength() }}</mat-hint>
+  }
+</mat-form-field>

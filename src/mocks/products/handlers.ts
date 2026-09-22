@@ -22,6 +22,7 @@ export const createProductHandlers = (apiBaseUrl: string) => [
           name: 'categoryId',
           label: 'Category',
           type: 'reference',
+          display: { type: 'reference', valueField: 'categoryName' },
           reference: { resource: 'categories', listId: 'main', displayField: 'name' },
         },
         {
@@ -95,6 +96,24 @@ export const createProductHandlers = (apiBaseUrl: string) => [
       },
     });
   }),
+  http.get(`${apiBaseUrl}/entities/products/forms/edit/metadata`, async () => {
+    await delay(randomMockDelay());
+
+    return HttpResponse.json({
+      projection: 'edit',
+      layout: {
+        columns: 2,
+        items: [
+          { field: 'name' },
+          { field: 'sku' },
+          { field: 'categoryId' },
+          { field: 'price' },
+          { field: 'stock' },
+          { field: 'enabled' },
+        ],
+      },
+    });
+  }),
   http.get(`${apiBaseUrl}/entities/products/:id`, async ({ params }) => {
     await delay(randomMockDelay());
     const product = products.find((item) => String(item.productId) === String(params['id']));
@@ -102,6 +121,15 @@ export const createProductHandlers = (apiBaseUrl: string) => [
       return new HttpResponse(null, { status: 404 });
     }
 
+    return HttpResponse.json({
+      ...product,
+      categoryName: categories.find((category) => category.categoryId === product.categoryId)?.name,
+    });
+  }),
+  http.patch(`${apiBaseUrl}/entities/products/:id`, async ({ params, request }) => {
+    const product = products.find((item) => String(item.productId) === String(params['id']));
+    if (!product) return new HttpResponse(null, { status: 404 });
+    Object.assign(product, (await request.json()) as Record<string, unknown>);
     return HttpResponse.json({
       ...product,
       categoryName: categories.find((category) => category.categoryId === product.categoryId)?.name,
@@ -118,6 +146,17 @@ export const createProductHandlers = (apiBaseUrl: string) => [
     }));
 
     return HttpResponse.json(applyListQuery(rows, query));
+  }),
+  http.post(`${apiBaseUrl}/entities/products`, async ({ request }) => {
+    await delay(randomMockDelay());
+
+    const payload = (await request.json()) as Record<string, unknown>;
+    const productId = Math.max(...products.map((product) => product.productId)) + 1;
+    const { productId: _clientProvidedId, ...attributes } = payload;
+    const product = { ...attributes, productId } as (typeof products)[number];
+    products.push(product);
+
+    return HttpResponse.json(product, { status: 201 });
   }),
   http.delete(`${apiBaseUrl}/entities/products/:id`, async ({ params }) => {
     const removed = removeMockEntity(products, 'productId', String(params['id']));
