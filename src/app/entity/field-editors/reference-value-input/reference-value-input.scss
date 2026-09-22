@@ -1,0 +1,21 @@
+:host {
+  display: block;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.reference-actions {
+  align-items: center;
+  display: inline-flex;
+  gap: 2px;
+  height: 100%;
+}
+
+input.reference-preview-value {
+  color: var(--mat-sys-primary);
+  cursor: help;
+  -webkit-text-fill-color: var(--mat-sys-primary);
+  opacity: 1;
+}

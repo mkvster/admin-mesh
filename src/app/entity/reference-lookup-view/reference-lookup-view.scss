@@ -1,0 +1,57 @@
+:host,
+.lookup-view {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+.lookup-header {
+  align-items: center;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+}
+.lookup-title {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 12px;
+}
+.lookup-title h2 {
+  font-size: 24px;
+  font-weight: 400;
+  margin: 0;
+  white-space: nowrap;
+}
+.lookup-selection {
+  flex: 1 1 auto;
+  max-height: 108px;
+  min-height: 40px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.lookup-header-multiple {
+  align-items: flex-start;
+}
+.lookup-header-multiple .lookup-title,
+.lookup-header-multiple .lookup-actions {
+  margin-top: 8px;
+}
+.lookup-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+.lookup-state {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  flex: 1 1 auto;
+  gap: 12px;
+  justify-content: center;
+  min-height: 160px;
+}

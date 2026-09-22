@@ -22,6 +22,7 @@ export const createProductHandlers = (apiBaseUrl: string) => [
           name: 'categoryId',
           label: 'Category',
           type: 'reference',
+          display: { type: 'reference', valueField: 'categoryName' },
           reference: { resource: 'categories', listId: 'main', displayField: 'name' },
         },
         {
@@ -120,6 +121,15 @@ export const createProductHandlers = (apiBaseUrl: string) => [
       return new HttpResponse(null, { status: 404 });
     }
 
+    return HttpResponse.json({
+      ...product,
+      categoryName: categories.find((category) => category.categoryId === product.categoryId)?.name,
+    });
+  }),
+  http.patch(`${apiBaseUrl}/entities/products/:id`, async ({ params, request }) => {
+    const product = products.find((item) => String(item.productId) === String(params['id']));
+    if (!product) return new HttpResponse(null, { status: 404 });
+    Object.assign(product, (await request.json()) as Record<string, unknown>);
     return HttpResponse.json({
       ...product,
       categoryName: categories.find((category) => category.categoryId === product.categoryId)?.name,

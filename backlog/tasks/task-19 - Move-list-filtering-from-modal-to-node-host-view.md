@@ -2,10 +2,10 @@
 id: TASK-19
 title: Move list filtering from modal to node host view
 type: feature
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-21 16:02'
-updated_date: '2026-09-21 19:28'
+updated_date: '2026-09-21 19:30'
 labels: []
 milestone: s-003
 dependencies:

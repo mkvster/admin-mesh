@@ -25,6 +25,8 @@ import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 import { StringValueInput } from '../field-editors/string-value-input/string-value-input';
 import { DateValueInput } from '../field-editors/date-value-input/date-value-input';
 import { EnumValueInput } from '../field-editors/enum-value-input/enum-value-input';
+import { ReferenceValueInput } from '../field-editors/reference-value-input/reference-value-input';
+import { ReferenceLookupSelection } from '../reference-lookup-dialog/reference-lookup-dialog';
 import { ErrorState } from '../../shared/error-state/error-state';
 import { EntityFormMode, FieldMetadata, FormLayoutItem, FormMetadata } from '../entity-types';
 
@@ -45,6 +47,7 @@ type FormState =
     StringValueInput,
     DateValueInput,
     EnumValueInput,
+    ReferenceValueInput,
     EntityFieldValue,
     ErrorState,
   ],
@@ -71,6 +74,7 @@ export class EntityForm {
     this.saveState() === 'error' ? 'Unable to save this entity.' : null,
   );
   private readonly saveState = signal<'idle' | 'saving' | 'error'>('idle');
+  private readonly referenceDisplayOverrides = signal<Record<string, string | null>>({});
 
   readonly state = toSignal(
     combineLatest([
@@ -142,6 +146,26 @@ export class EntityForm {
     return value instanceof Date ? value : null;
   }
 
+  protected referenceDisplayValue(
+    field: FieldMetadata,
+    entity: Record<string, unknown>,
+  ): string | null {
+    const overrides = this.referenceDisplayOverrides();
+    if (Object.prototype.hasOwnProperty.call(overrides, field.name)) {
+      return overrides[field.name] ?? null;
+    }
+    const display = field.display;
+    const valueField =
+      display?.type === 'reference' ? display.valueField : field.reference?.displayField;
+    const value = valueField ? entity[valueField] : undefined;
+    return typeof value === 'string' || typeof value === 'number' ? String(value) : null;
+  }
+
+  protected referenceId(field: FieldMetadata): string | number | null {
+    const value = this.control(field)?.value;
+    return typeof value === 'string' || typeof value === 'number' ? value : null;
+  }
+
   protected onStringBlur(field: FieldMetadata): void {
     this.control(field)?.markAsTouched();
   }
@@ -149,9 +173,10 @@ export class EntityForm {
   protected isEditable(field: FieldMetadata): boolean {
     return (
       this.mode() !== 'view' &&
-      ['string', 'integer', 'decimal', 'boolean', 'date', 'datetime', 'enum'].includes(
+      (['string', 'integer', 'decimal', 'boolean', 'date', 'datetime', 'enum'].includes(
         field.type,
-      ) &&
+      ) ||
+        (field.type === 'reference' && !!field.reference)) &&
       !(this.mode() === 'edit' && field.readOnlyOnUpdate)
     );
   }
@@ -176,6 +201,24 @@ export class EntityForm {
   protected updateEnumValue(field: FieldMetadata, value: unknown): void {
     this.control(field)?.setValue(value);
     this.control(field)?.markAsDirty();
+  }
+
+  protected updateReferenceValue(
+    field: FieldMetadata,
+    selection: ReferenceLookupSelection | null,
+  ): void {
+    const control = this.control(field);
+    if (!control) return;
+    control.setValue(selection?.id ?? null);
+    control.markAsDirty();
+    control.markAsTouched();
+    control.updateValueAndValidity();
+    this.referenceDisplayOverrides.update((values) => {
+      const next = { ...values };
+      if (selection) next[field.name] = selection.displayValue;
+      else next[field.name] = null;
+      return next;
+    });
   }
 
   protected submit(): void {
@@ -251,6 +294,7 @@ export class EntityForm {
       return Number.isNaN(date.getTime()) ? null : date;
     }
     if (field.type === 'enum') return value;
+    if (field.type === 'reference') return value;
     return String(value);
   }
 

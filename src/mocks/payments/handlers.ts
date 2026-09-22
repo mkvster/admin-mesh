@@ -155,6 +155,13 @@ export const createPaymentHandlers = (apiBaseUrl: string) => [
 
     return HttpResponse.json(applyListQuery(rows, query));
   }),
+  http.patch(`${apiBaseUrl}/entities/payments/:id`, async ({ params, request }) => {
+    const payment = payments.find((item) => String(item.paymentId) === String(params['id']));
+    if (!payment) return new HttpResponse(null, { status: 404 });
+    Object.assign(payment, (await request.json()) as Record<string, unknown>);
+    const invoice = invoices.find((item) => item.invoiceId === payment.invoiceId);
+    return HttpResponse.json({ ...payment, invoiceNumber: invoice?.invoiceNumber });
+  }),
   http.delete(`${apiBaseUrl}/entities/payments/:id`, async ({ params }) => {
     const removed = removeMockEntity(payments, 'paymentId', String(params['id']));
     return removed

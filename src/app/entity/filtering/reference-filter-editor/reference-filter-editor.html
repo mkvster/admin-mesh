@@ -1,0 +1,14 @@
+<mat-form-field appearance="outline">
+  <mat-label>Value</mat-label>
+  <input matInput readonly [value]="displayValue()" [attr.aria-label]="field().label + ' values'" />
+  <span matSuffix class="reference-actions">
+    <button mat-button type="button" (click)="openLookup()">
+      {{ isMultiple() ? 'Choose values' : 'Choose' }}
+    </button>
+    @if (selectedIds().length) {
+      <button mat-icon-button type="button" aria-label="Clear selected values" (click)="clear()">
+        <mat-icon aria-hidden="true">close</mat-icon>
+      </button>
+    }
+  </span>
+</mat-form-field>

@@ -6,6 +6,9 @@
   } @else {
     <table mat-table [dataSource]="rows()">
       <colgroup>
+        @if (selectionMode() !== 'none' && selectionControl()) {
+          <col class="selection-column" />
+        }
         @for (column of metadata().columns; track column.field) {
           <col [style.width.px]="column.sizeType === 'width' ? column.size : null" />
         }
@@ -13,6 +16,20 @@
           <col class="row-actions-column" [style.width.px]="rowActionsColumnWidth()" />
         }
       </colgroup>
+
+      @if (selectionMode() !== 'none' && selectionControl()) {
+        <ng-container matColumnDef="__selection">
+          <th mat-header-cell *matHeaderCellDef><span class="visually-hidden">Select</span></th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox
+              [checked]="isSelected(row)"
+              [attr.aria-label]="selectionLabel(row)"
+              (click)="$event.stopPropagation()"
+              (change)="selectRow(row)"
+            />
+          </td>
+        </ng-container>
+      }
 
       @for (item of columns(); track item.column.field) {
         <ng-container [matColumnDef]="item.column.field">
@@ -155,7 +172,9 @@
         mat-row
         *matRowDef="let row; columns: displayedColumns()"
         [class.row-highlighted]="isHighlighted(row)"
+        [class.row-selected]="isSelected(row)"
         [attr.data-entity-id]="row[idField()]"
+        (click)="selectionMode() !== 'none' ? selectRow(row) : null"
       ></tr>
     </table>
   }
@@ -191,9 +210,8 @@
 <div class="grid-footer">
   @if (totalCount() > 0) {
     <nav class="pagination" aria-label="List pagination">
-      <label class="page-size-label" for="page-size">Rows</label>
+      <span class="page-size-label" aria-hidden="true">Rows</span>
       <select
-        id="page-size"
         class="page-size-select"
         aria-label="Rows per page"
         (change)="onPageSizeChange($event)"

@@ -26,6 +26,15 @@
   height: 100%;
   min-height: 0;
   min-width: 0;
+  position: relative;
+}
+
+.reference-lookup-layer {
+  background: var(--mat-sys-surface);
+  display: flex;
+  inset: 0;
+  position: absolute;
+  z-index: 3;
 }
 
 .node-panel:has(app-list-grid) .node-panel-content,

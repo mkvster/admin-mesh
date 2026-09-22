@@ -1,0 +1,70 @@
+<div class="lookup-view">
+  <header class="lookup-header" [class.lookup-header-multiple]="selectedValues().length > 1">
+    <div class="lookup-title">
+      <mat-icon aria-hidden="true">link</mat-icon>
+      <h2>Select {{ data().field.label }}</h2>
+    </div>
+    <mat-chip-set class="lookup-selection" aria-label="Selected values">
+      @for (item of selectedValues(); track item.id) {
+        <mat-chip-row (removed)="remove(item)">
+          {{ item.displayValue }}
+          <button matChipRemove type="button" [attr.aria-label]="'Remove ' + item.displayValue">
+            <mat-icon aria-hidden="true">cancel</mat-icon>
+          </button>
+        </mat-chip-row>
+      }
+    </mat-chip-set>
+    <div class="lookup-actions">
+      <button mat-button type="button" (click)="cancelled.emit()">Cancel</button>
+      <button
+        mat-flat-button
+        type="button"
+        [disabled]="selectedValues().length === 0"
+        (click)="select()"
+      >
+        Select
+      </button>
+    </div>
+  </header>
+
+  @if (filterMode()) {
+    @if (filterEditorData(); as filterData) {
+      <app-filter-editor
+        [data]="filterData"
+        (applied)="applyFilters($event)"
+        (cancelled)="cancelFilters()"
+      />
+    }
+  } @else {
+    @if (state(); as current) {
+      @if (current.status === 'loading') {
+        <div class="lookup-state" role="status">
+          <mat-progress-spinner mode="indeterminate" diameter="32" />Loading
+        </div>
+      } @else if (current.status === 'error') {
+        <div class="lookup-state" role="alert">Unable to load available values.</div>
+      } @else {
+        <app-list-grid
+          [metadata]="current.metadata"
+          [rows]="current.result.items"
+          [totalCount]="current.result.totalCount"
+          [page]="page()"
+          [pageSize]="pageSize()"
+          [sort]="sort()"
+          [filters]="filters()"
+          [idField]="current.idField"
+          [enableRowActions]="false"
+          [selectionMode]="data().mode"
+          [selectionControl]="data().mode === 'multiple'"
+          [selectedIds]="selectedIds()"
+          (rowSelected)="selectRow($event)"
+          (pageChange)="onPageChange($event)"
+          (sortChange)="onSortChange($event)"
+          ><div list-grid-empty class="lookup-state" role="status">
+            No matching records.
+          </div></app-list-grid
+        >
+      }
+    }
+  }
+</div>

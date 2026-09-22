@@ -49,8 +49,12 @@ export class FilterDialog {
   readonly cancelled = output<void>();
   private readonly resolvedData = computed(() => this.data() ?? this.injectedData!);
   private readonly supportedFilterableFields = computed(() =>
-    this.resolvedData().fields.filter((field) =>
-      ['string', 'integer', 'decimal', 'boolean', 'date', 'datetime', 'enum'].includes(field.type),
+    this.resolvedData().fields.filter(
+      (field) =>
+        ['string', 'integer', 'decimal', 'boolean', 'date', 'datetime', 'enum'].includes(
+          field.type,
+        ) ||
+        (field.type === 'reference' && !!field.reference),
     ),
   );
   get filterableFields() {
@@ -117,7 +121,9 @@ export class FilterDialog {
             ? ['equals']
             : field.type === 'enum'
               ? ['equals', 'notEquals', 'in', 'notIn']
-              : ['equals', 'before', 'after', 'between', 'inThePast'];
+              : field.type === 'reference'
+                ? ['equals', 'notEquals', 'in', 'notIn']
+                : ['equals', 'before', 'after', 'between', 'inThePast'];
 
     return values.map((value) => ({ value, label: this.operatorLabel(value) }));
   }
@@ -155,9 +161,13 @@ export class FilterDialog {
             ? item.operator === 'in' || item.operator === 'notIn'
               ? 'Choose a value(s)'
               : 'Choose a value'
-            : field?.type === 'string'
-              ? 'Enter a value'
-              : 'Enter a valid value';
+            : field?.type === 'reference'
+              ? item.operator === 'in' || item.operator === 'notIn'
+                ? 'Choose one or more values'
+                : 'Choose a value'
+              : field?.type === 'string'
+                ? 'Enter a value'
+                : 'Enter a valid value';
   }
 
   protected updateField(index: number, field: string): void {
@@ -226,7 +236,7 @@ export class FilterDialog {
       return ['hour', '24hours', 'week', 'month', 'year'].includes(String(value));
     }
 
-    if (field.type === 'enum') {
+    if (field.type === 'enum' || field.type === 'reference') {
       return operator === 'in' || operator === 'notIn'
         ? Array.isArray(value) &&
             value.length > 0 &&
@@ -250,6 +260,12 @@ export class FilterDialog {
     }
     if (field.type === 'enum') {
       return field.values?.some((item) => item.value === value) ?? false;
+    }
+    if (field.type === 'reference') {
+      return (
+        (typeof value === 'string' && value.trim().length > 0) ||
+        (typeof value === 'number' && Number.isFinite(value))
+      );
     }
     return typeof value === 'string' && value.trim().length > 0 && !Number.isNaN(Date.parse(value));
   }

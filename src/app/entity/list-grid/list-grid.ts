@@ -13,6 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import {
   FieldDisplay,
   FieldMetadata,
@@ -26,6 +27,7 @@ import { ReferencePreviewOverlay } from '../reference-preview-overlay/reference-
 import { normalizePageNumber, normalizePageSize } from '../pagination';
 
 const ROW_ACTIONS_COLUMN = '__rowActions';
+const SELECTION_COLUMN = '__selection';
 const ROW_ACTION_WIDTH = 56;
 
 export interface ListPageChange {
@@ -58,6 +60,7 @@ interface ReferencePreviewTarget {
     MatTableModule,
     MatIconModule,
     MatTooltipModule,
+    MatCheckboxModule,
     EntityFieldValue,
     OverlayModule,
     ReferencePreviewOverlay,
@@ -89,6 +92,11 @@ export class ListGrid {
   readonly showEditAction = input(false);
   readonly highlightedId = input<string | number | null>(null);
   readonly rowAction = output<ListGridRowAction>();
+  readonly selectionMode = input<'none' | 'single' | 'multiple'>('none');
+  readonly selectionControl = input(true);
+  readonly selectedIds = input<(string | number)[]>([]);
+  readonly rowSelected = output<Record<string, unknown>>();
+  readonly enableRowActions = input(true);
 
   protected readonly overlayPositions: ConnectedPosition[] = [
     { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 8 },
@@ -119,16 +127,34 @@ export class ListGrid {
     this.destroyRef.onDestroy(() => this.clearTimers());
   }
 
-  protected readonly displayedColumns = computed(() =>
-    this.hasRowActions()
-      ? [...this.metadata().columns.map((column) => column.field), ROW_ACTIONS_COLUMN]
-      : this.metadata().columns.map((column) => column.field),
+  protected readonly displayedColumns = computed(() => [
+    ...(this.selectionMode() !== 'none' && this.selectionControl() ? [SELECTION_COLUMN] : []),
+    ...this.metadata().columns.map((column) => column.field),
+    ...(this.hasRowActions() ? [ROW_ACTIONS_COLUMN] : []),
+  ]);
+
+  protected isSelected(row: Record<string, unknown>): boolean {
+    const id = row[this.idField()];
+    return (typeof id === 'string' || typeof id === 'number') && this.selectedIds().includes(id);
+  }
+
+  protected selectRow(row: Record<string, unknown>): void {
+    this.rowSelected.emit(row);
+  }
+
+  protected selectionLabel(row: Record<string, unknown>): string {
+    return `Select ${String(row[this.idField()] ?? 'row')}`;
+  }
+
+  protected readonly rowActions = computed(() =>
+    this.enableRowActions() ? (this.metadata().rowActions ?? []) : [],
   );
 
-  protected readonly rowActions = computed(() => this.metadata().rowActions ?? []);
-
   protected readonly hasRowActions = computed(
-    () => this.showDeleteAction() || this.showEditAction() || this.rowActions().length > 0,
+    () =>
+      this.showDeleteAction() ||
+      this.showEditAction() ||
+      (this.enableRowActions() && this.rowActions().length > 0),
   );
 
   protected readonly rowActionsColumnWidth = computed(

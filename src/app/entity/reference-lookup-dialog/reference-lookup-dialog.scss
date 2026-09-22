@@ -1,0 +1,28 @@
+:host {
+  display: block;
+  width: min(1100px, 90vw);
+}
+
+mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+  max-height: min(70vh, 720px);
+}
+
+.lookup-toolbar {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  padding-bottom: 12px;
+}
+
+.lookup-state,
+.lookup-empty {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  min-height: 180px;
+}

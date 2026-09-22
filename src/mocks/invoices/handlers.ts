@@ -1,10 +1,11 @@
 import { delay, HttpResponse, http } from 'msw';
-import { ListQuery } from '../../app/entity/entity-types';
+import { EntityLocateRequest, ListQuery } from '../../app/entity/entity-types';
 import { invoices } from './data';
 import { customers } from '../customers/data';
 import { applyListQuery } from '../shared/apply-list-query';
 import { removeMockEntity } from '../shared/remove-mock-entity';
 import { randomMockDelay } from '../shared/random-mock-delay';
+import { locateMockEntity } from '../shared/locate-mock-entity';
 
 export const createInvoiceHandlers = (apiBaseUrl: string) => [
   http.get(`${apiBaseUrl}/entities/invoices/metadata`, async () => {
@@ -21,6 +22,7 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
           name: 'customerId',
           label: 'Customer',
           type: 'reference',
+          display: { type: 'reference', valueField: 'customerDisplayName' },
           reference: { resource: 'customers', listId: 'main', displayField: 'email' },
         },
         { name: 'issueDate', label: 'Issue Date', type: 'date' },
@@ -125,6 +127,10 @@ export const createInvoiceHandlers = (apiBaseUrl: string) => [
     }));
 
     return HttpResponse.json(applyListQuery(rows, query));
+  }),
+  http.post(`${apiBaseUrl}/entities/invoices/lists/main/locate`, async ({ request }) => {
+    const locateRequest = (await request.json()) as EntityLocateRequest;
+    return HttpResponse.json(locateMockEntity(invoices, 'invoiceId', locateRequest));
   }),
   http.patch(`${apiBaseUrl}/entities/invoices/:id`, async ({ params, request }) => {
     const invoice = invoices.find((item) => String(item.invoiceId) === String(params['id']));

@@ -13,6 +13,8 @@ import { EntityForm } from '../entity/entity-form/entity-form';
 import { EntityMetadataStore } from '../entity/entity-metadata-store';
 import { EntityListContextStore } from '../entity/entity-list-context';
 import { LayoutCard } from '../shared/layout-card/layout-card';
+import { ReferenceLookupState } from '../entity/reference-lookup-state';
+import { ReferenceLookupView } from '../entity/reference-lookup-view/reference-lookup-view';
 
 @Component({
   selector: 'app-node-host',
@@ -23,6 +25,7 @@ import { LayoutCard } from '../shared/layout-card/layout-card';
     NotFoundState,
     EntityForm,
     LayoutCard,
+    ReferenceLookupView,
   ],
   templateUrl: './node-host.html',
   styleUrl: './node-host.scss',
@@ -34,6 +37,7 @@ export class NodeHost {
   private readonly listContext = inject(EntityListContextStore);
   private readonly location = inject(Location);
   protected readonly state = inject(NavigationState);
+  protected readonly referenceLookup = inject(ReferenceLookupState);
 
   protected toString(value: unknown): string {
     return String(value);

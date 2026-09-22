@@ -27,7 +27,22 @@
               <label [for]="entry.field.name">{{ entry.field.label }}</label>
             }
             @if (isEditable(entry.field); as editable) {
-              @if (entry.field.type === 'date' || entry.field.type === 'datetime') {
+              @if (entry.field.type === 'reference') {
+                <app-reference-value-input
+                  [field]="entry.field"
+                  [displayValue]="referenceDisplayValue(entry.field, current.entity)"
+                  [selectedId]="referenceId(entry.field)"
+                  [hasValue]="
+                    control(entry.field)?.value !== null &&
+                    control(entry.field)?.value !== undefined
+                  "
+                  [requiredError]="
+                    !!control(entry.field)?.hasError('required') &&
+                    (!!control(entry.field)?.touched || !!control(entry.field)?.dirty)
+                  "
+                  (selectionChange)="updateReferenceValue(entry.field, $event)"
+                />
+              } @else if (entry.field.type === 'date' || entry.field.type === 'datetime') {
                 <app-date-value-input
                   [label]="entry.field.label"
                   [value]="dateValue(entry.field)"

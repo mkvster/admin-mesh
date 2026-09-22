@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -23,7 +24,6 @@ import {
   startWith,
   Subject,
   switchMap,
-  tap,
   throwError,
 } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,8 +32,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityApi } from '../entity-api';
 import { EntityMetadataStore } from '../entity-metadata-store';
-import { ListMetadataStore } from '../list-metadata-store';
-import { FieldMetadataResolver } from '../field-metadata-resolver';
+import { ListDataSource } from '../list-data-source';
 import {
   EntityPreviewDialog,
   EntityPreviewDialogData,
@@ -107,14 +106,14 @@ export class EntityList {
   readonly resource = input.required<string>();
 
   private readonly api = inject(EntityApi);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly asyncErrorHandler = inject(AsyncErrorHandler);
   private readonly toolbarState = inject(AdminToolbarState);
   private readonly entityMetadataStore = inject(EntityMetadataStore);
-  private readonly listMetadataStore = inject(ListMetadataStore);
-  private readonly fieldMetadataResolver = inject(FieldMetadataResolver);
+  private readonly listDataSource = inject(ListDataSource);
   private readonly listContext = inject(EntityListContextStore, { optional: true });
   private readonly location = inject(Location);
   private readonly listRefresh = new Subject<void>();
@@ -169,8 +168,10 @@ export class EntityList {
   private readonly contextToken = this.readContextToken();
   private readonly savedEntityId = signal<string | number | null>(this.readSavedEntityId());
   private locateAttempted = false;
+  private locateMessageTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
+    this.destroyRef.onDestroy(() => this.clearLocateMessageTimer());
     effect((onCleanup) => {
       const current = this.state();
       if (current.status !== 'loaded' || this.formMode()) {
@@ -264,7 +265,7 @@ export class EntityList {
       .subscribe({
         next: (located: EntityLocateResult) => {
           if (!located.found || located.page === null || located.result === null) {
-            this.locateMessage.set(
+            this.showLocateMessage(
               `${current.metadata.singularTitle} ${id} was saved, but it does not match the current filters.`,
             );
             return;
@@ -283,7 +284,7 @@ export class EntityList {
         },
         error: (cause: unknown) => {
           console.error('Saved entity locate failed', cause);
-          this.locateMessage.set(
+          this.showLocateMessage(
             `${current.metadata.singularTitle} ${id} was saved. Use Find saved record to locate it.`,
           );
         },
@@ -310,69 +311,64 @@ export class EntityList {
   }
 
   protected dismissLocateMessage(): void {
+    this.clearLocateMessageTimer();
     this.locateMessage.set(null);
   }
 
-  private loadEntityList(resource: string) {
-    // Load entity metadata first, then load list metadata and initial data
-    this.isListLoading.set(true);
-
-    return this.entityMetadataStore.get(resource).pipe(
-      switchMap((metadata) => this.loadList(resource, metadata)),
-      catchError((error) => this.handleLoadError(error)),
-    );
+  private showLocateMessage(message: string): void {
+    this.clearLocateMessageTimer();
+    this.locateMessage.set(message);
+    this.locateMessageTimer = setTimeout(() => {
+      this.locateMessage.set(null);
+      this.locateMessageTimer = undefined;
+    }, 7000);
   }
 
-  private loadList(resource: string, metadata: EntityMetadata) {
-    const listId = metadata.views.list;
+  private clearLocateMessageTimer(): void {
+    if (this.locateMessageTimer !== undefined) {
+      clearTimeout(this.locateMessageTimer);
+      this.locateMessageTimer = undefined;
+    }
+  }
 
-    return this.loadListMetadata(resource, listId).pipe(
-      switchMap((listMetadata) => {
-        const resolvedListMetadata: ListMetadata = {
-          ...listMetadata,
-          fields: this.fieldMetadataResolver.mergeFields(metadata.fields, listMetadata.fields),
-        };
+  private loadEntityList(resource: string) {
+    this.isListLoading.set(true);
+    return this.loadList(resource).pipe(catchError((error) => this.handleLoadError(error)));
+  }
 
-        return combineLatest([
-          this.route.queryParamMap,
-          this.listRefresh.pipe(startWith(undefined)),
-        ]).pipe(
-          map(([params]) => this.readListQuery(params, resource, listId)),
-          tap((query) => this.ensurePagingParams(query)),
-          switchMap((query) => {
-            const requestVersion = ++this.listRequestVersion;
-            this.isListLoading.set(true);
-
-            return defer(() => this.api.queryList(resource, listId, query)).pipe(
-              finalize(() => {
-                if (requestVersion === this.listRequestVersion) {
-                  this.isListLoading.set(false);
-                }
-              }),
-              map((data) => {
-                this.ensureValidPage(query, data);
-
-                return {
-                  status: 'loaded',
-                  resource,
-                  metadata,
-                  listMetadata: resolvedListMetadata,
-                  data,
-                  page: query.page,
-                  pageSize: query.pageSize,
-                  sort: query.sort ?? [],
-                  filters: query.filter?.items ?? [],
-                } as EntityListState;
-              }),
-            );
+  private loadList(resource: string) {
+    return combineLatest([
+      this.entityMetadataStore.get(resource),
+      this.route.queryParamMap,
+      this.listRefresh.pipe(startWith(undefined)),
+    ]).pipe(
+      switchMap(([metadata, params]) => {
+        const requestVersion = ++this.listRequestVersion;
+        const listId = metadata.views.list;
+        const query = this.readListQuery(params, resource, listId);
+        this.ensurePagingParams(query);
+        this.isListLoading.set(true);
+        return defer(() => this.listDataSource.load(resource, listId, query)).pipe(
+          finalize(() => {
+            if (requestVersion === this.listRequestVersion) this.isListLoading.set(false);
+          }),
+          map((list) => {
+            this.ensureValidPage(query, list.result);
+            return {
+              status: 'loaded',
+              resource,
+              metadata: list.entityMetadata,
+              listMetadata: list.metadata,
+              data: list.result,
+              page: query.page,
+              pageSize: query.pageSize,
+              sort: query.sort ?? [],
+              filters: query.filter?.items ?? [],
+            } as EntityListState;
           }),
         );
       }),
     );
-  }
-
-  private loadListMetadata(resource: string, listId: string) {
-    return this.listMetadataStore.get(resource, listId);
   }
 
   protected onPageChange(event: ListPageChange): void {
