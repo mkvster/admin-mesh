@@ -26,32 +26,11 @@
     <span>Home</span>
   </button>
   <mat-divider></mat-divider>
-  @if (actions(); as actions) {
-    @if (actions.filterEditing) {
-      <button mat-menu-item type="button" (click)="actions.addFilter?.()">
-        <mat-icon>add</mat-icon>
-        <span>Add filter</span>
-      </button>
-      <button mat-menu-item type="button" (click)="actions.clearFilters()">
-        <mat-icon>filter_alt_off</mat-icon>
-        <span>Clear filters</span>
-      </button>
-    } @else {
-      @if (actions.canAdd) {
-        <button mat-menu-item type="button" (click)="actions.add()">
-          <mat-icon>add</mat-icon>
-          <span>{{ actions.addLabel }}</span>
-        </button>
-      }
-      <button mat-menu-item type="button" (click)="actions.editFilters()">
-        <mat-icon
-          [fontSet]="actions.filterCount > 0 ? 'material-icons' : 'material-icons-outlined'"
-        >
-          filter_alt
-        </mat-icon>
-        <span>Filter</span>
-      </button>
-    }
+  @for (action of toolbarState.visibleActions(); track action.id) {
+    <button mat-menu-item type="button" [class]="action.cssClass" (click)="action.handler()">
+      <mat-icon [fontSet]="action.iconFontSet">{{ action.icon }}</mat-icon>
+      <span>{{ action.label }}</span>
+    </button>
   }
   <mat-divider></mat-divider>
   <button

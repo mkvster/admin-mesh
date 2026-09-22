@@ -1,14 +1,12 @@
 @if (isMobile()) {
   <app-layout-header-mobile
     [breadcrumbs]="breadcrumbs(true)"
-    [actions]="toolbarState.actions()"
     (toggleSidenav)="sidenav.toggle()"
     (navigateHome)="navigationState.clear()"
   />
 } @else {
   <app-layout-header-desktop
     [breadcrumbs]="breadcrumbs(false)"
-    [actions]="toolbarState.actions()"
     (navigateHome)="navigationState.clear()"
   />
 }

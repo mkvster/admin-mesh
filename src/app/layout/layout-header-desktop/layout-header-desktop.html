@@ -4,58 +4,18 @@
   <app-breadcrumbs [items]="breadcrumbs()"></app-breadcrumbs>
   <span class="toolbar-spacer"></span>
 
-  @if (actions(); as actions) {
-    @if (actions.filterEditing) {
-      <button
-        mat-icon-button
-        type="button"
-        class="toolbar-action add-filter-action"
-        aria-label="Add filter"
-        matTooltip="Add filter"
-        (click)="actions.addFilter?.()"
-      >
-        <mat-icon aria-hidden="true">add</mat-icon>
-      </button>
-      <button
-        mat-icon-button
-        type="button"
-        class="toolbar-action clear-filter-action"
-        aria-label="Clear filters"
-        matTooltip="Clear filters"
-        (click)="actions.clearFilters()"
-      >
-        <mat-icon aria-hidden="true">filter_alt_off</mat-icon>
-      </button>
-    } @else {
-      @if (actions.canAdd) {
-        <button
-          mat-icon-button
-          type="button"
-          class="toolbar-action add-action"
-          [attr.aria-label]="actions.addLabel"
-          [matTooltip]="actions.addLabel"
-          (click)="actions.add()"
-        >
-          <mat-icon aria-hidden="true">add</mat-icon>
-        </button>
-      }
-      <button
-        mat-icon-button
-        type="button"
-        class="toolbar-action filter-action"
-        [attr.aria-label]="
-          actions.filterCount ? 'Filter, ' + actions.filterCount + ' active' : 'Filter'
-        "
-        matTooltip="Filter"
-        (click)="actions.editFilters()"
-      >
-        <mat-icon
-          [fontSet]="actions.filterCount > 0 ? 'material-icons' : 'material-icons-outlined'"
-          aria-hidden="true"
-          >filter_alt</mat-icon
-        >
-      </button>
-    }
+  @for (action of toolbarState.visibleActions(); track action.id) {
+    <button
+      mat-icon-button
+      type="button"
+      class="toolbar-action"
+      [class]="action.cssClass"
+      [attr.aria-label]="action.ariaLabel"
+      [matTooltip]="action.label"
+      (click)="action.handler()"
+    >
+      <mat-icon [fontSet]="action.iconFontSet" aria-hidden="true">{{ action.icon }}</mat-icon>
+    </button>
   }
 
   <button

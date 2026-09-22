@@ -12,7 +12,6 @@ import { Navigation } from '../../navigation/navigation/navigation';
 import type { BreadcrumbItem } from '../../shared/breadcrumbs/breadcrumbs';
 import { LayoutHeaderDesktop } from '../layout-header-desktop/layout-header-desktop';
 import { LayoutHeaderMobile } from '../layout-header-mobile/layout-header-mobile';
-import { AdminToolbarState } from './admin-toolbar-state';
 
 @Component({
   selector: 'app-admin-layout',
@@ -23,7 +22,6 @@ import { AdminToolbarState } from './admin-toolbar-state';
 export class AdminLayout {
   private readonly breakpointObserver = inject(BreakpointObserver);
   protected readonly navigationState = inject(NavigationState);
-  protected readonly toolbarState = inject(AdminToolbarState);
   private readonly router = inject(Router);
   private readonly listContext = inject(EntityListContextStore);
   private readonly location = inject(Location);
