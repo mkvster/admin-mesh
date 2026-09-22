@@ -26,7 +26,7 @@ import { StringValueInput } from '../field-editors/string-value-input/string-val
 import { DateValueInput } from '../field-editors/date-value-input/date-value-input';
 import { EnumValueInput } from '../field-editors/enum-value-input/enum-value-input';
 import { ReferenceValueInput } from '../field-editors/reference-value-input/reference-value-input';
-import { ReferenceLookupSelection } from '../reference-lookup-dialog/reference-lookup-dialog';
+import { ReferenceLookupSelection } from '../reference-lookup-view/reference-lookup-view';
 import { ErrorState } from '../../shared/error-state/error-state';
 import { EntityFormMode, FieldMetadata, FormLayoutItem, FormMetadata } from '../entity-types';
 
