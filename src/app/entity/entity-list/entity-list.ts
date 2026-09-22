@@ -466,10 +466,7 @@ export class EntityList {
   }
 
   private readContextToken(): string | undefined {
-    const state = (this.location.getState() ?? {}) as { entityListContextToken?: unknown };
-    return typeof state.entityListContextToken === 'string'
-      ? state.entityListContextToken
-      : undefined;
+    return this.listContext?.readToken(this.location);
   }
 
   private readSavedEntityId(): string | number | null {

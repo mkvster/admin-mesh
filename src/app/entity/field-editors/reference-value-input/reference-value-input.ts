@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   inject,
   input,
   output,
@@ -17,6 +16,7 @@ import { FieldMetadata } from '../../entity-types';
 import { ReferenceLookupSelection } from '../../reference-lookup-view/reference-lookup-view';
 import { ReferenceLookupState } from '../../reference-lookup-state';
 import { ReferencePreviewOverlay } from '../../reference-preview-overlay/reference-preview-overlay';
+import { HoverIntentTimer } from '../../hover-intent-timer';
 
 @Component({
   selector: 'app-reference-value-input',
@@ -30,6 +30,7 @@ import { ReferencePreviewOverlay } from '../../reference-preview-overlay/referen
   ],
   templateUrl: './reference-value-input.html',
   styleUrl: './reference-value-input.scss',
+  providers: [HoverIntentTimer],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReferenceValueInput {
@@ -40,9 +41,7 @@ export class ReferenceValueInput {
   readonly requiredError = input(false);
   readonly selectionChange = output<ReferenceLookupSelection | null>();
   private readonly lookup = inject(ReferenceLookupState);
-  private readonly destroyRef = inject(DestroyRef);
-  private hoverTimer: ReturnType<typeof setTimeout> | undefined;
-  private closeTimer: ReturnType<typeof setTimeout> | undefined;
+  private readonly hoverIntentTimer = inject(HoverIntentTimer);
   protected readonly hasPreview = computed(() => {
     const display = this.field().display;
     return !this.lookup.request() && display?.type === 'reference' && !!display.previewForm;
@@ -53,10 +52,6 @@ export class ReferenceValueInput {
     { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 8 },
     { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -8 },
   ];
-
-  constructor() {
-    this.destroyRef.onDestroy(() => this.clearTimers());
-  }
 
   protected openLookup(): void {
     this.closePreview();
@@ -82,11 +77,10 @@ export class ReferenceValueInput {
 
   protected openPreview(): void {
     if (!this.hasPreview() || this.selectedId() === null) return;
-    this.clearTimers();
-    this.hoverTimer = setTimeout(() => {
+    this.hoverIntentTimer.clear();
+    this.hoverIntentTimer.scheduleOpen(() => {
       this.previewOpen.set(true);
-      this.hoverTimer = undefined;
-    }, 250);
+    });
   }
 
   protected onDisplayMouseMove(event: MouseEvent): void {
@@ -95,22 +89,22 @@ export class ReferenceValueInput {
     if (event.offsetX <= textWidth) {
       this.openPreview();
     } else {
-      this.clearTimers();
+      this.hoverIntentTimer.clear();
       this.previewOpen.set(false);
     }
   }
 
   protected closePreview(): void {
-    this.clearTimers();
+    this.hoverIntentTimer.clear();
     this.previewOpen.set(false);
   }
 
   protected previewEnter(): void {
-    this.clearCloseTimer();
+    this.hoverIntentTimer.clearClose();
   }
 
   protected previewLeave(): void {
-    this.scheduleClose();
+    this.schedulePreviewClose();
   }
 
   protected previewResource(): string {
@@ -122,25 +116,9 @@ export class ReferenceValueInput {
     return display?.type === 'reference' ? display.previewForm! : '';
   }
 
-  private scheduleClose(): void {
-    this.clearCloseTimer();
-    this.closeTimer = setTimeout(() => {
+  private schedulePreviewClose(): void {
+    this.hoverIntentTimer.scheduleClose(() => {
       this.previewOpen.set(false);
-      this.closeTimer = undefined;
-    }, 120);
-  }
-
-  private clearCloseTimer(): void {
-    if (this.closeTimer !== undefined) {
-      clearTimeout(this.closeTimer);
-      this.closeTimer = undefined;
-    }
-  }
-
-  private clearTimers(): void {
-    if (this.hoverTimer !== undefined) clearTimeout(this.hoverTimer);
-    if (this.closeTimer !== undefined) clearTimeout(this.closeTimer);
-    this.hoverTimer = undefined;
-    this.closeTimer = undefined;
+    });
   }
 }

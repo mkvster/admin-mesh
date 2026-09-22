@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   inject,
   input,
   output,
@@ -24,6 +23,7 @@ import {
 } from '../entity-types';
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 import { ReferencePreviewOverlay } from '../reference-preview-overlay/reference-preview-overlay';
+import { HoverIntentTimer } from '../hover-intent-timer';
 import { normalizePageNumber, normalizePageSize } from '../pagination';
 import { parseDateValue } from '../filtering/date-serialization';
 import { operatorLabel } from '../filtering/filter-serialization';
@@ -69,6 +69,7 @@ interface ReferencePreviewTarget {
   ],
   templateUrl: './list-grid.html',
   styleUrl: './list-grid.scss',
+  providers: [HoverIntentTimer],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListGrid {
@@ -121,13 +122,7 @@ export class ListGrid {
     () => this.normalizedPage() * this.normalizedPageSize() < this.totalCount(),
   );
 
-  private readonly destroyRef = inject(DestroyRef);
-  private hoverTimer: ReturnType<typeof setTimeout> | undefined;
-  private closeTimer: ReturnType<typeof setTimeout> | undefined;
-
-  constructor() {
-    this.destroyRef.onDestroy(() => this.clearTimers());
-  }
+  private readonly hoverIntentTimer = inject(HoverIntentTimer);
 
   protected readonly displayedColumns = computed(() => [
     ...(this.selectionMode() !== 'none' && this.selectionControl() ? [SELECTION_COLUMN] : []),
@@ -396,56 +391,33 @@ export class ListGrid {
     const preview = this.referencePreview(field, display, row);
     if (!preview) return;
 
-    this.clearHoverTimer();
-    this.clearCloseTimer();
-    this.hoverTimer = setTimeout(() => {
+    this.hoverIntentTimer.clear();
+    this.hoverIntentTimer.scheduleOpen(() => {
       this.activeReference.set({ origin, ...preview });
-      this.hoverTimer = undefined;
-    }, 250);
+    });
   }
 
   protected onReferenceLeave(): void {
-    this.clearHoverTimer();
-    this.scheduleClose();
+    this.hoverIntentTimer.clearOpen();
+    this.schedulePreviewClose();
   }
 
   protected onPreviewEnter(): void {
-    this.clearCloseTimer();
+    this.hoverIntentTimer.clearClose();
   }
 
   protected onPreviewLeave(): void {
-    this.scheduleClose();
+    this.schedulePreviewClose();
   }
 
   protected closePreview(): void {
-    this.clearTimers();
+    this.hoverIntentTimer.clear();
     this.activeReference.set(null);
   }
 
-  private scheduleClose(): void {
-    this.clearCloseTimer();
-    this.closeTimer = setTimeout(() => {
+  private schedulePreviewClose(): void {
+    this.hoverIntentTimer.scheduleClose(() => {
       this.activeReference.set(null);
-      this.closeTimer = undefined;
-    }, 120);
-  }
-
-  private clearHoverTimer(): void {
-    if (this.hoverTimer !== undefined) {
-      clearTimeout(this.hoverTimer);
-      this.hoverTimer = undefined;
-    }
-  }
-
-  private clearCloseTimer(): void {
-    if (this.closeTimer !== undefined) {
-      clearTimeout(this.closeTimer);
-      this.closeTimer = undefined;
-    }
-  }
-
-  private clearTimers(): void {
-    this.clearHoverTimer();
-    this.clearCloseTimer();
+    });
   }
 }

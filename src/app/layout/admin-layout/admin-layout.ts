@@ -123,9 +123,7 @@ export class AdminLayout {
   private returnToList(): void {
     const match = this.currentUrl().match(/^\/node\/([^/]+)\/([^/]+)\/[^/?]+\/edit/);
     if (!match) return;
-    const state = (this.location.getState() ?? {}) as { entityListContextToken?: unknown };
-    const token =
-      typeof state.entityListContextToken === 'string' ? state.entityListContextToken : undefined;
+    const token = this.listContext.readToken(this.location);
     const context = token ? this.listContext.peek(token) : undefined;
     this.router.navigateByUrl(context?.returnUrl ?? `/node/${match[1]}/${match[2]}`, {
       state: token ? { entityListContextToken: token } : undefined,
