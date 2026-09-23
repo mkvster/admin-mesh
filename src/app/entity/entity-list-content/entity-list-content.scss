@@ -1,0 +1,76 @@
+.list-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+.list-loading-overlay {
+  align-items: center;
+  background: color-mix(in srgb, var(--mat-sys-surface) 78%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  inset: 0;
+  justify-content: center;
+  position: absolute;
+  z-index: 2;
+}
+
+.deletion-error {
+  background: var(--mat-sys-surface-container-high);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 4px;
+  box-shadow: var(--mat-sys-level2);
+  color: var(--mat-sys-on-surface);
+  inset: auto 16px 16px;
+  padding: 12px 16px;
+  position: absolute;
+  z-index: 3;
+}
+
+.locate-notice {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.locate-notice span {
+  flex: 1 1 240px;
+}
+
+.empty-state {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
+}
+
+.empty-state mat-icon {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 32px;
+  height: 32px;
+  width: 32px;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.inline-filter-action {
+  background: transparent;
+  border: 0;
+  color: var(--mat-sys-primary);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.inline-filter-action:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

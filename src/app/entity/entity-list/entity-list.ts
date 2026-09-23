@@ -6,22 +6,25 @@ import {
   computed,
   DestroyRef,
   effect,
-  ElementRef,
   inject,
+  Injector,
   input,
   signal,
   viewChild,
 } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { combineLatest, defer, finalize, map, startWith, Subject, switchMap } from 'rxjs';
-import { MatIconModule } from '@angular/material/icon';
+import { ActivatedRoute, Router } from '@angular/router';
+import { defer, map, switchMap } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityApi } from '../entity-api';
 import { EntityMetadataStore } from '../entity-metadata-store';
 import { ListDataSource } from '../list-data-source';
+import { EntityListQueryController } from '../entity-list-query-controller';
+import { EntityListContent } from '../entity-list-content/entity-list-content';
+import { EntityListUrlController } from '../entity-list-url-controller';
+import { EntityListSavedRecordController } from '../entity-list-saved-record-controller';
+import { EntityDeletionController } from '../entity-deletion-controller';
+import { ListFilterEditingAdapter } from '../list-filter-editing-adapter';
 import {
   EntityPreviewDialog,
   EntityPreviewDialogData,
@@ -36,27 +39,14 @@ import {
   ListQueryResult,
   ListSort,
 } from '../entity-types';
-import {
-  ListGrid,
-  ListGridRowAction,
-  ListPageChange,
-  ListSortChange,
-} from '../list-grid/list-grid';
+import { ListGridRowAction, ListPageChange, ListSortChange } from '../list-grid/list-grid';
 import { FilterDialog } from '../filtering/filter-dialog/filter-dialog';
-import {
-  DeleteConfirmationDialog,
-  DeleteConfirmationDialogData,
-} from '../delete-confirmation-dialog/delete-confirmation-dialog';
 import { MAX_SERIALIZED_FILTER_LENGTH } from '../filtering/filter-constraints';
-import { parseListFilter, serializeListFilter } from '../filtering/filter-serialization';
+import { serializeListFilter } from '../filtering/filter-serialization';
 import { ErrorState } from '../../shared/error-state/error-state';
 import { AsyncErrorHandler } from '../../shared/async-error-handler';
 import { EntityForm } from '../entity-form/entity-form';
-import { EntityFormMode } from '../entity-types';
 import { EntityListContextStore } from '../entity-list-context';
-import { EntityLocateResult } from '../entity-types';
-import { withResourceLoadState } from '../resource-load-state';
-import { DEFAULT_PAGE_SIZE, normalizePageNumber, normalizePageSize } from '../pagination';
 import {
   AdminToolbarActions,
   AdminToolbarState,
@@ -77,17 +67,11 @@ type EntityListState =
     }
   | { status: 'error'; message: string; cause: unknown };
 
+type EntityListStateLoaded = Extract<EntityListState, { status: 'loaded' }>;
+
 @Component({
   selector: 'app-entity-list',
-  imports: [
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatButtonModule,
-    ListGrid,
-    FilterDialog,
-    ErrorState,
-    EntityForm,
-  ],
+  imports: [MatProgressSpinnerModule, EntityListContent, FilterDialog, ErrorState, EntityForm],
   templateUrl: './entity-list.html',
   styleUrl: './entity-list.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -97,57 +81,71 @@ export class EntityList {
 
   private readonly api = inject(EntityApi);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+  private readonly deletionController = new EntityDeletionController({
+    api: this.api,
+    dialog: this.dialog,
+  });
   private readonly asyncErrorHandler = inject(AsyncErrorHandler);
   private readonly toolbarState = inject(AdminToolbarState);
   private readonly entityMetadataStore = inject(EntityMetadataStore);
   private readonly listDataSource = inject(ListDataSource);
   private readonly listContext = inject(EntityListContextStore, { optional: true });
-  private readonly location = inject(Location);
-  private readonly listRefresh = new Subject<void>();
-  private listRequestVersion = 0;
 
-  readonly isListLoading = signal(true);
-  readonly deletionError = signal<string | null>(null);
-  readonly locateMessage = signal<string | null>(null);
-  readonly highlightedEntityId = signal<string | number | null>(null);
-  private readonly deletionInProgress = signal(false);
-
-  readonly state = toSignal<EntityListState, EntityListState>(
-    toObservable(this.resource).pipe(
-      switchMap((resource) =>
-        this.loadEntityList(resource).pipe(
-          withResourceLoadState({
-            isExpectedError: (cause) => cause instanceof HttpErrorResponse,
-            onExpectedError: (cause) => console.error('Entity list loading failed', cause),
-          }),
-          map((state) => {
-            if (state.status === 'loaded') return state.data;
-            if (state.status === 'loading') return state;
-            return {
-              status: 'error',
-              message: 'Failed to load entity list',
-              cause: state.cause,
-            } satisfies EntityListState;
-          }),
-        ),
-      ),
-    ),
-    {
-      initialValue: { status: 'loading' } as EntityListState,
+  private readonly routeQuery = new EntityListUrlController({
+    resource: this.resource,
+    route: this.route,
+    router: this.router,
+    metadataStore: this.entityMetadataStore,
+    asyncErrorHandler: this.asyncErrorHandler,
+    injector: this.injector,
+  });
+  private readonly listController = new EntityListQueryController<EntityListStateLoaded>({
+    adapter: this.routeQuery,
+    injector: this.injector,
+    load: (query) => this.loadList(this.resource(), query),
+    loadStateOptions: {
+      isExpectedError: (cause) => cause instanceof HttpErrorResponse,
+      onExpectedError: (cause) => console.error('Entity list loading failed', cause),
     },
-  );
+  });
+  private readonly filterEditingAdapter: ListFilterEditingAdapter = {
+    editing: this.routeQuery.filterMode,
+    open: () => this.routeQuery.openFilterEditor(),
+    apply: (filters) => this.applyFilterValues(filters),
+    cancel: () => this.routeQuery.closeFilterEditor(),
+    clear: () => this.listController.clearFilters(),
+  };
 
-  private readonly queryParams = toSignal(this.route.queryParamMap, {
-    initialValue: this.route.snapshot.queryParamMap,
+  readonly isListLoading = computed(() => this.listController.isLoading());
+  readonly deletionError = this.deletionController.error;
+
+  readonly state = computed<EntityListState>(() => {
+    const current = this.listController.state();
+    if (current.status === 'loaded') return current.data;
+    if (current.status === 'loading') return current;
+    return {
+      status: 'error',
+      message: 'Failed to load entity list',
+      cause: current.cause,
+    };
   });
-  protected readonly formMode = computed<EntityFormMode | null>(() => {
-    const mode = this.queryParams().get('entityMode');
-    return mode === 'create' ? mode : null;
+  private readonly savedRecordController = new EntityListSavedRecordController({
+    state: this.state,
+    api: this.api,
+    location: inject(Location),
+    listContext: this.listContext,
+    routeQuery: this.routeQuery,
+    destroyRef: this.destroyRef,
+    injector: this.injector,
   });
-  protected readonly filterMode = computed(() => this.queryParams().get('filterMode') === 'true');
+  readonly locateMessage = this.savedRecordController.locateMessage;
+  readonly highlightedEntityId = this.savedRecordController.highlightedEntityId;
+  protected readonly formMode = this.routeQuery.formMode;
+  protected readonly filterMode = this.filterEditingAdapter.editing;
   protected readonly filterEditorData = computed(() => {
     const current = this.state();
     return current.status === 'loaded'
@@ -166,16 +164,10 @@ export class EntityList {
         : current.metadata.views.form
       : null;
   });
-  protected readonly formEntityId = computed(() => this.queryParams().get('entityId') ?? undefined);
-  private readonly listGrid = viewChild(ListGrid, { read: ElementRef });
+  protected readonly formEntityId = this.routeQuery.formEntityId;
   private readonly filterEditor = viewChild(FilterDialog);
-  private readonly contextToken = this.readContextToken();
-  private readonly savedEntityId = signal<string | number | null>(this.readSavedEntityId());
-  private locateAttempted = false;
-  private locateMessageTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
-    this.destroyRef.onDestroy(() => this.clearLocateMessageTimer());
     effect((onCleanup) => {
       const current = this.state();
       if (current.status !== 'loaded' || this.formMode()) {
@@ -211,34 +203,6 @@ export class EntityList {
       this.toolbarState.setActions(actions);
       onCleanup(() => this.toolbarState.clearActions(actions));
     });
-
-    effect(() => {
-      const current = this.state();
-      const grid = this.listGrid();
-      if (current.status !== 'loaded' || !grid) return;
-      this.locateSavedEntity(current);
-
-      const token = this.contextToken;
-      const context = token ? this.listContext?.peek(token) : undefined;
-      if (context && token) {
-        queueMicrotask(() => {
-          (grid.nativeElement.querySelector('.grid-layout') as HTMLElement | null)?.scrollTo({
-            top: context.scrollTop,
-          });
-          this.listContext?.take(token);
-        });
-      }
-
-      const highlightedId = this.highlightedEntityId();
-      if (highlightedId !== null) {
-        queueMicrotask(() => {
-          const row = Array.from(
-            grid.nativeElement.querySelectorAll('[data-entity-id]') as NodeListOf<HTMLElement>,
-          ).find((element) => element.dataset['entityId'] === String(highlightedId));
-          row?.scrollIntoView({ block: 'center' });
-        });
-      }
-    });
   }
 
   private openCreateFromToolbar(): void {
@@ -255,109 +219,26 @@ export class EntityList {
     }
   }
 
-  private locateSavedEntity(current: Extract<EntityListState, { status: 'loaded' }>): void {
-    const id = this.savedEntityId();
-    if (id === null || this.locateAttempted) return;
-    this.locateAttempted = true;
-    this.api
-      .locateEntity(current.resource, current.metadata.views.list, {
-        id,
-        pageSize: current.pageSize,
-        sort: current.sort,
-        ...(current.filters.length ? { filter: { operator: 'and', items: current.filters } } : {}),
-      })
-      .subscribe({
-        next: (located: EntityLocateResult) => {
-          if (!located.found || located.page === null || located.result === null) {
-            this.showLocateMessage(
-              `${current.metadata.singularTitle} ${id} was saved, but it does not match the current filters.`,
-            );
-            return;
-          }
-          this.highlightedEntityId.set(id);
-          if (located.page !== current.page) {
-            this.asyncErrorHandler.run(
-              this.router.navigate([], {
-                relativeTo: this.route,
-                queryParams: { page: located.page },
-                queryParamsHandling: 'merge',
-              }),
-              'Saved entity page navigation failed',
-            );
-          }
-        },
-        error: (cause: unknown) => {
-          console.error('Saved entity locate failed', cause);
-          this.showLocateMessage(
-            `${current.metadata.singularTitle} ${id} was saved. Use Find saved record to locate it.`,
-          );
-        },
-      });
-  }
-
   protected findSavedRecord(): void {
-    const current = this.state();
-    const id = this.savedEntityId();
-    if (current.status !== 'loaded' || id === null) return;
-    const filter = serializeListFilter(
-      [{ field: current.metadata.idField, operator: 'equals', value: id }],
-      { resource: current.resource, listId: current.metadata.views.list },
-    );
-    this.asyncErrorHandler.run(
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { page: 1, filter },
-        queryParamsHandling: 'merge',
-      }),
-      'Saved entity search navigation failed',
-    );
-    this.locateMessage.set(null);
+    this.savedRecordController.findSavedRecord();
   }
 
   protected dismissLocateMessage(): void {
-    this.clearLocateMessageTimer();
-    this.locateMessage.set(null);
+    this.savedRecordController.dismissLocateMessage();
   }
 
-  private showLocateMessage(message: string): void {
-    this.clearLocateMessageTimer();
-    this.locateMessage.set(message);
-    this.locateMessageTimer = setTimeout(() => {
-      this.locateMessage.set(null);
-      this.locateMessageTimer = undefined;
-    }, 7000);
+  protected onGridElement(element: HTMLElement): void {
+    this.savedRecordController.setGridElement(element);
   }
 
-  private clearLocateMessageTimer(): void {
-    if (this.locateMessageTimer !== undefined) {
-      clearTimeout(this.locateMessageTimer);
-      this.locateMessageTimer = undefined;
-    }
-  }
-
-  private loadEntityList(resource: string) {
-    this.isListLoading.set(true);
-    return this.loadList(resource).pipe(finalize(() => this.isListLoading.set(false)));
-  }
-
-  private loadList(resource: string) {
-    return combineLatest([
-      this.entityMetadataStore.get(resource),
-      this.route.queryParamMap,
-      this.listRefresh.pipe(startWith(undefined)),
-    ]).pipe(
-      switchMap(([metadata, params]) => {
-        const requestVersion = ++this.listRequestVersion;
+  private loadList(resource: string, query: ListQuery) {
+    return this.entityMetadataStore.get(resource).pipe(
+      switchMap((metadata) => {
         const listId = metadata.views.list;
-        const query = this.readListQuery(params, resource, listId);
-        this.ensurePagingParams(query);
-        this.isListLoading.set(true);
+        this.routeQuery.ensurePagingParams(query);
         return defer(() => this.listDataSource.load(resource, listId, query)).pipe(
-          finalize(() => {
-            if (requestVersion === this.listRequestVersion) this.isListLoading.set(false);
-          }),
           map((list) => {
-            this.ensureValidPage(query, list.result);
+            this.routeQuery.ensureValidPage(query, list.result);
             return {
               status: 'loaded',
               resource,
@@ -368,7 +249,7 @@ export class EntityList {
               pageSize: query.pageSize,
               sort: query.sort ?? [],
               filters: query.filter?.items ?? [],
-            } as EntityListState;
+            } satisfies EntityListStateLoaded;
           }),
         );
       }),
@@ -376,29 +257,11 @@ export class EntityList {
   }
 
   protected onPageChange(event: ListPageChange): void {
-    this.asyncErrorHandler.run(
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: event,
-        queryParamsHandling: 'merge',
-      }),
-      'Entity list page navigation failed',
-    );
+    this.listController.setPage(event);
   }
 
   protected onSortChange(event: ListSortChange): void {
-    this.asyncErrorHandler.run(
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: {
-          page: 1,
-          sort: this.serializeSort(event.sort),
-          dir: null,
-        },
-        queryParamsHandling: 'merge',
-      }),
-      'Entity list sorting navigation failed',
-    );
+    this.listController.setSort(event);
   }
 
   protected onRowAction(
@@ -442,57 +305,19 @@ export class EntityList {
   }
 
   private openEdit(id: string | number): void {
-    const grid = this.listGrid()?.nativeElement.querySelector('.grid-layout') as HTMLElement | null;
-    const contextToken = this.createContextToken();
-    this.listContext?.remember(contextToken, {
-      returnUrl: this.router.url,
-      scrollTop: grid?.scrollTop ?? 0,
-    });
-    this.asyncErrorHandler.run(
-      this.router.navigate(['.', id, 'edit'], {
-        relativeTo: this.route,
-        queryParams: {},
-        state: { entityListContextToken: contextToken },
-      }),
-      'Entity edit navigation failed',
+    const contextToken = this.savedRecordController.rememberContext(
+      this.routeQuery.currentUrl(),
+      this.savedRecordController.scrollTop(),
     );
+    this.routeQuery.openEdit(id, contextToken);
   }
 
   private openForm(mode: 'edit' | 'create', id?: string | number): void {
-    this.asyncErrorHandler.run(
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { entityMode: mode, entityId: id ?? null },
-        queryParamsHandling: 'merge',
-      }),
-      'Entity form navigation failed',
-    );
-  }
-
-  private readContextToken(): string | undefined {
-    return this.listContext?.readToken(this.location);
-  }
-
-  private readSavedEntityId(): string | number | null {
-    const state = (this.location.getState() ?? {}) as { savedEntityId?: unknown };
-    return typeof state.savedEntityId === 'string' || typeof state.savedEntityId === 'number'
-      ? state.savedEntityId
-      : null;
-  }
-
-  private createContextToken(): string {
-    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    this.routeQuery.openForm(mode, id);
   }
 
   protected closeForm(): void {
-    this.asyncErrorHandler.run(
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { entityMode: null, entityId: null },
-        queryParamsHandling: 'merge',
-      }),
-      'Entity form closing failed',
-    );
+    this.routeQuery.closeForm();
   }
 
   protected onFormSaved(entity: Record<string, unknown>): void {
@@ -500,82 +325,41 @@ export class EntityList {
     if (current.status === 'loaded') {
       const id = entity[current.metadata.idField];
       if (typeof id === 'string' || typeof id === 'number') {
-        this.locateAttempted = false;
-        this.locateMessage.set(null);
-        this.highlightedEntityId.set(null);
-        this.savedEntityId.set(id);
+        this.savedRecordController.recordSaved(id);
       }
     }
     this.closeForm();
-    this.listRefresh.next();
+    this.listController.refresh();
   }
 
   private openDeleteConfirmation(
     state: Extract<EntityListState, { status: 'loaded' }>,
     row: Record<string, unknown>,
   ): void {
-    if (this.deletionInProgress()) {
-      return;
-    }
-
     const idValue = row[state.metadata.idField];
-    if (idValue === undefined || idValue === null) {
-      this.deletionError.set(
-        `Cannot delete ${state.metadata.singularTitle}: the row has no identifier.`,
-      );
-      return;
-    }
-
-    this.deletionError.set(null);
-    const dialogData: DeleteConfirmationDialogData = {
-      resource: state.resource,
-      formId: state.metadata.views.deleteForm,
-      id: idValue as string | number,
-      entityTitle: state.metadata.singularTitle,
-    };
-    const dialogRef = this.dialog.open(DeleteConfirmationDialog, { data: dialogData });
-
-    dialogRef.afterClosed().subscribe((confirmed) => {
-      if (confirmed === true) {
-        this.deleteEntity(state.resource, idValue);
-      }
-    });
-  }
-
-  private deleteEntity(resource: string, id: unknown): void {
-    if (typeof id !== 'string' && typeof id !== 'number') {
-      this.deletionError.set('Cannot delete the selected row: its identifier is invalid.');
-      return;
-    }
-
-    this.deletionInProgress.set(true);
-    this.api.deleteEntity(resource, id).subscribe({
-      next: () => {
-        this.deletionError.set(null);
-        this.listRefresh.next();
+    this.deletionController.requestDelete(
+      {
+        resource: state.resource,
+        formId: state.metadata.views.deleteForm,
+        id: idValue,
+        entityTitle: state.metadata.singularTitle,
       },
-      error: (error: unknown) => {
-        console.error('Entity deletion failed', error);
-        this.deletionError.set('Failed to delete the selected entity.');
-        this.deletionInProgress.set(false);
+      () => {
+        this.listController.refresh();
       },
-      complete: () => this.deletionInProgress.set(false),
-    });
+    );
   }
 
   protected openFilters(state: Extract<EntityListState, { status: 'loaded' }>): void {
     if (state.status !== 'loaded') return;
-    this.asyncErrorHandler.run(
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { filterMode: 'true' },
-        queryParamsHandling: 'merge',
-      }),
-      'Entity list filter editor navigation failed',
-    );
+    this.filterEditingAdapter.open();
   }
 
   protected applyFilters(filters: FilterItem[]): void {
+    this.filterEditingAdapter.apply(filters);
+  }
+
+  private applyFilterValues(filters: FilterItem[]): void {
     const current = this.state();
     if (current.status !== 'loaded') return;
     const serializedFilter = filters.length
@@ -585,134 +369,14 @@ export class EntityList {
         })
       : null;
     if (serializedFilter && serializedFilter.length > MAX_SERIALIZED_FILTER_LENGTH) return;
-    this.asyncErrorHandler.run(
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { page: 1, filter: serializedFilter, filters: null, filterMode: null },
-        queryParamsHandling: 'merge',
-      }),
-      'Entity list filter navigation failed',
-    );
+    this.listController.setFilters(filters);
   }
 
   protected cancelFilterEdit(): void {
-    this.asyncErrorHandler.run(
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { filterMode: null },
-        queryParamsHandling: 'merge',
-      }),
-      'Entity list filter editor closing failed',
-    );
+    this.filterEditingAdapter.cancel();
   }
 
   protected clearFilters(): void {
-    this.asyncErrorHandler.run(
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: {
-          page: 1,
-          filter: null,
-          filters: null,
-          filterMode: null,
-        },
-        queryParamsHandling: 'merge',
-      }),
-      'Entity list filter clearing navigation failed',
-    );
-  }
-
-  private readListQuery(params: ParamMap, resource: string, listId: string): ListQuery {
-    const page = normalizePageNumber(this.readPositiveInt(params.get('page'), 1));
-    const pageSize = normalizePageSize(
-      this.readPositiveInt(params.get('pageSize'), DEFAULT_PAGE_SIZE),
-    );
-    const sort = this.parseSort(params.get('sort'), params.get('dir'));
-    const filters = parseListFilter(params.get('filter'), { resource, listId })?.items ?? [];
-
-    return {
-      page,
-      pageSize,
-      ...(sort.length ? { sort } : {}),
-      ...(filters.length ? { filter: { operator: 'and', items: filters } } : {}),
-    };
-  }
-
-  private parseSort(value: string | null, legacyDirection: string | null): ListSort[] {
-    if (!value) {
-      return [];
-    }
-
-    const parsed = value
-      .split(',')
-      .map((part) => {
-        const [field, direction] = part.split(':');
-        return field && (direction === 'asc' || direction === 'desc')
-          ? { field, direction }
-          : undefined;
-      })
-      .filter((item): item is ListSort => item !== undefined);
-
-    // Keep links using the previous sort=field&dir=direction format working.
-    if (
-      parsed.length === 0 &&
-      legacyDirection &&
-      (legacyDirection === 'asc' || legacyDirection === 'desc')
-    ) {
-      return [{ field: value, direction: legacyDirection }];
-    }
-
-    return parsed;
-  }
-
-  private serializeSort(sort: ListSort[]): string | null {
-    return sort.length ? sort.map((item) => `${item.field}:${item.direction}`).join(',') : null;
-  }
-
-  private readPositiveInt(value: string | null, fallback: number): number {
-    const parsed = Number(value);
-
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
-  }
-
-  private ensurePagingParams(query: ListQuery): void {
-    const params = this.route.snapshot.queryParamMap;
-
-    if (
-      params.get('page') === String(query.page) &&
-      params.get('pageSize') === String(query.pageSize)
-    ) {
-      return;
-    }
-
-    this.asyncErrorHandler.run(
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: {
-          page: query.page,
-          pageSize: query.pageSize,
-        },
-        queryParamsHandling: 'merge',
-        replaceUrl: true,
-      }),
-      'Entity list paging normalization failed',
-    );
-  }
-
-  private ensureValidPage(query: ListQuery, data: ListQueryResult): void {
-    const lastPage = Math.max(1, Math.ceil(data.totalCount / query.pageSize));
-    if (query.page <= lastPage) {
-      return;
-    }
-
-    this.asyncErrorHandler.run(
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { page: lastPage },
-        queryParamsHandling: 'merge',
-        replaceUrl: true,
-      }),
-      'Entity list page correction failed',
-    );
+    this.filterEditingAdapter.clear();
   }
 }
