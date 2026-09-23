@@ -2,7 +2,7 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { Location } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { filter, map } from 'rxjs';
 
@@ -12,7 +12,6 @@ import { Navigation } from '../../navigation/navigation/navigation';
 import type { BreadcrumbItem } from '../../shared/breadcrumbs/breadcrumbs';
 import { LayoutHeaderDesktop } from '../layout-header-desktop/layout-header-desktop';
 import { LayoutHeaderMobile } from '../layout-header-mobile/layout-header-mobile';
-import { AdminToolbarState } from './admin-toolbar-state';
 
 @Component({
   selector: 'app-admin-layout',
@@ -23,29 +22,28 @@ import { AdminToolbarState } from './admin-toolbar-state';
 export class AdminLayout {
   private readonly breakpointObserver = inject(BreakpointObserver);
   protected readonly navigationState = inject(NavigationState);
-  protected readonly toolbarState = inject(AdminToolbarState);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly listContext = inject(EntityListContextStore);
   private readonly location = inject(Location);
 
-  private readonly currentUrl = toSignal(
+  private readonly currentRoute = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map((event) => event.urlAfterRedirects),
+      map(() => this.route.root.snapshot.firstChild),
     ),
-    { initialValue: this.router.url },
+    { initialValue: this.route.root.snapshot.firstChild },
   );
 
   protected readonly editEntityId = computed(() => {
-    const match = this.currentUrl().match(/^\/node\/[^/]+\/[^/]+\/([^/?]+)\/edit(?:\?|$)/);
-    return match ? decodeURIComponent(match[1]) : null;
+    return this.currentRoute()?.paramMap.get('entityId') ?? null;
   });
 
   private readonly isCreateMode = computed(
-    () => this.router.parseUrl(this.currentUrl()).queryParams['entityMode'] === 'create',
+    () => this.currentRoute()?.queryParamMap.get('entityMode') === 'create',
   );
   private readonly isFilterMode = computed(
-    () => this.router.parseUrl(this.currentUrl()).queryParams['filterMode'] === 'true',
+    () => this.currentRoute()?.queryParamMap.get('filterMode') === 'true',
   );
 
   protected breadcrumbs(mobile: boolean): BreadcrumbItem[] {
@@ -121,13 +119,13 @@ export class AdminLayout {
   }
 
   private returnToList(): void {
-    const match = this.currentUrl().match(/^\/node\/([^/]+)\/([^/]+)\/[^/?]+\/edit/);
-    if (!match) return;
-    const state = (this.location.getState() ?? {}) as { entityListContextToken?: unknown };
-    const token =
-      typeof state.entityListContextToken === 'string' ? state.entityListContextToken : undefined;
+    const currentRoute = this.currentRoute();
+    const sectionId = currentRoute?.paramMap.get('sectionId');
+    const nodeId = currentRoute?.paramMap.get('nodeId');
+    if (!sectionId || !nodeId || !this.editEntityId()) return;
+    const token = this.listContext.readToken(this.location);
     const context = token ? this.listContext.peek(token) : undefined;
-    this.router.navigateByUrl(context?.returnUrl ?? `/node/${match[1]}/${match[2]}`, {
+    this.router.navigateByUrl(context?.returnUrl ?? `/node/${sectionId}/${nodeId}`, {
       state: token ? { entityListContextToken: token } : undefined,
     });
   }

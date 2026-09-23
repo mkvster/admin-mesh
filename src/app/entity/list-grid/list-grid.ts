@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   inject,
   input,
   output,
@@ -24,7 +23,10 @@ import {
 } from '../entity-types';
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 import { ReferencePreviewOverlay } from '../reference-preview-overlay/reference-preview-overlay';
+import { HoverIntentTimer } from '../hover-intent-timer';
 import { normalizePageNumber, normalizePageSize } from '../pagination';
+import { parseDateValue } from '../filtering/date-serialization';
+import { operatorLabel } from '../filtering/filter-serialization';
 
 const ROW_ACTIONS_COLUMN = '__rowActions';
 const SELECTION_COLUMN = '__selection';
@@ -67,6 +69,7 @@ interface ReferencePreviewTarget {
   ],
   templateUrl: './list-grid.html',
   styleUrl: './list-grid.scss',
+  providers: [HoverIntentTimer],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListGrid {
@@ -119,13 +122,7 @@ export class ListGrid {
     () => this.normalizedPage() * this.normalizedPageSize() < this.totalCount(),
   );
 
-  private readonly destroyRef = inject(DestroyRef);
-  private hoverTimer: ReturnType<typeof setTimeout> | undefined;
-  private closeTimer: ReturnType<typeof setTimeout> | undefined;
-
-  constructor() {
-    this.destroyRef.onDestroy(() => this.clearTimers());
-  }
+  private readonly hoverIntentTimer = inject(HoverIntentTimer);
 
   protected readonly displayedColumns = computed(() => [
     ...(this.selectionMode() !== 'none' && this.selectionControl() ? [SELECTION_COLUMN] : []),
@@ -226,7 +223,7 @@ export class ListGrid {
       const summary = labels.join(', ');
       return item.operator === 'notEquals'
         ? `Not ${summary}`
-        : `${this.operatorLabel(item.operator)} ${summary}`;
+        : `${operatorLabel(item.operator)} ${summary}`;
     }
 
     if (item.operator === 'inThePast') {
@@ -242,7 +239,7 @@ export class ListGrid {
         : this.formatFilterValue(item.value, fieldMetadata?.type);
     return item.operator === 'between'
       ? `Between ${value}`
-      : `${this.operatorLabel(item.operator)} ${value}`;
+      : `${operatorLabel(item.operator)} ${value}`;
   }
 
   private formatFilterValue(value: string | number, fieldType: string | undefined): string {
@@ -250,11 +247,8 @@ export class ListGrid {
       return String(value);
     }
 
-    const date =
-      fieldType === 'date' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
-        ? this.parseDate(value)
-        : new Date(value);
-    return Number.isNaN(date.getTime())
+    const date = parseDateValue(value, fieldType);
+    return date === null
       ? String(value)
       : new Intl.DateTimeFormat(
           undefined,
@@ -262,42 +256,6 @@ export class ListGrid {
             ? { dateStyle: 'medium', timeStyle: 'short' }
             : { dateStyle: 'medium' },
         ).format(date);
-  }
-
-  private parseDate(value: string): Date {
-    const [year, month, day] = value.split('-').map(Number);
-    return new Date(year, month - 1, day);
-  }
-
-  private operatorLabel(operator: FilterItem['operator']): string {
-    switch (operator) {
-      case 'equals':
-        return 'Equals';
-      case 'startsWith':
-        return 'Starts with';
-      case 'endsWith':
-        return 'Ends with';
-      case 'notEquals':
-        return 'Not equals';
-      case 'greaterThan':
-        return 'Greater than';
-      case 'greaterThanOrEqual':
-        return 'Greater than or equal';
-      case 'lessThan':
-        return 'Less than';
-      case 'lessThanOrEqual':
-        return 'Less than or equal';
-      case 'before':
-        return 'Before';
-      case 'after':
-        return 'After';
-      case 'inThePast':
-        return 'In the past';
-      case 'between':
-        return 'Between';
-      default:
-        return 'Contains';
-    }
   }
 
   private relativePeriodLabel(value: FilterItem['value']): string {
@@ -433,56 +391,33 @@ export class ListGrid {
     const preview = this.referencePreview(field, display, row);
     if (!preview) return;
 
-    this.clearHoverTimer();
-    this.clearCloseTimer();
-    this.hoverTimer = setTimeout(() => {
+    this.hoverIntentTimer.clear();
+    this.hoverIntentTimer.scheduleOpen(() => {
       this.activeReference.set({ origin, ...preview });
-      this.hoverTimer = undefined;
-    }, 250);
+    });
   }
 
   protected onReferenceLeave(): void {
-    this.clearHoverTimer();
-    this.scheduleClose();
+    this.hoverIntentTimer.clearOpen();
+    this.schedulePreviewClose();
   }
 
   protected onPreviewEnter(): void {
-    this.clearCloseTimer();
+    this.hoverIntentTimer.clearClose();
   }
 
   protected onPreviewLeave(): void {
-    this.scheduleClose();
+    this.schedulePreviewClose();
   }
 
   protected closePreview(): void {
-    this.clearTimers();
+    this.hoverIntentTimer.clear();
     this.activeReference.set(null);
   }
 
-  private scheduleClose(): void {
-    this.clearCloseTimer();
-    this.closeTimer = setTimeout(() => {
+  private schedulePreviewClose(): void {
+    this.hoverIntentTimer.scheduleClose(() => {
       this.activeReference.set(null);
-      this.closeTimer = undefined;
-    }, 120);
-  }
-
-  private clearHoverTimer(): void {
-    if (this.hoverTimer !== undefined) {
-      clearTimeout(this.hoverTimer);
-      this.hoverTimer = undefined;
-    }
-  }
-
-  private clearCloseTimer(): void {
-    if (this.closeTimer !== undefined) {
-      clearTimeout(this.closeTimer);
-      this.closeTimer = undefined;
-    }
-  }
-
-  private clearTimers(): void {
-    this.clearHoverTimer();
-    this.clearCloseTimer();
+    });
   }
 }

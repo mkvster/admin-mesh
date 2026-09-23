@@ -10,7 +10,7 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminCache } from '../../cache/admin-cache';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
+import { combineLatest, map, of, switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -29,6 +29,8 @@ import { ReferenceValueInput } from '../field-editors/reference-value-input/refe
 import { ReferenceLookupSelection } from '../reference-lookup-view/reference-lookup-view';
 import { ErrorState } from '../../shared/error-state/error-state';
 import { EntityFormMode, FieldMetadata, FormLayoutItem, FormMetadata } from '../entity-types';
+import { parseDateValue, serializeDateValue } from '../filtering/date-serialization';
+import { withResourceLoadState } from '../resource-load-state';
 
 type FormState =
   | { status: 'loading' }
@@ -89,26 +91,26 @@ export class EntityForm {
           this.mode() === 'create' || id === undefined
             ? of({} as Record<string, unknown>)
             : this.previewDataStore.get(resource, id, formId),
-        ]).pipe(
-          map(
-            ([entityMetadata, formMetadata, entity]) =>
-              ({
-                status: 'ready',
-                metadata: {
-                  ...formMetadata,
-                  fields: this.fieldMetadataResolver.mergeFields(
-                    entityMetadata.fields,
-                    formMetadata.fields,
-                  ),
-                },
-                entity,
-              }) as FormState,
-          ),
-          startWith({ status: 'loading' } as FormState),
-        ),
+        ]),
       ),
-      catchError((cause: unknown) => of<FormState>({ status: 'error', cause })),
-      startWith({ status: 'loading' } as FormState),
+      withResourceLoadState(),
+      map((state) => {
+        if (state.status === 'loading') return state;
+        if (state.status === 'error') return state;
+
+        const [entityMetadata, formMetadata, entity] = state.data;
+        return {
+          status: 'ready',
+          metadata: {
+            ...formMetadata,
+            fields: this.fieldMetadataResolver.mergeFields(
+              entityMetadata.fields,
+              formMetadata.fields,
+            ),
+          },
+          entity,
+        } as FormState;
+      }),
     ),
     { initialValue: { status: 'loading' } as FormState },
   );
@@ -286,12 +288,7 @@ export class EntityForm {
     if (field.type === 'decimal') return Number.isFinite(Number(value)) ? Number(value) : null;
     if (field.type === 'boolean') return value === true;
     if (field.type === 'date' || field.type === 'datetime') {
-      if (field.type === 'date' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        const [year, month, day] = value.split('-').map(Number);
-        return new Date(year, month - 1, day);
-      }
-      const date = new Date(String(value));
-      return Number.isNaN(date.getTime()) ? null : date;
+      return parseDateValue(String(value), field.type);
     }
     if (field.type === 'enum') return value;
     if (field.type === 'reference') return value;
@@ -299,10 +296,9 @@ export class EntityForm {
   }
 
   private serializeValue(field: FieldMetadata, value: unknown): unknown {
-    if (field.type === 'date' && value instanceof Date) {
-      return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+    if ((field.type === 'date' || field.type === 'datetime') && value instanceof Date) {
+      return serializeDateValue(value, field.type);
     }
-    if (field.type === 'datetime' && value instanceof Date) return value.toISOString();
     return value;
   }
 }

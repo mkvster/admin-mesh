@@ -9,7 +9,7 @@
   } @else if (selection(); as selected) {
     <app-layout-card class="node-panel" contentPadding="0">
       <div class="node-panel-content">
-        @if (referenceLookup.request(); as lookup) {
+        @for (lookup of referenceLookup.stack(); track lookup) {
           <div class="reference-lookup-layer">
             <app-reference-lookup-view
               [data]="lookup"

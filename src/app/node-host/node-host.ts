@@ -111,9 +111,6 @@ export class NodeHost {
   }
 
   private contextToken(): string | undefined {
-    const state = (this.location.getState() ?? {}) as { entityListContextToken?: unknown };
-    return typeof state.entityListContextToken === 'string'
-      ? state.entityListContextToken
-      : undefined;
+    return this.listContext.readToken(this.location);
   }
 }

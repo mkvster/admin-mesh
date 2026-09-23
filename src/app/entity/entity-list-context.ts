@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Injectable } from '@angular/core';
 
 interface EntityListContext {
@@ -8,6 +9,13 @@ interface EntityListContext {
 @Injectable({ providedIn: 'root' })
 export class EntityListContextStore {
   private readonly contexts = new Map<string, EntityListContext>();
+
+  readToken(location: Location): string | undefined {
+    const state = (location.getState() ?? {}) as { entityListContextToken?: unknown };
+    return typeof state.entityListContextToken === 'string'
+      ? state.entityListContextToken
+      : undefined;
+  }
 
   remember(key: string, context: EntityListContext): void {
     this.contexts.set(key, context);

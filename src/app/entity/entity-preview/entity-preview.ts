@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
+import { combineLatest, map, startWith, switchMap } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EntityFieldValue } from '../entity-field-value/entity-field-value';
 import { FieldMetadata, FormLayoutItem, FormMetadata } from '../entity-types';
@@ -9,6 +9,7 @@ import { FormMetadataStore } from '../form-metadata-store';
 import { EntityMetadataStore } from '../entity-metadata-store';
 import { FieldMetadataResolver } from '../field-metadata-resolver';
 import { EntityPreviewDataStore } from '../entity-preview-data-store';
+import { withResourceLoadState } from '../resource-load-state';
 
 export type EntityPreviewState =
   | { status: 'loading'; metadata?: FormMetadata }
@@ -37,7 +38,7 @@ export class EntityPreview {
   private readonly entityMetadataStore = inject(EntityMetadataStore);
   private readonly fieldMetadataResolver = inject(FieldMetadataResolver);
 
-  readonly state = toSignal(
+  readonly state = toSignal<EntityPreviewState, EntityPreviewState>(
     combineLatest([
       toObservable(this.resource),
       toObservable(this.formId),
@@ -62,14 +63,18 @@ export class EntityPreview {
               startWith({ status: 'loading', metadata } as EntityPreviewState),
             );
           }),
-          catchError((cause: unknown) =>
-            of<EntityPreviewState>(
-              this.isMissingError(cause) ? { status: 'missing' } : { status: 'error', cause },
-            ),
-          ),
+          withResourceLoadState(),
         ),
       ),
-      startWith({ status: 'loading' } as EntityPreviewState),
+      map((state) => {
+        if (state.status === 'loaded') return state.data;
+        if (state.status === 'error') {
+          return this.isMissingError(state.cause)
+            ? ({ status: 'missing' } as EntityPreviewState)
+            : ({ status: 'error', cause: state.cause } as EntityPreviewState);
+        }
+        return { status: 'loading' } as EntityPreviewState;
+      }),
     ),
     { initialValue: { status: 'loading' } as EntityPreviewState },
   );

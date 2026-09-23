@@ -4,6 +4,7 @@ import {
   computed,
   effect,
   inject,
+  Injector,
   input,
   output,
   signal,
@@ -13,13 +14,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { catchError, map, of, startWith, switchMap } from 'rxjs';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FilterDialog, FilterDialogData } from '../filtering/filter-dialog/filter-dialog';
-import { ListDataSource } from '../list-data-source';
+import { ListData, ListDataSource } from '../list-data-source';
 import { EntityApi } from '../entity-api';
 import { AdminToolbarState } from '../../layout/admin-layout/admin-toolbar-state';
 import { ListGrid, ListPageChange, ListSortChange } from '../list-grid/list-grid';
+import { EntityListQueryAdapter, EntityListQueryController } from '../entity-list-query-controller';
+import { ListFilterEditingAdapter } from '../list-filter-editing-adapter';
 import {
   FieldMetadata,
   FilterItem,
@@ -64,12 +65,35 @@ export class ReferenceLookupView {
   readonly cancelled = output<void>();
   private readonly dataSource = inject(ListDataSource);
   private readonly api = inject(EntityApi);
+  private readonly injector = inject(Injector);
   private readonly toolbarState = inject(AdminToolbarState);
   protected readonly query = signal<ListQuery>({ page: 1, pageSize: 25 });
+  private readonly queryAdapter: EntityListQueryAdapter = {
+    query: this.query,
+    update: (query) => this.query.set(query),
+  };
+  private readonly listController = new EntityListQueryController<ListData>({
+    adapter: this.queryAdapter,
+    injector: this.injector,
+    load: (query) => this.dataSource.load(this.resource(), this.listId(), query),
+  });
+  private readonly filterEditingState = signal(false);
+  private readonly filterEditingAdapter: ListFilterEditingAdapter = {
+    editing: this.filterEditingState,
+    open: () => this.filterEditingState.set(true),
+    apply: (filters) => {
+      this.filterEditingState.set(false);
+      this.listController.setFilters(filters);
+    },
+    cancel: () => this.filterEditingState.set(false),
+    clear: () => {
+      this.filterEditingState.set(false);
+      this.listController.clearFilters();
+    },
+  };
   protected readonly selectedValues = signal<ReferenceLookupSelection[]>([]);
   protected readonly selectedIds = computed(() => this.selectedValues().map((item) => item.id));
-  protected readonly filterMode = signal(false);
-  protected readonly draftFilters = signal<FilterItem[]>([]);
+  protected readonly filterMode = this.filterEditingAdapter.editing;
   private readonly filterEditor = viewChild(FilterDialog);
   protected readonly filterEditorData = computed<FilterDialogData | null>(() => {
     const current = this.state();
@@ -81,26 +105,17 @@ export class ReferenceLookupView {
     };
   });
 
-  protected readonly state = toSignal(
-    toObservable(this.query).pipe(
-      switchMap((query) =>
-        this.dataSource.load(this.resource(), this.listId(), query).pipe(
-          map(
-            (list) =>
-              ({
-                status: 'loaded',
-                idField: list.entityMetadata.idField,
-                metadata: list.metadata,
-                result: list.result,
-              }) as LookupState,
-          ),
-          startWith({ status: 'loading' } as LookupState),
-          catchError((cause: unknown) => of<LookupState>({ status: 'error', cause })),
-        ),
-      ),
-    ),
-    { initialValue: { status: 'loading' } as LookupState },
-  );
+  protected readonly state = computed<LookupState>(() => {
+    const current = this.listController.state();
+    if (current.status === 'loading') return current;
+    if (current.status === 'error') return current;
+    return {
+      status: 'loaded',
+      idField: current.data.entityMetadata.idField,
+      metadata: current.data.metadata,
+      result: current.data.result,
+    };
+  });
 
   constructor() {
     queueMicrotask(() => {
@@ -191,30 +206,24 @@ export class ReferenceLookupView {
   }
 
   protected onPageChange(change: ListPageChange): void {
-    this.query.update((q) => ({ ...q, ...change }));
+    this.listController.setPage(change);
   }
   protected onSortChange(change: ListSortChange): void {
-    this.query.update((q) => ({ ...q, page: 1, sort: change.sort }));
+    this.listController.setSort(change);
   }
 
   protected openFilters(): void {
     const current = this.state();
     if (current.status !== 'loaded') return;
-    this.draftFilters.set([...this.filters()]);
-    this.filterMode.set(true);
+    this.filterEditingAdapter.open();
   }
 
   protected applyFilters(filters: FilterItem[]): void {
-    this.filterMode.set(false);
-    this.query.update((q) => ({
-      ...q,
-      page: 1,
-      filter: filters.length ? { operator: 'and', items: filters } : undefined,
-    }));
+    this.filterEditingAdapter.apply(filters);
   }
 
   protected cancelFilters(): void {
-    this.filterMode.set(false);
+    this.filterEditingAdapter.cancel();
   }
   protected select(): void {
     this.selected.emit(this.selectedValues());

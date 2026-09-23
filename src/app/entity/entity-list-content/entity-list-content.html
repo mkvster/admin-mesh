@@ -1,0 +1,60 @@
+<div class="list-content">
+  <app-list-grid
+    [metadata]="data().listMetadata"
+    [rows]="data().data.items"
+    [totalCount]="data().data.totalCount"
+    [page]="data().page"
+    [pageSize]="data().pageSize"
+    [sort]="data().sort"
+    [filters]="data().filters"
+    [idField]="data().metadata.idField"
+    [showDeleteAction]="data().metadata.permissions.delete"
+    [showEditAction]="data().metadata.permissions.edit"
+    [highlightedId]="highlightedId()"
+    (pageChange)="pageChange.emit($event)"
+    (sortChange)="sortChange.emit($event)"
+    (rowAction)="rowAction.emit($event)"
+  >
+    <div list-grid-empty class="empty-state" role="status" aria-live="polite">
+      <mat-icon aria-hidden="true">search_off</mat-icon>
+      @if (data().filters.length > 0) {
+        <p>
+          No records match the selected
+          <button type="button" class="inline-filter-action" (click)="openFilters.emit()">
+            filters
+          </button>
+          .
+        </p>
+        <button mat-stroked-button type="button" (click)="clearFilters.emit()">
+          Clear filters
+        </button>
+      } @else {
+        <p>No records found.</p>
+      }
+    </div>
+  </app-list-grid>
+
+  @if (isLoading()) {
+    <div class="list-loading-overlay" role="status" aria-live="polite">
+      <mat-progress-spinner mode="indeterminate" diameter="40" aria-label="Loading" />
+      <span>Loading</span>
+    </div>
+  }
+  @if (deletionError(); as message) {
+    <div class="deletion-error" role="alert">{{ message }}</div>
+  }
+  @if (locateMessage(); as message) {
+    <div class="deletion-error locate-notice" role="status">
+      <span>{{ message }}</span>
+      <button mat-button type="button" (click)="findSavedRecord.emit()">Find saved record</button>
+      <button
+        mat-button
+        type="button"
+        aria-label="Dismiss notification"
+        (click)="dismissLocateMessage.emit()"
+      >
+        Dismiss
+      </button>
+    </div>
+  }
+</div>

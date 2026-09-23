@@ -122,6 +122,35 @@ describe('AdminLayout', () => {
     expect(layout.breadcrumbs(true).map(({ text }) => text)).toEqual(['Customers', 'Add']);
   });
 
+  it('uses route parameters for the edited entity breadcrumb', async () => {
+    TestBed.inject(NavigationState).selected.set({
+      section: { id: 'sales', title: 'Sales', nodes: [] },
+      node: {
+        id: 'customers',
+        title: 'Customers',
+        type: 'rest-entity',
+        config: { resource: 'customers' },
+      },
+    });
+    const router = TestBed.inject(Router);
+    router.resetConfig([
+      { path: 'node/:sectionId/:nodeId/:entityId/edit', component: RouteStub },
+      { path: '**', component: RouteStub },
+    ]);
+    await router.navigateByUrl('/node/sales/customers/customer%2F42/edit');
+    fixture.detectChanges();
+
+    const layout = component as unknown as {
+      breadcrumbs: (mobile: boolean) => { text: string; active: boolean }[];
+    };
+    expect(layout.breadcrumbs(false).map(({ text }) => text)).toEqual([
+      'Home',
+      'Sales',
+      'Customers',
+      'customer/42',
+    ]);
+  });
+
   it('shows the next theme in the icon and label', () => {
     fixture.detectChanges();
     const themeButton = fixture.nativeElement.querySelector('.theme-toggle') as HTMLButtonElement;

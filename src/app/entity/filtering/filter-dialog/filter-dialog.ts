@@ -18,7 +18,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { FieldMetadata, FilterItem, FilterOperator, FilterValue } from '../../entity-types';
 import { FilterValueEditor } from '../filter-value-editor/filter-value-editor';
 import { MAX_FILTER_ITEMS, MAX_SERIALIZED_FILTER_LENGTH } from '../filter-constraints';
-import { ListFilterScope, serializeListFilter } from '../filter-serialization';
+import { ListFilterScope, operatorLabel, serializeListFilter } from '../filter-serialization';
 
 export interface FilterDialogData {
   fields: FieldMetadata[];
@@ -125,7 +125,7 @@ export class FilterDialog {
                 ? ['equals', 'notEquals', 'in', 'notIn']
                 : ['equals', 'before', 'after', 'between', 'inThePast'];
 
-    return values.map((value) => ({ value, label: this.operatorLabel(value) }));
+    return values.map((value) => ({ value, label: operatorLabel(value) }));
   }
 
   protected fieldFor(item: DraftFilter): FieldMetadata | undefined {
@@ -328,41 +328,6 @@ export class FilterDialog {
             (typeof item === 'number' && Number.isFinite(item)),
         ))
     );
-  }
-
-  private operatorLabel(operator: FilterOperator): string {
-    switch (operator) {
-      case 'contains':
-        return 'Contains';
-      case 'equals':
-        return 'Equals';
-      case 'startsWith':
-        return 'Starts with';
-      case 'endsWith':
-        return 'Ends with';
-      case 'notEquals':
-        return 'Not equals';
-      case 'in':
-        return 'In';
-      case 'notIn':
-        return 'Not in';
-      case 'greaterThan':
-        return 'Greater than';
-      case 'greaterThanOrEqual':
-        return 'Greater than or equal';
-      case 'lessThan':
-        return 'Less than';
-      case 'lessThanOrEqual':
-        return 'Less than or equal';
-      case 'before':
-        return 'Before';
-      case 'after':
-        return 'After';
-      case 'inThePast':
-        return 'In the past';
-      default:
-        return 'Between';
-    }
   }
 
   addFilter(): void {

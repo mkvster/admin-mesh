@@ -1,9 +1,11 @@
 ---
 id: TASK-23
 title: Extract shared hover-preview timer logic
-status: To Do
-assignee: []
+status: Done
+assignee:
+  - '@mkvster'
 created_date: '2026-09-22 15:41'
+updated_date: '2026-09-22 16:42'
 labels: []
 milestone: s-003
 dependencies: []
@@ -18,7 +20,25 @@ The 250ms open / 120ms close hover-intent timer logic for reference preview over
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A single reusable hover-intent timer helper exists
-- [ ] #2 list-grid.ts and reference-value-input.ts both use the shared helper instead of duplicated timer fields/methods
-- [ ] #3 No behavior change; existing tests pass
+- [x] #1 A single reusable hover-intent timer helper exists
+- [x] #2 list-grid.ts and reference-value-input.ts both use the shared helper instead of duplicated timer fields/methods
+- [x] #3 No behavior change; existing tests pass
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+
+<!-- SECTION:FINAL_SUMMARY:END -->
