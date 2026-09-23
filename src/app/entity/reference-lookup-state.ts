@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 import { FieldMetadata } from './entity-types';
 import type { ReferenceLookupSelection } from './reference-lookup-view/reference-lookup-view';
 
@@ -11,18 +11,20 @@ export interface ReferenceLookupRequest {
 
 @Injectable({ providedIn: 'root' })
 export class ReferenceLookupState {
-  readonly request = signal<ReferenceLookupRequest | null>(null);
+  private readonly requestStack = signal<ReferenceLookupRequest[]>([]);
+  readonly stack = this.requestStack.asReadonly();
+  readonly request = computed(() => this.requestStack().at(-1) ?? null);
   private readonly displayValues = new Map<string, Map<string | number, string>>();
 
   open(request: ReferenceLookupRequest): void {
-    this.request.set(request);
+    this.requestStack.update((stack) => [...stack, request]);
   }
 
   close(result?: ReferenceLookupSelection[]): void {
-    const request = this.request();
+    const request = this.requestStack().at(-1);
     if (!request) return;
+    this.requestStack.update((stack) => stack.slice(0, -1));
     request.complete(result);
-    this.request.set(null);
   }
 
   remember(field: FieldMetadata, selections: ReferenceLookupSelection[]): void {

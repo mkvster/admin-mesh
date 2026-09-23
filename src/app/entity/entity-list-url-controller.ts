@@ -50,10 +50,7 @@ export class EntityListUrlController implements EntityListQueryAdapter {
       { initialValue: null, injector: this.options.injector },
     );
     this.query = computed(() => {
-      const listId = this.listId();
-      return listId === null
-        ? null
-        : this.readListQuery(this.queryParams(), this.options.resource(), listId);
+      return this.readListQuery(this.queryParams(), this.options.resource(), this.listId());
     });
     this.formMode = computed<EntityFormMode | null>(() => {
       const mode = this.queryParams().get('entityMode');
@@ -213,13 +210,15 @@ export class EntityListUrlController implements EntityListQueryAdapter {
     );
   }
 
-  private readListQuery(params: ParamMap, resource: string, listId: string): ListQuery {
+  private readListQuery(params: ParamMap, resource: string, listId: string | null): ListQuery {
     const page = normalizePageNumber(this.readPositiveInt(params.get('page'), 1));
     const pageSize = normalizePageSize(
       this.readPositiveInt(params.get('pageSize'), DEFAULT_PAGE_SIZE),
     );
     const sort = this.parseSort(params.get('sort'), params.get('dir'));
-    const filters = parseListFilter(params.get('filter'), { resource, listId })?.items ?? [];
+    const filters = listId
+      ? (parseListFilter(params.get('filter'), { resource, listId })?.items ?? [])
+      : [];
 
     return {
       page,
