@@ -10,7 +10,7 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminCache } from '../../cache/admin-cache';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
+import { combineLatest, map, of, switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -30,6 +30,7 @@ import { ReferenceLookupSelection } from '../reference-lookup-view/reference-loo
 import { ErrorState } from '../../shared/error-state/error-state';
 import { EntityFormMode, FieldMetadata, FormLayoutItem, FormMetadata } from '../entity-types';
 import { parseDateValue, serializeDateValue } from '../filtering/date-serialization';
+import { withResourceLoadState } from '../resource-load-state';
 
 type FormState =
   | { status: 'loading' }
@@ -90,26 +91,26 @@ export class EntityForm {
           this.mode() === 'create' || id === undefined
             ? of({} as Record<string, unknown>)
             : this.previewDataStore.get(resource, id, formId),
-        ]).pipe(
-          map(
-            ([entityMetadata, formMetadata, entity]) =>
-              ({
-                status: 'ready',
-                metadata: {
-                  ...formMetadata,
-                  fields: this.fieldMetadataResolver.mergeFields(
-                    entityMetadata.fields,
-                    formMetadata.fields,
-                  ),
-                },
-                entity,
-              }) as FormState,
-          ),
-          startWith({ status: 'loading' } as FormState),
-        ),
+        ]),
       ),
-      catchError((cause: unknown) => of<FormState>({ status: 'error', cause })),
-      startWith({ status: 'loading' } as FormState),
+      withResourceLoadState(),
+      map((state) => {
+        if (state.status === 'loading') return state;
+        if (state.status === 'error') return state;
+
+        const [entityMetadata, formMetadata, entity] = state.data;
+        return {
+          status: 'ready',
+          metadata: {
+            ...formMetadata,
+            fields: this.fieldMetadataResolver.mergeFields(
+              entityMetadata.fields,
+              formMetadata.fields,
+            ),
+          },
+          entity,
+        } as FormState;
+      }),
     ),
     { initialValue: { status: 'loading' } as FormState },
   );

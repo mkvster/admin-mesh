@@ -13,7 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { catchError, map, of, startWith, switchMap } from 'rxjs';
+import { map, switchMap } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FilterDialog, FilterDialogData } from '../filtering/filter-dialog/filter-dialog';
 import { ListDataSource } from '../list-data-source';
@@ -27,6 +27,7 @@ import {
   ListQuery,
   ListQueryResult,
 } from '../entity-types';
+import { withResourceLoadState } from '../resource-load-state';
 
 export interface ReferenceLookupSelection {
   id: string | number;
@@ -85,17 +86,17 @@ export class ReferenceLookupView {
     toObservable(this.query).pipe(
       switchMap((query) =>
         this.dataSource.load(this.resource(), this.listId(), query).pipe(
-          map(
-            (list) =>
-              ({
-                status: 'loaded',
-                idField: list.entityMetadata.idField,
-                metadata: list.metadata,
-                result: list.result,
-              }) as LookupState,
-          ),
-          startWith({ status: 'loading' } as LookupState),
-          catchError((cause: unknown) => of<LookupState>({ status: 'error', cause })),
+          withResourceLoadState(),
+          map((state) => {
+            if (state.status === 'loading') return state;
+            if (state.status === 'error') return state;
+            return {
+              status: 'loaded',
+              idField: state.data.entityMetadata.idField,
+              metadata: state.data.metadata,
+              result: state.data.result,
+            } as LookupState;
+          }),
         ),
       ),
     ),

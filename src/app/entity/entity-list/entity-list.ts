@@ -14,18 +14,7 @@ import {
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import {
-  catchError,
-  combineLatest,
-  defer,
-  finalize,
-  map,
-  of,
-  startWith,
-  Subject,
-  switchMap,
-  throwError,
-} from 'rxjs';
+import { combineLatest, defer, finalize, map, startWith, Subject, switchMap } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
@@ -66,6 +55,7 @@ import { EntityForm } from '../entity-form/entity-form';
 import { EntityFormMode } from '../entity-types';
 import { EntityListContextStore } from '../entity-list-context';
 import { EntityLocateResult } from '../entity-types';
+import { withResourceLoadState } from '../resource-load-state';
 import { DEFAULT_PAGE_SIZE, normalizePageNumber, normalizePageSize } from '../pagination';
 import {
   AdminToolbarActions,
@@ -128,7 +118,21 @@ export class EntityList {
   readonly state = toSignal<EntityListState, EntityListState>(
     toObservable(this.resource).pipe(
       switchMap((resource) =>
-        this.loadEntityList(resource).pipe(startWith({ status: 'loading' } as EntityListState)),
+        this.loadEntityList(resource).pipe(
+          withResourceLoadState({
+            isExpectedError: (cause) => cause instanceof HttpErrorResponse,
+            onExpectedError: (cause) => console.error('Entity list loading failed', cause),
+          }),
+          map((state) => {
+            if (state.status === 'loaded') return state.data;
+            if (state.status === 'loading') return state;
+            return {
+              status: 'error',
+              message: 'Failed to load entity list',
+              cause: state.cause,
+            } satisfies EntityListState;
+          }),
+        ),
       ),
     ),
     {
@@ -333,7 +337,7 @@ export class EntityList {
 
   private loadEntityList(resource: string) {
     this.isListLoading.set(true);
-    return this.loadList(resource).pipe(catchError((error) => this.handleLoadError(error)));
+    return this.loadList(resource).pipe(finalize(() => this.isListLoading.set(false)));
   }
 
   private loadList(resource: string) {
@@ -710,20 +714,5 @@ export class EntityList {
       }),
       'Entity list page correction failed',
     );
-  }
-
-  private handleLoadError(error: unknown) {
-    if (!(error instanceof HttpErrorResponse)) {
-      return throwError(() => error);
-    }
-
-    console.error('Entity list loading failed', error);
-    this.isListLoading.set(false);
-
-    return of<EntityListState>({
-      status: 'error',
-      message: 'Failed to load entity list',
-      cause: error,
-    });
   }
 }
